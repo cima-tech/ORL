@@ -1,0 +1,227 @@
+/* --- MODULO DE ESTILOS (Glassmorphism & Theme) --- */
+
+/* 1. VARIABLES DE TEMA */
+:root {
+    /* Light Mode (Por defecto) */
+    --bg-gradient: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(219, 234, 254) 90%);
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --input-bg: rgba(255, 255, 255, 0.5);
+    --danger: #ef4444;
+    --success: #10b981;
+    --border-radius-lg: 16px;
+    --border-radius-sm: 8px;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+    --bg-gradient: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+    --glass-bg: rgba(30, 41, 59, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --input-bg: rgba(15, 23, 42, 0.6);
+}
+
+/* 2. RESET & BASE */
+* { box-sizing: border-box; transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px; /* Base realista */
+    line-height: 1.5;
+    padding: 20px;
+}
+
+/* 3. CLASES DE UTILIDAD GLASS */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px); /* Blur más fuerte para efecto real */
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--border-radius-lg);
+}
+
+/* 4. LAYOUT */
+.app-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 5. TYPOGRAPHY */
+h1, h2, h3, h4 { margin: 0 0 10px 0; font-weight: 600; color: var(--text-primary); }
+.label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+
+/* 6. INPUTS & TEXTAREAS (Medidas Realistas) */
+input, select, textarea {
+    width: 100%;
+    padding: 8px 12px; /* Altura cómoda aprox 38px */
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    line-height: 1.4;
+}
+
+/* Inputs específicos */
+input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="tel"], select {
+    height: 38px; /* Altura estándar de formulario */
+}
+
+/* Textareas */
+textarea {
+    resize: vertical;
+    min-height: 80px; /* Altura mínima razonable */
+    line-height: 1.5;
+}
+.txt-plan { min-height: 150px; } /* Plan necesita más espacio */
+.txt-recipe { min-height: 100px; }
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background: rgba(255, 255, 255, 0.8); /* Un poco más opaco al foco para legibilidad */
+}
+[data-theme="dark"] input:focus, 
+[data-theme="dark"] select:focus, 
+[data-theme="dark"] textarea:focus {
+    background: rgba(30, 41, 59, 0.8);
+}
+
+/* 7. BOTONES */
+.btn {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    background: var(--accent-color);
+    transition: all 0.2s ease;
+}
+.btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+}
+.btn-secondary:hover { background: rgba(128,128,128,0.1); }
+
+.btn-icon { padding: 8px; border-radius: 50%; width: 36px; height: 36px; display: grid; place-items: center; }
+
+/* 8. COMPONENTES ESPECÍFICOS */
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+}
+.logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--accent-color), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.toolbar-group { display: flex; gap: 10px; align-items: center; }
+
+/* Pestañas (Tabs) */
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; border-bottom: 1px solid var(--glass-border); margin-bottom: 16px; scrollbar-width: none; }
+.tab-btn {
+    padding: 8px 16px;
+    border-radius: 20px 20px 0 0;
+    background: rgba(128,128,128,0.05);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.tab-btn:hover { background: rgba(128,128,128,0.1); }
+.tab-btn.active { background: var(--glass-bg); color: var(--accent-color); border-color: var(--glass-border); border-bottom-color: var(--glass-bg); margin-bottom: -9px; position: relative; z-index: 10; }
+
+/* Grid System */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.full-width { grid-column: 1 / -1; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(128,128,128,0.15);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    user-select: none;
+}
+.chip:hover { background: rgba(128,128,128,0.25); }
+.chip.on { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+.chip.disabled { opacity: 0.3; pointer-events: none; }
+
+/* Secciones Internas */
+.section-box {
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    padding: 12px;
+    margin-top: 8px;
+}
+
+/* Tarjeta de Visita */
+.visit-card { padding: 20px; position: relative; }
+.visit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+.visit-body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* Preview Area */
+.preview-container {
+    margin-top: 20px;
+    padding: 30px;
+    min-height: 500px;
+    display: none; /* Oculto por defecto */
+    justify-content: center;
+    background: rgba(0,0,0,0.05);
+    border-radius: var(--border-radius-lg);
+    overflow: auto;
+}
+.doc-page { 
+    background: white; color: black; width: 210mm; min-height: 297mm; 
+    padding: 15mm; box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+    font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.4;
+    transform-origin: top center;
+}
+.doc-header, .doc-footer { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+/* Utilities */
+.hidden { display: none !important; }
+.flex-row { display: flex; gap: 10px; align-items: center; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .visit-body { grid-template-columns: 1fr; }
+    .toolbar { flex-direction: column; gap: 10px; align-items: stretch; }
+    .grid { grid-template-columns: 1fr; }
+}
