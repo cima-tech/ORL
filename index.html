@@ -1,0 +1,46 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIMA — Sistema ORL</title>
+  <!-- [HTML-001] CARGA DE ESTILOS -->
+  <link rel="stylesheet" href="modules/index.css">
+</head>
+<body>
+  <!-- [HTML-002] ESTRUCTURA PRINCIPAL -->
+  <header class="glass-panel">
+    <div class="logo-area">
+      <h1>C.I.M.A.</h1>
+      <p>Coordinador Inteligente de Monitoreo Asistido</p>
+    </div>
+    <div class="logo-area" style="text-align:right;">
+      <p id="clock" style="font-weight:600; font-size:0.9rem;">--:--</p>
+    </div>
+  </header>
+
+  <main class="app-container" id="mainContent">
+    <!-- El contenido dinámico se inyectará aquí vía index.js -->
+    <div style="text-align:center; padding:50px;">
+      <p>Cargando sistema CIMA...</p>
+    </div>
+  </main>
+
+  <footer class="glass-panel" style="margin-top:auto; text-align:center; font-size:0.8rem; padding:10px;">
+    <p>&copy; 2023 Sistema CIMA - Versión Modular Local</p>
+  </footer>
+
+  <!-- [HTML-003] CARGA DE MÓDULOS -->
+  <!-- Nota: type="module" es obligatorio para import/export -->
+  <script type="module" src="modules/index.js"></script>
+  
+  <!-- Script simple para el reloj -->
+  <script>
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById('clock').textContent = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }, 1000);
+  </script>
+</body>
+</html>
