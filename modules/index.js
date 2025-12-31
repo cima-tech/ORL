@@ -133,7 +133,7 @@ const Views = {
       
       // Datos de auditoría para mostrar
       const date = new Date(c.createdAt).toLocaleString();
-      const modified = c.updatedAt ? `<span style="font-size:0.75rem; color:var(--color-warning);"> (Mod: ${new Date(c.updatedBy).toLocaleDateString()})</span>` : '';
+      const modified = c.updatedAt ? `<span style="font-size:0.75rem; color:var(--color-warning);"> (Mod: ${new Date(c.updatedAt).toLocaleDateString()})</span>` : '';
       const author = c.createdBy || 'Desconocido';
 
       // Intentamos obtener resumen del modelo (si estuviera cargado) o fallback
@@ -278,7 +278,8 @@ const Views = {
     });
 
     container.appendChild(formCard);
-  },
+  }
+};
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL
 class App {
