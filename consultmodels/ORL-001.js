@@ -308,8 +308,75 @@ const ORL_DOCS = {
     // Aquí se pueden agregar generateCons, generateOrdLab, etc.
 };
 
+// [PUENTE-CONTRATO] CONEXIÓN CON INDEX.JS
+// Este bloque conecta tu lógica existente con el nuevo sistema modular
+// SIN MODIFICAR tu lógica interna de chips ni dropdowns.
+
+export const MODEL_DEFINITION = {
+    id: "ORL-001",
+    name: "Consulta ORL (Otorrinolaringología)",
+    
+    // 1. Inicializar UI: Llama a tu lógica existente y llena datos si es edición
+    initUI: function(container, data = {}) {
+        // A. Usamos tu lógica original para pintar los inputs y chips
+        ORL_UI.init(container);
+        
+        // B. Si estamos EDITANDO (hay datos), llenamos los campos manualmente
+        // (Tu ORL_UI.init original limpia el container, así que repoblamos aquí)
+        if (data && Object.keys(data).length > 0) {
+            const setVal = (sel, val) => {
+                const el = container.querySelector(sel);
+                if(el) el.value = val || '';
+            };
+
+            setVal('.txt-ea', data.ea);
+            setVal('.txt-motivo', data.motivo);
+            setVal('.txt-ap', data.ap);
+            setVal('.txt-af', data.af);
+            setVal('.txt-dx', data.dx);
+            setVal('.txt-recipe', data.recipe);
+            setVal('.txt-indicaciones', data.indicaciones);
+            setVal('.txt-plan', data.plan);
+            
+            // Nota: Para los chips y checkboxes complejos, se requeriría lógica extra
+            // para marcarlos como 'on'. Por ahora, el texto principal se restaura.
+        }
+    },
+    
+    // 2. Obtener Datos: Extrae la info del DOM que tú pintaste
+    getData: function(container) {
+        const getVal = (sel) => container.querySelector(sel)?.value || '';
+        
+        return {
+            ea: getVal('.txt-ea'),
+            motivo: getVal('.txt-motivo'),
+            ap: getVal('.txt-ap'), // Antecedentes personales
+            af: getVal('.txt-af'), // Antecedentes familiares
+            dx: getVal('.txt-dx'),
+            recipe: getVal('.txt-recipe'),
+            indicaciones: getVal('.txt-indicaciones'),
+            plan: getVal('.txt-plan'),
+            // Aquí podrías agregar más campos si tu HTML los tuviera name=""
+        };
+    },
+    
+    // 3. Validar: Chequeos básicos antes de guardar
+    validate: function(data) {
+        if (!data.motivo && !data.ea) {
+            return "Debe ingresar al menos un Motivo o Enfermedad Actual.";
+        }
+        return null; // Todo OK
+    },
+    
+    // 4. Resumen: Texto corto para la lista principal
+    getSummary: function(data) {
+        return data.motivo || data.dx || "Consulta ORL";
+    }
+};
+
 export const ORL_MODULE = {
     DATA: ORL_DATA,
     UI: ORL_UI,
     DOCS: ORL_DOCS
+
 };
