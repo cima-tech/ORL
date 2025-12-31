@@ -69,6 +69,7 @@ export default class UserProfile {
                 enableNotifications: true
             }
         };
+    this.defaultModel = "ORL-001";
     }
 
     // [JS-UP-002] Manejo de carga de imágenes
@@ -98,4 +99,5 @@ export default class UserProfile {
         
         return errors;
     }
+
 }
