@@ -562,15 +562,26 @@ class App {
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
       const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
 
       title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
-      body.innerHTML = '<div style="text-align:center; padding:50px;">Cargando modelo ' + modelId + '...</div>';
+      // Cambiar texto del botón para evitar confusiones
+      btn.textContent = "Guardar Consulta";
+      
+      body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
       modal.classList.add('active');
 
       try {
           // [POINT 4] CARGA DINÁMICA DEL MODELO
+          // Nota: Esta ruta es RELATIVA a la ubicación de index.js (dentro de modules/)
+          // La ruta para ir a consultmodels es ../consultmodels/
           const module = await import(`../consultmodels/${modelId}.js`);
           
+          // Verificar que el contrato exista
+          if (!module.MODEL_DEFINITION) {
+              throw new Error("El archivo no exporta MODEL_DEFINITION. Revisa el parche en ORL-001.js");
+          }
+
           // Limpiar
           body.innerHTML = '';
 
@@ -579,7 +590,11 @@ class App {
           module.MODEL_DEFINITION.initUI(body, data || {});
 
           // Configurar botón guardar
-          document.getElementById('btnSaveConsultation').onclick = async () => {
+          // Quitamos listeners anteriores clonando el botón para evitar dobles clicks
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+          
+          newBtn.onclick = async () => {
               try {
                   // Obtener datos del modelo
                   const consultData = module.MODEL_DEFINITION.getData(body);
@@ -598,36 +613,30 @@ class App {
                   alert("Consulta guardada exitosamente");
                   this.closeModal();
                   this.showPatientView(this.currentPatient.identificacion.documento_numero); // Recargar
-              } catch(e) { alert("Error al guardar: " + e.message); }
+              } catch(e) {
+                  console.error(e);
+                  alert("Error al guardar: " + e.message);
+              }
           };
 
       } catch (err) {
-          body.innerHTML = `<div style="color:red;">Error cargando modelo ${modelId}: ${err.message}</div>`;
+          console.error("Error cargando modelo:", err);
+          body.innerHTML = `
+            <div style="color:var(--color-error); text-align:center; padding:20px;">
+                  <h3>Error Crítico</h3>
+                  <p>No se pudo cargar el modelo ${modelId}.</p>
+                  <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
+                  <p>Verifica la consola (F12) para más detalles.</p>
+            </div>`;
+          // Desactivar botón para evitar clicks
+          const btn = document.getElementById('btnSaveConsultation');
+          if(btn) btn.disabled = true;
       }
   }
 
   closeModal() {
       document.getElementById('editModal').classList.remove('active');
       this.currentEditingConsultationId = null;
-  }
-  
-  showSearchModal() {
-      document.getElementById('searchModal').classList.add('active');
-      const input = document.getElementById('searchInput');
-      input.value = '';
-      input.focus();
-      
-      input.oninput = () => {
-          const q = input.value;
-          if(q.length < 2) return;
-          const results = StorageService.search(q);
-          const div = document.getElementById('searchResults');
-          div.innerHTML = results.map(p => `
-              <div class="patient-info-item" style="cursor:pointer; margin-bottom:10px;" onclick="window.app.showPatientView('${p.identificacion.documento_numero}'); document.getElementById('searchModal').classList.remove('active');">
-                  <strong>${p.nombres.primer_nombre} ${p.nombres.primer_apellido}</strong> (${p.identificacion.documento_numero})
-              </div>
-          `).join('');
-      };
   }
 
   // Helpers de UI del Mockup
@@ -656,5 +665,6 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
 
