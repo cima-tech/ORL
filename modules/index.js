@@ -172,28 +172,113 @@ const Views = {
   },
 
   // Renderiza el formulario de creación de paciente (en Modal o nueva vista)
-  renderPatientForm: (container, data) => {
-    // Implementación simplificada para el ejemplo. 
-    // Debe usar PATIENT_FIELD_CONFIG.
-    container.innerHTML = '<h3>Formulario de Paciente (Completo)</h3><p>Implementar campos de PATIENT_FIELD_CONFIG aquí...</p>';
-    // Por brevedad, asumo que se completa igual que en la versión anterior.
-    container.innerHTML += `
-        <div class="input-group">
-            <label>Doc Tipo</label>
-            <select name="identificacion.documento_tipo"><option value="V">V</option><option value="E">E</option></select>
-        </div>
-        <div class="input-group">
-            <label>Numero</label>
-            <input type="text" name="identificacion.documento_numero" value="${data?.identificacion?.documento_numero||''}">
-        </div>
-        <div class="input-group">
-            <label>Nombre</label>
-            <input type="text" name="nombres.primer_nombre" value="${data?.nombres?.primer_nombre||''}">
-        </div>
-        <button class="action-btn" id="btnSavePatientForm">Guardar</button>
-    `;
-  }
-};
+  renderPatientForm: (container, data = {}) => {
+    container.innerHTML = '';
+    
+    // Función auxiliar para obtener valor anidado de forma segura
+    const getNestedValue = (path, obj) => {
+      return path.split('.').reduce((o, k) => (o || {})[k], obj);
+    };
+
+    // Función auxiliar para crear inputs
+    const createField = (sectionKey, fieldConfig, value) => {
+      const { key, label, type, options, placeholder, full } = fieldConfig;
+      const inputName = `${sectionKey}.${key}`;
+      const wrapper = document.createElement('div');
+      wrapper.className = `input-group ${full ? 'full-width' : ''}`;
+      
+      if (type === 'checkbox') {
+        wrapper.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; padding:8px 0; background:rgba(255,255,255,0.05); border-radius:8px; padding-left:10px; border:1px solid var(--color-border);">
+            <input type="checkbox" name="${inputName}" id="id_${inputName}" style="width:20px; height:20px;" ${value ? 'checked' : ''}>
+            <label for="id_${inputName}" style="margin:0; cursor:pointer; font-weight:600; color:var(--color-text);">${label}</label>
+          </div>`;
+      } else {
+        let inputHtml = '';
+        // Select con estilo glass
+        if (type === 'select') {
+          inputHtml = `<select name="${inputName}" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px;">
+            <option value="">Seleccione...</option>${options.map(o => `<option value="${o}" ${value===o?'selected':''}>${o}</option>`).join('')}
+          </select>`;
+        } else if (type === 'textarea') {
+          inputHtml = `<textarea name="${inputName}" rows="3" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);" placeholder="${placeholder||''}">${value||''}</textarea>`;
+        } else {
+          inputHtml = `<input type="${type}" name="${inputName}" value="${value||''}" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);" placeholder="${placeholder||''}" step="${fieldConfig.step || 'any'}">`;
+        }
+        wrapper.innerHTML = `<label style="font-size:0.85rem; font-weight:600; color:var(--text-dim);">${label}</label>${inputHtml}`;
+      }
+      return wrapper;
+    };
+
+    const formCard = document.createElement('div');
+    formCard.className = 'glass-panel';
+    formCard.style.padding = "20px";
+
+    // Iterar sobre TODAS las secciones de configuración (Tu A-R)
+    Object.entries(PATIENT_FIELD_CONFIG).forEach(([secKey, secConfig]) => {
+      const secDiv = document.createElement('div');
+      secDiv.style.marginBottom = "30px";
+      secDiv.style.borderBottom = "1px solid var(--color-border)";
+      secDiv.style.paddingBottom = "15px";
+
+      const title = document.createElement('h3');
+      title.textContent = secConfig.label;
+      title.style.color = "var(--accent-blue)";
+      title.style.marginBottom = "15px";
+      title.style.fontSize = "1.1rem";
+      secDiv.appendChild(title);
+
+      const row = document.createElement('div');
+      row.className = 'input-row';
+
+      // Manejar tipos complejos (Checklists)
+      if (secConfig.type === 'checkbox_list') {
+        secConfig.items.forEach(item => {
+          const val = getNestedValue(`${secKey}.${item.key}`, data);
+          row.appendChild(createField(secKey, { ...item, type: 'checkbox' }, val));
+        });
+        if (secConfig.extra_field) {
+          const val = getNestedValue(`${secKey}.${secConfig.extra_field}`, data);
+          const div = document.createElement('div');
+          div.className = 'input-group full-width';
+          div.innerHTML = `<label>Otros / Detalles</label><textarea name="${secKey}.${secConfig.extra_field}" rows="2" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);">${val||''}</textarea>`;
+          row.appendChild(div);
+        }
+      } 
+      else if (secConfig.type === 'group_check_detail') {
+        secConfig.items.forEach(item => {
+          const valCheck = getNestedValue(`${secKey}.${item.key}_check`, data);
+          const valDetail = getNestedValue(`${secKey}.${item.key}_detalle`, data);
+          
+          const group = document.createElement('div');
+          group.className = 'glass-panel';
+          group.style.padding = "10px";
+          group.style.background = "rgba(255,255,255,0.05)";
+          group.style.border = "1px solid var(--color-border)";
+          group.innerHTML = `
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="${secKey}.${item.key}_check" style="width:auto;" ${valCheck ? 'checked' : ''}>
+              <label style="margin:0; font-weight:bold; color:var(--color-text);">${item.label}</label>
+            </div>
+            <input type="text" name="${secKey}.${item.key}_detalle" value="${valDetail||''}" placeholder="Especifique..." style="margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:8px;">
+          `;
+          row.appendChild(group);
+        });
+      } 
+      else {
+        // Campos estándar
+        secConfig.fields.forEach(field => {
+          const val = getNestedValue(`${secKey}.${field.key}`, data);
+          row.appendChild(createField(secKey, field, val));
+        });
+      }
+
+      secDiv.appendChild(row);
+      formCard.appendChild(secDiv);
+    });
+
+    container.appendChild(formCard);
+  },
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL
 class App {
@@ -425,3 +510,4 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
