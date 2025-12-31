@@ -516,7 +516,7 @@ class App {
   }
 
   createNewPatientWorkflow() {
-      // Abrir Modal (Reusamos el modal de edición pero limpio)
+      // Abrir Modal
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
       document.getElementById('modalTitle').textContent = "Nuevo Paciente";
@@ -527,20 +527,38 @@ class App {
       modal.classList.add('active');
       
       document.getElementById('btnSaveConsultation').onclick = () => {
-          // Guardar paciente
-          const formData = new FormData(body.querySelector('form') || body); // Si no es form, hay que buscar inputs
-          // Hack rápido: buscar inputs dentro de body
-          const inputs = body.querySelectorAll('input, select');
-          const fd = new FormData();
-          inputs.forEach(i => { if(i.name) fd.append(i.name, i.value); }); // Checkboxes marcados llegan como 'on'
+          // [FIX-003] RECOLECCIÓN MANUAL DE DATOS
+          // Como no hay etiqueta <form>, no podemos usar new FormData(body).
+          // Tenemos que buscar inputs uno por uno y llenar un FormData vacío.
+          
+          const inputs = body.querySelectorAll('input, select, textarea');
+          const formData = new FormData(); // Creamos uno nuevo vacío
+          
+          inputs.forEach(input => {
+              if (input.name) {
+                  if (input.type === 'checkbox') {
+                      // Para checkboxes, guardamos true/false explícito
+                      formData.append(input.name, input.checked);
+                  } else {
+                      // Para el resto, el valor del input
+                      formData.append(input.name, input.value);
+                  }
+              }
+          });
 
           try {
-              const raw = this.sanitizePatientData(fd);
+              // Ahora pasamos este formData manual a tu lógica de saneamiento
+              const raw = this.sanitizePatientData(formData);
               const p = new PatientProfile(raw);
               StorageService.savePatient(p);
+              
+              alert("Paciente creado exitosamente");
               this.closeModal();
               this.showPatientView(p.identificacion.documento_numero);
-          } catch(e) { alert("Error: " + e.message); }
+          } catch(e) {
+              console.error(e);
+              alert("Error al guardar paciente: " + e.message);
+          }
       };
   }
 
@@ -665,6 +683,7 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
 
 
