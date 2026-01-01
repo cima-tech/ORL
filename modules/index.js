@@ -3,7 +3,7 @@
 /*
   [GLOSARIO-INDEX]
   StorageService -> Persistencia Local
-  PatientFieldConfig -> Esquema completo del paciente
+  PatientFieldConfig -> Esquema completo del paciente (A-R)
   App -> Orquestador principal (Dashboard, Paciente, Modal)
 */
 
@@ -424,7 +424,7 @@ const Views = {
 
     container.appendChild(formCard);
   }
-};
+}; // <--- IMPORTANTE: Cierre de Views
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL
 class App {
@@ -509,9 +509,9 @@ class App {
       btn.onclick = () => {
           const inputs = body.querySelectorAll('input, select, textarea');
           const formData = new FormData();
-          inputs.forEach(input => {
-              if (input.name) {
-                  formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value);
+          inputs.forEach(input => { 
+              if(input.name) {
+                  formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value); 
               }
           });
 
@@ -525,23 +525,27 @@ class App {
               
               alert("Ficha actualizada exitosamente");
               this.closeModal();
-              this.showPatientView(p.identificacion.documento_numero); // Recargar vista
+              this.showPatientView(p.identificacion.documento_numero); // Recargar
           } catch(e) { alert("Error al guardar: " + e.message); }
       };
   }
 
-    viewFullHistory() {
+  viewFullHistory() {
       if (!this.currentPatient) return;
       // Por ahora, esto abrirá el formulario de edición en modo lectura
       // para que puedas ver todos los datos detallados del paciente.
       // En el futuro esto podría abrir un PDF o una vista más detallada.
       alert("La ficha actual (Paciente) contiene toda la historia clínica. \nPara revisar detalles específicos, use la opción 'Editar Ficha'.");
   }
-  
+
   // [FIX-001] SANITIZACIÓN DE BOOLEANOS PARA PATIENT PROFILE
   sanitizePatientData(formData) {
       const raw = { 
-          identificacion: {}, nombres: {}, demografia: {}, alertas_clinicas: {} 
+          identificacion: {}, nombres: {}, demografia: {}, datos_biologicos: {}, contacto: {}, redes_sociales: {}, 
+          contacto_emergencia: {}, alertas_clinicas: {}, seguridad_prioritaria: {}, datos_administrativos: {},
+          antecedentes_personales: {}, historial_quirurgico: {}, hospitalizaciones: {}, 
+          lesiones_y_fracturas: {}, antecedentes_familiares: {}, habitos: {}, contexto_social: {}, 
+          consentimientos: {}
       };
       
       // 1. Llenar con lo que llegó del form
@@ -555,11 +559,40 @@ class App {
           target[parts[parts.length - 1]] = value;
       });
 
-      // 2. CORRECCIÓN: Forzar booleanos falsos
-      // Iterar la configuración conocida para asegurar que los checks no marcados sean false
-      // Nota: En una app real, iteraríamos recursivamente PATIENT_FIELD_CONFIG.
-      // Aquí hacemos un parche específico para las alertas_clinicas que definimos.
-      if (!raw.alertas_clinicas.alergias_check) raw.alertas_clinicas.alergias_check = false;
+      // 2. CORRECCIÓN: Forzar booleanos falsos (Iteramos sobre configuración conocida para asegurar checks)
+      // Iterar secciones para checkboxes normales
+      ['identificacion', 'nombres', 'demografia', 'datos_biologicos', 'contacto', 'redes_sociales', 'contacto_emergencia',
+       'seguridad_prioritaria', 'datos_administrativos', 'historial_quirurgico', 'hospitalizaciones', 'lesiones_y_fracturas',
+       'contexto_social', 'consentimientos'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec]) {
+            PATIENT_FIELD_CONFIG[sec].fields.forEach(f => {
+               if(f.type === 'checkbox') {
+                   const key = `${sec}.${f.key}`;
+                   if(!raw[sec][f.key]) raw[sec][f.key] = false;
+               }
+            });
+         }
+      });
+      
+      // Iterar checkbox_list
+      ['antecedentes_personales', 'antecedentes_familiares'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
+            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
+               const key = `${sec}.${f.key}`;
+               if(!raw[sec][f.key]) raw[sec][f.key] = false;
+            });
+         }
+      });
+
+      // Iterar group_check_detail
+      ['alertas_clinicas'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
+            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
+               const key = `${sec}.${f.key}_check`;
+               if(!raw[sec][f.key+'_check']) raw[sec][f.key+'_check'] = false;
+            });
+         }
+      });
 
       return raw;
   }
@@ -604,7 +637,7 @@ class App {
               alert("Paciente creado exitosamente");
               this.closeModal();
               this.showPatientView(p.identificacion.documento_numero);
-          } catch(e) {
+          } catch(e) { 
               console.error(e);
               alert("Error al guardar paciente: " + e.message);
           }
@@ -618,121 +651,4 @@ class App {
       this.openConsultationModal(null, selectedModel);
   }
 
-  async editConsultation(consultationId, modelId) {
-      this.currentEditingConsultationId = consultationId;
-      const consults = StorageService.getConsultations(this.currentPatient.identificacion.documento_numero);
-      const data = consults.find(c => c.id === consultationId);
-      this.openConsultationModal(data, modelId);
-  }
-
-  async openConsultationModal(data, modelId) {
-      const modal = document.getElementById('editModal');
-      const body = document.getElementById('modalBody');
-      const title = document.getElementById('modalTitle');
-      const btn = document.getElementById('btnSaveConsultation');
-
-      title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
-      // Cambiar texto del botón para evitar confusiones
-      btn.textContent = "Guardar Consulta";
-      
-      body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
-      modal.classList.add('active');
-
-      try {
-          // [POINT 4] CARGA DINÁMICA DEL MODELO
-          // Nota: Esta ruta es RELATIVA a la ubicación de index.js (dentro de modules/)
-          // La ruta para ir a consultmodels es ../consultmodels/
-          const module = await import(`../consultmodels/${modelId}.js`);
-          
-          // Verificar que el contrato exista
-          if (!module.MODEL_DEFINITION) {
-              throw new Error("El archivo no exporta MODEL_DEFINITION. Revisa el parche en ORL-001.js");
-          }
-
-          // Limpiar
-          body.innerHTML = '';
-
-          // Inicializar UI del Modelo en el Modal
-          // Pasamos 'data' si existe (edición) o {} (nuevo)
-          module.MODEL_DEFINITION.initUI(body, data || {});
-
-          // Configurar botón guardar
-          // Quitamos listeners anteriores clonando el botón para evitar dobles clicks
-          const newBtn = btn.cloneNode(true);
-          btn.parentNode.replaceChild(newBtn, btn);
-          
-          newBtn.onclick = async () => {
-              try {
-                  // Obtener datos del modelo
-                  const consultData = module.MODEL_DEFINITION.getData(body);
-                  
-                  // Metadatos del sistema
-                  consultData.modelo = modelId;
-                  consultData.pacienteId = this.currentPatient.identificacion.documento_numero;
-                  
-                  // Si es edición, mantenemos el ID
-                  if (data) consultData.id = data.id;
-
-                  // Generar resumen para la lista
-                  consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
-
-                  StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
-                  alert("Consulta guardada exitosamente");
-                  this.closeModal();
-                  this.showPatientView(this.currentPatient.identificacion.documento_numero); // Recargar
-              } catch(e) {
-                  console.error(e);
-                  alert("Error al guardar: " + e.message);
-              }
-          };
-
-      } catch (err) {
-          console.error("Error cargando modelo:", err);
-          body.innerHTML = `
-            <div style="color:var(--color-error); text-align:center; padding:20px;">
-                  <h3>Error Crítico</h3>
-                  <p>No se pudo cargar el modelo ${modelId}.</p>
-                  <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
-                  <p>Verifica la consola (F12) para más detalles.</p>
-            </div>`;
-          // Desactivar botón para evitar clicks
-          const btn = document.getElementById('btnSaveConsultation');
-          if(btn) btn.disabled = true;
-      }
-  }
-
-  closeModal() {
-      document.getElementById('editModal').classList.remove('active');
-      this.currentEditingConsultationId = null;
-  }
-
-  // Helpers de UI del Mockup
-  toggleSection(id) {
-      const sec = document.getElementById(id);
-      const content = sec.querySelector('.section-content');
-      const icon = sec.querySelector('.section-toggle i');
-      
-      if (content.classList.contains('expanded')) {
-          content.classList.remove('expanded');
-          content.style.maxHeight = "0";
-          icon.className = "fas fa-chevron-down";
-      } else {
-          content.classList.add('expanded');
-          content.style.maxHeight = "2000px"; // Altura arbitraria grande
-          icon.className = "fas fa-chevron-up";
-      }
-  }
-
-  toggleConsultationContent(id) {
-      const content = document.getElementById(`content-${id}`);
-      content.classList.toggle('expanded');
-  }
-}
-
-// Inicializar
-window.app = new App();
-document.addEventListener('DOMContentLoaded', () => window.app.init());
-
-
-
-
+  async editConsultation(
