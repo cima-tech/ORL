@@ -488,7 +488,56 @@ class App {
     pContent.classList.add('expanded');
     pContent.style.maxHeight = "1000px";
   }
+  
+  editCurrentPatient() {
+      if (!this.currentPatient) return alert("No hay paciente seleccionado");
 
+      const modal = document.getElementById('editModal');
+      const body = document.getElementById('modalBody');
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
+
+      title.textContent = "Editar Ficha Paciente";
+      btn.textContent = "Guardar Cambios";
+      
+      body.innerHTML = ''; 
+      // IMPORTANTE: Pasamos 'this.currentPatient' para que el formulario se llene con los datos existentes
+      Views.renderPatientForm(body, this.currentPatient);
+      modal.classList.add('active');
+      
+      // Reutilizamos la lógica de recolección manual que creamos antes
+      btn.onclick = () => {
+          const inputs = body.querySelectorAll('input, select, textarea');
+          const formData = new FormData();
+          inputs.forEach(input => {
+              if (input.name) {
+                  formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value);
+              }
+          });
+
+          try {
+              const raw = this.sanitizePatientData(formData);
+              // IMPORTANTE: Pasamos el UUID existente para que no cree uno nuevo
+              raw.identificacion.uuid = this.currentPatient.identificacion.uuid; 
+              
+              const p = new PatientProfile(raw);
+              StorageService.savePatient(p);
+              
+              alert("Ficha actualizada exitosamente");
+              this.closeModal();
+              this.showPatientView(p.identificacion.documento_numero); // Recargar vista
+          } catch(e) { alert("Error al guardar: " + e.message); }
+      };
+  }
+
+    viewFullHistory() {
+      if (!this.currentPatient) return;
+      // Por ahora, esto abrirá el formulario de edición en modo lectura
+      // para que puedas ver todos los datos detallados del paciente.
+      // En el futuro esto podría abrir un PDF o una vista más detallada.
+      alert("La ficha actual (Paciente) contiene toda la historia clínica. \nPara revisar detalles específicos, use la opción 'Editar Ficha'.");
+  }
+  
   // [FIX-001] SANITIZACIÓN DE BOOLEANOS PARA PATIENT PROFILE
   sanitizePatientData(formData) {
       const raw = { 
