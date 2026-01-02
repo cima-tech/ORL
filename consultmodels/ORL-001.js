@@ -441,3 +441,130 @@ export const ORL_MODULE = {
 
 };
 
+/* [PUENTE FINAL ORL-001] */
+// [PUENTE FINAL ORL-001]
+// [PUENTE FINAL ORL-001]
+
+export const MODEL_DEFINITION = {
+    id: "ORL-001",
+    name: "Consulta ORL (Otorrinolaringología)",
+    
+    // 1. Inicializar UI: Llama a tu lógica existente y llena datos si es edición
+    initUI: function(container, data = {}) {
+        // [FIX CRÍTICO] INYECTAR ESTRUCTURA HTML
+        // Tu lógica espera encontrar divs como .chips-motivo, .txt-ea, etc.
+        // Aquí creamos el "esqueleto" HTML para que la lógica tenga dónde agarrarse.
+        container.innerHTML = `
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <div class="input-group">
+                    <label>Enfermedad Actual</label>
+                    <textarea class="txt-ea" rows="3" placeholder="Enfermedad actual..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Motivo</label>
+                    <input type="text" class="txt-motivo" placeholder="Motivo...">
+                    <div class="chips-container chips-motivo"></div>
+                </div>
+                 <div class="input-group">
+                    <label>Antecedentes Personales</label>
+                    <input type="text" class="txt-ap" placeholder="Antecedentes...">
+                    <div class="chips-container chips-ap"></div>
+                </div>
+                 <div class="input-group">
+                    <label>Antecedentes Familiares</label>
+                    <input type="text" class="txt-af" placeholder="Antecedentes...">
+                    <div class="chips-container chips-af"></div>
+                </div>
+                <div class="input-group">
+                    <button type="button" id="btnTogglePE" class="btn-ghost" style="margin-top:10px;">Mostrar Examen Físico</button>
+                    <div class="pe-panels hidden"></div>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <div class="input-group">
+                    <label>Diagnóstico</label>
+                    <input type="text" class="txt-dx" placeholder="Diagnóstico...">
+                    <div class="chips-container chips-dx"></div>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <div class="input-group">
+                    <label>Recipe</label>
+                    <textarea class="txt-recipe" rows="4" placeholder="Recipe..."></textarea>
+                    <div class="recipe-chips-container"></div>
+                </div>
+                <div class="input-group">
+                    <label>Indicaciones (Auto)</label>
+                    <div class="indicaciones-dropdowns"></div>
+                    <textarea class="txt-indicaciones" rows="4" placeholder="Indicaciones..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Plan y Tratamiento</label>
+                    <textarea class="txt-plan" rows="4" placeholder="Plan..."></textarea>
+                </div>
+            </div>
+        `;
+
+        // 1. Ahora SÍ ejecutamos tu lógica original (chips, eventos)
+        ORL_UI.init(container);
+
+        // 2. Si hay datos (Edición), llenamos los campos manualmente
+        if (data && Object.keys(data).length > 0) {
+            const setVal = (sel, val) => {
+                const el = container.querySelector(sel);
+                if(el) el.value = val || '';
+            };
+            setVal('.txt-ea', data.ea);
+            setVal('.txt-motivo', data.motivo);
+            setVal('.txt-ap', data.ap);
+            setVal('.txt-af', data.af);
+            setVal('.txt-dx', data.dx);
+            setVal('.txt-recipe', data.recipe);
+            setVal('.txt-indicaciones', data.indicaciones);
+            setVal('.txt-plan', data.plan);
+            
+            // Listener para el botón de Examen Físico
+            const btnPE = container.querySelector('#btnTogglePE');
+            const pePanel = container.querySelector('.pe-panels');
+            if(btnPE && pePanel) {
+                btnPE.onclick = () => {
+                    pePanel.classList.toggle('hidden');
+                    btnPE.textContent = pePanel.classList.contains('hidden') ? 'Mostrar Examen Físico' : 'Ocultar Examen Físico';
+                };
+            }
+        }
+    },
+    
+    // 2. Obtener Datos: Extrae la info del DOM que tú pintaste
+    getData: function(container) {
+        const getVal = (sel) => container.querySelector(sel)?.value || '';
+        
+        return {
+            ea: getVal('.txt-ea'),
+            motivo: getVal('.txt-motivo'),
+            ap: getVal('.txt-ap'), 
+            af: getVal('.txt-af'), 
+            dx: getVal('.txt-dx'),
+            recipe: getVal('.txt-recipe'),
+            indicaciones: getVal('.txt-indicaciones'),
+            plan: getVal('.txt-plan')
+        };
+    },
+    
+    // 3. Validar: Chequeos básicos antes de guardar
+    validate: function(data) {
+        if (!data.motivo && !data.ea) {
+            return "Debe ingresar al menos un Motivo o Enfermedad Actual.";
+        }
+        return null; 
+    },
+    
+    // 4. Resumen: Texto corto para la lista principal
+    getSummary: function(data) {
+        return data.motivo || data.dx || "Consulta ORL";
+    }
+};
+// [FIN DEL ARCHIVO ORL-001.js - Mantener ORL_DATA, ORL_UI, ORL_DOCS tal cual]
+
