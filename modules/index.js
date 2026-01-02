@@ -1,4 +1,3 @@
-```javascript
 /* modules/index.js */
 
 /*
@@ -786,4 +785,5 @@ class App {
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
 ```
+
 
