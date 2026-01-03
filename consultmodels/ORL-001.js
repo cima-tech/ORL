@@ -1,13 +1,6 @@
 /* consultmodels/ORL-001.js */
 
-/*
-  [GLOSARIO-UNIVERSAL]
-  MODEL_DATA -> Constantes de catálogos médicos
-  MODEL_UI -> Lógica de manipulación DOM genérica (No contiene nombres específicos de ORL internamente)
-  MODEL_DOCS -> Generadores de estructura de documentos
-*/
-
-// [JS-UNIV-001] DATOS Y CATÁLOGOS (GENÉRICO)
+// [DATA-01] DATOS Y CATÁLOGOS
 const MODEL_DATA = {
     MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
     ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
@@ -31,12 +24,118 @@ const MODEL_DATA = {
         "Otros": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días."]
     },
 
-    STUDIES: {"Nasofibrolaringoscopia":{"Fosas Nasales":["Permeables","No Permeables"],"Correderas Nasales":["Sin Rinorrea","Rinorrea Blanca Escasa","Rinorrea Blanca Moderada","Rinorrea Blanca Abundante","Rinorrea Hialina Escasa","Rinorrea Hialina Moderada","Rinorrea Hialina Abundante","Rinorrea Amarilla Escasa","Rinorrea Amarilla Moderada","Rinorrea Amarilla Abundante","Rinorrea Verde Escasa","Rinorrea Verde Moderada","Rinorrea Verde Abundante"],"Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"],"Cornete Inferior Derecho":["Eutrófico","Hipertrófico","Polipoide"],"Cornete Medio Derecho":["Eutrófico","Hipertrófico","Polipoide"],"Meato Medio Derecho":["Libre","Comprometido"],"Coana Derecha":["Permeable","No Permeable"],"Cornete Inferior Izquierdo":["Eutrófico","Hipertrófico","Polipoide"],"Cornete Medio Izquierdo":["Eutrófico","Hipertrófico","Polipoide"],"Meato Medio Izquierdo":["Libre","Comprometido"],"Coana Izquierda":["Permeable","No Permeable"],"Paladar":["Con Cierre Coronal","Competente","Incompetente"],"Adenoides":["Ausentes","Leves","Moderadas","Severas"],"Rinofaringe":["Indemne","Congestiva Granulosa","Granulosa","Con Rinorrea Posterior Blanca Escasa","Con Rinorrea Posterior Hialina Escasa","Con Rinorrea Posterior Amarilla Escasa","Con Rinorrea Posterior Verde Escasa","Con Rinorrea Posterior Blanca Moderada","Con Rinorrea Posterior Hialina Moderada","Con Rinorrea Posterior Amarilla Moderada","Con Rinorrea Posterior Verde Moderada","Con Rinorrea Posterior Blanca Abundante","Con Rinorrea Posterior Hialina Abundante","Con Rinorrea Posterior Amarilla Abundante","Con Rinorrea Posterior Verde Abundante"],"Base De Lengua":["Sin Lesiones","Con Loe"],"Senos Piriformes":["Indemnes","Seno Piriforme Derecho Con Loe","Seno Piriforme Derecho Sin Lesiones","Seno Piriforme Izquierdo Con Loe","Seno Piriforme Izquierdo Sin Lesiones"],"Valleculas":["Indemnes","Vallecula Derecha Con Loe","Vallecula Derecha Sin Lesiones","Vallecula Izquierda Con Loe","Vallecula Izquierda Sin Lesiones"],"Epiglotis":["Indemne Erecta","Móvil","Eritematosa","En Omega"],"Bandas Ventriculares":["Indemnes","Hipertróficas","Con Loe"],"Cuerda Vocal Derecha":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],"Cuerda Vocal Izquierda":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],"Cierre Glótico":["Completo","Incompleto En Huso","Incompleto Irregular","En Reloj De Arena","Con Hiato Anterior","Con Hiato Posterior"],"Subglotis":["Permeable 100%","Estenosis Subglótica Cotton I","Estenosis Subglótica Cotton Ii","Estenosis Subglótica Cotton Iii"],"Mucosa":["Indemne","Eritematosa","Pálida","Con Plexo Derecho Friable","Con Plexo Izquierdo Friable"]},"Endoscopia Nasal":{"Fosas Nasales":["Permeables","No Permeables"],"Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"],"Cornete Medio Derecho":["Eutrófico","Hipertrófico","Polipoide","Concha Media Bullosa Derecha","Paradójico Derecho"],"Cornete Medio Izquierdo":["Eutrófico","Hipertrófico","Polipoide","Concha Media Bullosa Izquierda","Paradójico Izquierdo"],"Meato Medio Derecho":["Libre","Comprometido"],"Meato Medio Izquierdo":["Libre","Comprometido"],"Coana Derecha":["Permeable","No Permeable"],"Coana Izquierda":["Permeable","No Permeable"],"Sinusopatía":["Sin Sinusopatía","Con Sinusopatía Maxilar Derecha","Con Sinusopatía Maxilar Izquierda","Con Sinusopatía Frontal Derecha","Con Sinusopatía Frontal Izquierda","Con Sinusopatía Etmoidal Anterior Derecha","Con Sinusopatía Etmoidal Anterior Izquierda","Con Sinusopatía Etmoidal Posterior Derecha","Con Sinusopatía Etmoidal Posterior Izquierda","Con Sinusopatía Esfenoidal Anterior Derecha","Con Sinusopatía Esfenoidal Anterior Izquierda","Con Sinusopatía Maxiloetmoidal Derecha","Con Sinusopatía Maxiloetmoidal Izquierda"]},"Telelaringoscopia":{"Cierre Glótico":["Completo","Incompleto En Huso","Incompleto Irregular","En Reloj De Arena","Con Hiato Anterior","Con Hiato Posterior"],"Bandas Ventriculares":["Indemnes","Hipertróficas","Con Loe"],"Cuerda Vocal Derecha":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],"Cuerda Vocal Izquierda":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],"Subglotis":["Permeable 100%","Estenosis Cotton I","Estenosis Cotton Ii","Estenosis Cotton Iii"]},"Impedanciometría":{"Oído Derecho":["Curva Tipo A","Curva Tipo As","Curva Tipo B","Curva Tipo C"],"Oído Izquierdo":["Curva Tipo A","Curva Tipo As","Curva Tipo B","Curva Tipo C"]},"Tomografía de Oído":{"Cae Derecho":["Permeable","No Permeable"],"Om Derecho":["Neumatizado","Con Velamiento"],"Scutum Derecho":["Indemne","Amputado"],"Co Derecha":["Cadena Osicular Indemne","Cadena Osicular Alterada"],"Mastoides Derecha":["Neumatizada","Poco Neumatizada","Velada Completamente"],"Cóclea Derecha":["Indemne Con 2 Vueltas Y Media","Con Malformación","Impresiona","Osificada"],"Cai Derecho":["Indemne","Hipoplásico","Con Loe"],"Cae Izquierdo":["Permeable","No Permeable"],"Om Izquierdo":["Neumatizado","Con Velamiento"],"Scutum Izquierdo":["Indemne","Amputado"],"Co Izquierda":["Cadena Osicular Indemne","Cadena Osicular Alterada"],"Mastoides Izquierda":["Neumatizada","Poco Neumatizada","Velada Completamente"],"Cóclea Izquierda":["Indemne Con 2 Vueltas Y Media","Con Malformación","Impresiona","Osificada"],"Cai Izquierdo":["Indemne","Hipoplásico","Con Loe"]},"Tomografía de Nariz y SPN":{"Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Espolón Óseo Derecho","Espolón Óseo Izquierdo"],"Cornetes":["Eutróficos","Hipertróficos","Polipoides","Concha Media Bullosa Derecha","Concha Media Bullosa Izquierda","Cornete Medio Paradójico Derecho","Cornete Medio Paradójico Izquierdo"],"Meato Medio Derecho":["Libre","Comprometido"],"Meato Medio Izquierdo":["Libre","Comprometido"],"Coana Derecha":["Permeable","No Permeable"],"Coana Izquierda":["Permeable","No Permeable"],"Sinusopatía":["Sin Sinusopatía","Con Sinusopatía Maxilar Derecha","Con Sinusopatía Maxilar Izquierda","Con Sinusopatía Frontal Derecha","Con Sinusopatía Frontal Izquierda","Con Sinusopatía Etmoidal Anterior Derecha","Con Sinusopatía Etmoidal Anterior Izquierda","Con Sinusopatía Etmoidal Posterior Derecha","Con Sinusopatía Etmoidal Posterior Izquierda","Con Sinusopatía Esfenoidal Anterior Derecha","Con Sinusopatía Esfenoidal Anterior Izquierda","Con Sinusopatía Maxiloetmoidal Derecha","Con Sinusopatía Maxiloetmoidal Izquierda"]},"Audiometría":{},"Timpanometría":{},"Acufenometría":{},"Prueba de Prótesis Auditiva":{},"PEATC":{},"Estudio de Sueño":{},"Resonancia de Nariz y SPN":{},"Protocolo de Implante Coclear":{}},
+    STUDIES: {
+        "Nasofibrolaringoscopia":{
+            "Fosas Nasales":["Permeables","No Permeables"],
+            "Correderas Nasales":["Sin Rinorrea","Rinorrea Blanca Escasa","Rinorrea Blanca Moderada","Rinorrea Blanca Abundante","Rinorrea Hialina Escasa","Rinorrea Hialina Moderada","Rinorrea Hialina Abundante","Rinorrea Amarilla Escasa","Rinorrea Amarilla Moderada","Rinorrea Amarilla Abundante","Rinorrea Verde Escasa","Rinorrea Verde Moderada","Rinorrea Verde Abundante"],
+            "Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"],
+            "Cornete Inferior Derecho":["Eutrófico","Hipertrófico","Polipoide"],
+            "Cornete Medio Derecho":["Eutrófico","Hipertrófico","Polipoide"],
+            "Meato Medio Derecho":["Libre","Comprometido"],
+            "Coana Derecha":["Permeable","No Permeable"],
+            "Cornete Inferior Izquierdo":["Eutrófico","Hipertrófico","Polipoide"],
+            "Cornete Medio Izquierdo":["Eutrófico","Hipertrófico","Polipoide"],
+            "Meato Medio Izquierdo":["Libre","Comprometido"],
+            "Coana Izquierda":["Permeable","No Permeable"],
+            "Paladar":["Con Cierre Coronal","Competente","Incompetente"],
+            "Adenoides":["Ausentes","Leves","Moderadas","Severas"],
+            "Rinofaringe":["Indemne","Congestiva Granulosa","Granulosa","Con Rinorrea Posterior Blanca Escasa","Con Rinorrea Posterior Hialina Escasa","Con Rinorrea Posterior Amarilla Escasa","Con Rinorrea Posterior Verde Escasa","Con Rinorrea Posterior Blanca Moderada","Con Rinorrea Posterior Hialina Moderada","Con Rinorrea Posterior Amarilla Moderada","Con Rinorrea Posterior Verde Moderada","Con Rinorrea Posterior Blanca Abundante","Con Rinorrea Posterior Hialina Abundante","Con Rinorrea Posterior Amarilla Abundante","Con Rinorrea Posterior Verde Abundante"],
+            "Base De Lengua":["Sin Lesiones","Con Loe"],
+            "Senos Piriformes":["Indemnes","Seno Piriforme Derecho Con Loe","Seno Piriforme Derecho Sin Lesiones","Seno Piriforme Izquierdo Con Loe","Seno Piriforme Izquierdo Sin Lesiones"],
+            "Valleculas":["Indemnes","Vallecula Derecha Con Loe","Vallecula Derecha Sin Lesiones","Vallecula Izquierda Con Loe","Vallecula Izquierda Sin Lesiones"],
+            "Epiglotis":["Indemne Erecta","Móvil","Eritematosa","En Omega"],
+            "Bandas Ventriculares":["Indemnes","Hipertróficas","Con Loe"],
+            "Cuerda Vocal Derecha":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],
+            "Cuerda Vocal Izquierda":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],
+            "Cierre Glótico":["Completo","Incompleto En Huso","Incompleto Irregular","En Reloj De Arena","Con Hiato Anterior","Con Hiato Posterior"],
+            "Subglotis":["Permeable 100%","Estenosis Subglótica Cotton I","Estenosis Subglótica Cotton Ii","Estenosis Subglótica Cotton Iii"],
+            "Mucosa":["Indemne","Eritematosa","Pálida","Con Plexo Derecho Friable","Con Plexo Izquierdo Friable"]
+        },
+        "Endoscopia Nasal":{
+            "Fosas Nasales":["Permeables","No Permeables"],
+            "Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"],
+            "Cornete Medio Derecho":["Eutrófico","Hipertrófico","Polipoide","Concha Media Bullosa Derecha","Paradójico Derecho"],
+            "Cornete Medio Izquierdo":["Eutrófico","Hipertrófico","Polipoide","Concha Media Bullosa Izquierda","Paradójico Izquierdo"],
+            "Meato Medio Derecho":["Libre","Comprometido"],
+            "Meato Medio Izquierdo":["Libre","Comprometido"],
+            "Coana Derecha":["Permeable","No Permeable"],
+            "Coana Izquierda":["Permeable","No Permeable"],
+            "Sinusopatía":["Sin Sinusopatía","Con Sinusopatía Maxilar Derecha","Con Sinusopatía Maxilar Izquierda","Con Sinusopatía Frontal Derecha","Con Sinusopatía Frontal Izquierda","Con Sinusopatía Etmoidal Anterior Derecha","Con Sinusopatía Etmoidal Anterior Izquierda","Con Sinusopatía Etmoidal Posterior Derecha","Con Sinusopatía Etmoidal Posterior Izquierda","Con Sinusopatía Esfenoidal Anterior Derecha","Con Sinusopatía Esfenoidal Anterior Izquierda","Con Sinusopatía Maxiloetmoidal Derecha","Con Sinusopatía Maxiloetmoidal Izquierda"]
+        },
+        "Telelaringoscopia":{
+            "Cierre Glótico":["Completo","Incompleto En Huso","Incompleto Irregular","En Reloj De Arena","Con Hiato Anterior","Con Hiato Posterior"],
+            "Bandas Ventriculares":["Indemnes","Hipertróficas","Con Loe"],
+            "Cuerda Vocal Derecha":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],
+            "Cuerda Vocal Izquierda":["Indemne","Indemne Móvil","Móvil Con Loe","Móvil Con Leucoplasia","Inmóvil Con Loe","Inmóvil Con Leucoplasia"],
+            "Subglotis":["Permeable 100%","Estenosis Cotton I","Estenosis Cotton Ii","Estenosis Cotton Iii"]
+        },
+        "Impedanciometría":{
+            "Oído Derecho":["Curva Tipo A","Curva Tipo As","Curva Tipo B","Curva Tipo C"],
+            "Oído Izquierdo":["Curva Tipo A","Curva Tipo As","Curva Tipo B","Curva Tipo C"]
+        },
+        "Tomografía de Oído":{
+            "Cae Derecho":["Permeable","No Permeable"],
+            "Om Derecho":["Neumatizado","Con Velamiento"],
+            "Scutum Derecho":["Indemne","Amputado"],
+            "Co Derecha":["Cadena Osicular Indemne","Cadena Osicular Alterada"],
+            "Mastoides Derecha":["Neumatizada","Poco Neumatizada","Velada Completamente"],
+            "Cóclea Derecha":["Indemne Con 2 Vueltas Y Media","Con Malformación","Impresiona","Osificada"],
+            "Cai Derecho":["Indemne","Hipoplásico","Con Loe"],
+            "Cae Izquierdo":["Permeable","No Permeable"],
+            "Om Izquierdo":["Neumatizado","Con Velamiento"],
+            "Scutum Izquierdo":["Indemne","Amputado"],
+            "Co Izquierda":["Cadena Osicular Indemne","Cadena Osicular Alterada"],
+            "Mastoides Izquierda":["Neumatizada","Poco Neumatizada","Velada Completamente"],
+            "Cóclea Izquierda":["Indemne Con 2 Vueltas Y Media","Con Malformación","Impresiona","Osificada"],
+            "Cai Izquierdo":["Indemne","Hipoplásico","Con Loe"]
+        },
+        "Tomografía de Nariz y SPN":{
+            "Tabique":["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Espolón Óseo Derecho","Espolón Óseo Izquierdo"],
+            "Cornetes":["Eutróficos","Hipertróficos","Polipoides","Concha Media Bullosa Derecha","Concha Media Bullosa Izquierda","Cornete Medio Paradójico Derecho","Cornete Medio Paradójico Izquierdo"],
+            "Meato Medio Derecho":["Libre","Comprometido"],
+            "Meato Medio Izquierdo":["Libre","Comprometido"],
+            "Coana Derecha":["Permeable","No Permeable"],
+            "Coana Izquierda":["Permeable","No Permeable"],
+            "Sinusopatía":["Sin Sinusopatía","Con Sinusopatía Maxilar Derecha","Con Sinusopatía Maxilar Izquierda","Con Sinusopatía Frontal Derecha","Con Sinusopatía Frontal Izquierda","Con Sinusopatía Etmoidal Anterior Derecha","Con Sinusopatía Etmoidal Anterior Izquierda","Con Sinusopatía Etmoidal Posterior Derecha","Con Sinusopatía Etmoidal Posterior Izquierda","Con Sinusopatía Esfenoidal Anterior Derecha","Con Sinusopatía Esfenoidal Anterior Izquierda","Con Sinusopatía Maxiloetmoidal Derecha","Con Sinusopatía Maxiloetmoidal Izquierda"]
+        },
+        "Audiometría":{},"Timpanometría":{},"Acufenometría":{},"Prueba de Prótesis Auditiva":{},"PEATC":{},"Estudio de Sueño":{},"Resonancia de Nariz y SPN":{},"Protocolo de Implante Coclear":{}
+    },
     
-    PHYSICAL_EXAM: {"Cara":{"Simetría":["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"]},"Oído Derecho":{"Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],"Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],"Oído Medio":["Membrana Timpánica"],"Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]},"Oído Izquierdo":{"Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],"Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],"Oído Medio":["Membrana Timpánica"],"Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]},"Nariz":{"Fosa Nasal":["Fosa nasal permeable","LOE","LOE que obstruye compleamente fosa nasal izquierda","LOE que obstruye completamente fosa nasal derecha"],"Tabique":["Central","con desviación Dextroconvexa","con desviación Levoconvexa","con espolón óseo"],"Cornetes":["Cornete inferior eutrófico","Cornete inferior hipertrófico obstructivo","Cornete inferior con degeneración polipoidea","Cornete medio eutrófico","Cornete medio hipertrófico","Poliposis nasal"],"Mucosa":["Mucosa Indemne","Mucosa Pálida","Mucosa Eritematosa a nivel de Plexos","Epistaxis Anterior","Epistaxis Posterior"],"Rinorrea":["Rinorrea Hialina","Rinorrea Blanquecina","Rinorrea Amarillenta"]},"Orofaringe":{"Lengua":["Lengua húmeda móvil","Lengua seca"],"Tonsilas":["Tonsilas grado I","Tonsilas grado II","Tonsilas grado III","Tonsilas grado IV","Tonsilas asimétricas","Tonsilas con placas blanquecinas"],"Rinofaringe":["congestiva","con rinorrea posterior escasa","con rinorrea posterior blanquecina","con placas blanquecinas"]},"Cuello":{"Aspecto":["Móvil, sin lesiones aparentes"]}}
+    PHYSICAL_EXAM: {
+        "Cara":{
+            "Simetría":["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"]
+        },
+        "Oído Derecho":{
+            "Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],
+            "Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],
+            "Oído Medio":["Membrana Timpánica"],
+            "Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]
+        },
+        "Oído Izquierdo":{
+            "Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],
+            "Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],
+            "Oído Medio":["Membrana Timpánica"],
+            "Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]
+        },
+        "Nariz":{
+            "Fosa Nasal":["Fosa nasal permeable","LOE","LOE que obstruye compleamente fosa nasal izquierda","LOE que obstruye completamente fosa nasal derecha"],
+            "Tabique":["Central","con desviación Dextroconvexa","con desviación Levoconvexa","con espolón óseo"],
+            "Cornetes":["Cornete inferior eutrófico","Cornete inferior hipertrófico obstructivo","Cornete inferior con degeneración polipoidea","Cornete medio eutrófico","Cornete medio hipertrófico obstructivo","Poliposis nasal"],
+            "Mucosa":["Mucosa Indemne","Mucosa Pálida","Mucosa Eritematosa a nivel de Plexos","Epistaxis Anterior","Epistaxis Posterior"],
+            "Rinorrea":["Rinorrea Hialina","Rinorrea Blanquecina","Rinorrea Amarillenta"]
+        },
+        "Orofaringe":{
+            "Lengua":["Lengua húmeda móvil","Lengua seca"],
+            "Tonsilas":["Tonsilas grado I","Tonsilas grado II","Tonsilas grado III","Tonsilas grado IV","Tonsilas asimétricas","Tonsilas con placas blanquecinas"],
+            "Rinofaringe":["congestiva","con rinorrea posterior escasa","con rinorrea posterior blanquecina","con placas blanquecinas"]
+        },
+        "Cuello":{
+            "Aspecto":["Móvil, sin lesiones aparentes"]
+        }
+    }
 };
 
-// [JS-UNIV-002] LÓGICA DE UI GENÉRICA
+// [UI-LOGIC] LÓGICA DE MANIPULACIÓN DOM GENÉRICA
 const MODEL_UI = {
     activeIndications: {},
 
@@ -72,63 +171,10 @@ const MODEL_UI = {
         return age;
     },
 
-    // [FIX CHIPS VISUALES] RENDERIZADO DE CHIPS CON ESTILO GLASS
-    renderChips: function(containerSelector, dataArray, targetInputSelector) {
-        const container = this.container.querySelector(containerSelector);
-        if (!container) return;
-        container.innerHTML = '';
-
-        dataArray.forEach(text => {
-            const chip = document.createElement('span');
-            chip.textContent = text;
-            
-            // Estilo "Chip Glassmórfico" en línea
-            chip.style.cssText = `
-                padding: 5px 10px;
-                margin-right: 5px;
-                background: var(--color-glass-heavy);
-                border: 1px solid var(--color-border);
-                border-radius: 12px;
-                cursor: pointer;
-                display: inline-block;
-                font-size: 0.85rem;
-                color: var(--color-text);
-                transition: all 0.3s ease;
-            `;
-            
-            chip.onclick = () => {
-                const isNowActive = chip.classList.toggle('on');
-                
-                if (isNowActive) {
-                    // Estado Activo
-                    chip.style.background = 'var(--color-accent)';
-                    chip.style.color = 'white';
-                    chip.style.borderColor = 'var(--color-accent)';
-                    chip.style.transform = 'scale(1.05)';
-                } else {
-                    // Estado Inactivo
-                    chip.style.background = 'var(--color-glass-heavy)';
-                    chip.style.color = 'var(--color-text)';
-                    chip.style.borderColor = 'var(--color-border)';
-                    chip.style.transform = 'scale(1)';
-                }
-
-                if (targetInputSelector) {
-                    this.updateTextInput(targetInputSelector, text, isNowActive);
-                }
-            };
-            container.appendChild(chip);
-        });
-    },
-
     updateTextInput: function(selector, text, isAdding) {
         const input = this.container.querySelector(selector);
         if (!input) return;
-        
-        let currentValues = input.value.split(',')
-            .map(v => v.trim())
-            .filter(v => v !== ''); 
-
+        let currentValues = input.value.split(',').map(v => v.trim()).filter(v => v !== '');
         if (isAdding) {
             if (!currentValues.includes(text)) {
                 currentValues.push(text);
@@ -140,35 +186,68 @@ const MODEL_UI = {
         }
     },
 
+    renderChips: function(containerSelector, dataArray, targetInputSelector) {
+        const container = this.container.querySelector(containerSelector);
+        if (!container) return;
+        container.innerHTML = '';
+        dataArray.forEach(text => {
+            const chip = document.createElement('span');
+            chip.textContent = text;
+            chip.style.cssText = `
+                padding:5px 10px; margin-right:5px;
+                background: var(--color-glass-heavy);
+                border:1px solid var(--color-border);
+                border-radius: 12px;
+                cursor: pointer;
+                display: inline-block;
+                font-size:0.85rem;
+                color: var(--color-text);
+                transition: all 0.3s ease;
+            `;
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isNowActive = chip.classList.toggle('on');
+                if (isNowActive) {
+                    chip.style.background = 'var(--color-accent)';
+                    chip.style.color = 'white';
+                    chip.style.borderColor = 'var(--color-accent)';
+                    chip.style.transform = 'scale(1.05)';
+                } else {
+                    chip.style.background = 'var(--color-glass-heavy)';
+                    chip.style.color = 'var(--color-text)';
+                    chip.style.borderColor = 'var(--color-border)';
+                    chip.style.transform = 'scale(1)';
+                }
+                if (targetInputSelector) {
+                    this.updateTextInput(targetInputSelector, text, isNowActive);
+                }
+            });
+            container.appendChild(chip);
+        });
+    },
+
     renderPhysicalExam: function() {
         const container = this.container.querySelector('.pe-panels');
         if (!container) return;
         container.innerHTML = '';
-
         Object.entries(MODEL_DATA.PHYSICAL_EXAM).forEach(([section, subSections]) => {
             const secDiv = document.createElement('div');
             secDiv.className = 'glass-panel pe-section';
             secDiv.style.marginTop = "10px";
             secDiv.style.padding = "15px";
             secDiv.innerHTML = `<div style="font-weight:700; color:var(--accent-blue); margin-bottom:10px;">${section}</div>`;
-
             Object.entries(subSections).forEach(([subKey, chips]) => {
                 const subDiv = document.createElement('div');
                 subDiv.className = 'input-row';
                 subDiv.style.marginBottom = "10px";
                 subDiv.innerHTML = `<div class="col small" style="font-weight:600; color:var(--text-secondary); width:150px;">${subKey}</div><div class="col chips" style="flex:1;"></div>`;
-                
                 const chipsContainer = subDiv.querySelector('.chips');
-                
                 chips.forEach(chipText => {
                     const chip = document.createElement('span');
                     chip.className = 'chip';
                     chip.textContent = chipText;
-                    
-                    // Estilo simple para chips de examen
                     chip.style.cssText = "padding:4px 8px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:8px; cursor:pointer; display:inline-block; margin-right:5px; font-size:0.75rem;";
-                    
-                    chip.onclick = () => chip.classList.toggle('on');
+                    chip.addEventListener('click', () => chip.classList.toggle('on'));
                     chipsContainer.appendChild(chip);
                 });
                 secDiv.appendChild(subDiv);
@@ -180,7 +259,6 @@ const MODEL_UI = {
     renderRecipeChips: function() {
         const container = this.container.querySelector('.recipe-chips-container');
         if (!container) return;
-
         Object.entries(MODEL_DATA.RECIPE_MEDS).forEach(([category, meds]) => {
             const group = document.createElement('div');
             group.className = 'glass-panel';
@@ -188,16 +266,12 @@ const MODEL_UI = {
             group.style.marginBottom = "10px";
             group.innerHTML = `<div class="small" style="font-weight:700; color:var(--accent-blue); margin-bottom:5px;">${category}</div><div class="chips"></div>`;
             const chipBox = group.querySelector('.chips');
-
             meds.forEach(med => {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
                 chip.textContent = med;
                 chip.style.cssText = "padding:5px 10px; background:var(--accent-blue); color:white; border-radius:8px; cursor:pointer; display:inline-block; margin-right:5px; font-size:0.8rem;";
-                chip.onclick = () => {
-                    chip.classList.toggle('on');
-                    this.handleMedSelection(med, category, chip.classList.contains('on'));
-                };
+                chip.addEventListener('click', () => chip.classList.toggle('on'));
                 chipBox.appendChild(chip);
             });
             container.appendChild(group);
@@ -216,26 +290,21 @@ const MODEL_UI = {
             }
             txtRecipe.value = current.join('\n');
         }
-
         const indContainer = this.container.querySelector('.indicaciones-dropdowns');
         if (!indContainer) return;
-
         if (isSelected) {
             const wrapper = document.createElement('div');
             wrapper.className = 'input-group';
             wrapper.style.marginBottom = "10px";
             wrapper.id = `ind-wrap-${medName.replace(/\s/g, '')}`;
-            
             const label = document.createElement('label');
             label.className = 'small';
             label.textContent = medName;
-            
             const select = document.createElement('select');
             select.className = 'indicacion-select';
             select.dataset.med = medName;
             select.style.cssText = "width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:5px; border-radius:4px;";
             select.innerHTML = '<option value="">-- Seleccione indicación --</option>';
-            
             const options = MODEL_DATA.INDICACIONES_OPTIONS[category] || MODEL_DATA.INDICACIONES_OPTIONS["Otros"];
             options.forEach(opt => {
                 const el = document.createElement('option');
@@ -243,12 +312,10 @@ const MODEL_UI = {
                 el.textContent = opt;
                 select.appendChild(el);
             });
-
             select.onchange = () => this.syncIndicationsToText();
             wrapper.appendChild(label);
             wrapper.appendChild(select);
             indContainer.appendChild(wrapper);
-
         } else {
             const el = this.container.querySelector(`#ind-wrap-${medName.replace(/\s/g, '')}`);
             if (el) el.remove();
@@ -259,20 +326,15 @@ const MODEL_UI = {
     syncIndicationsToText: function() {
         const txtInd = this.container.querySelector('.txt-indicaciones');
         const txtPlan = this.container.querySelector('.txt-plan');
-        
         const dropdowns = this.container.querySelectorAll('.indicacion-select');
         let lines = [];
-        
         dropdowns.forEach(dd => {
             if (dd.value) {
                 lines.push(`${dd.dataset.med}: ${dd.value}`);
             }
         });
-        
         const finalText = lines.join('\n\n');
-        
         if (txtInd) txtInd.value = finalText;
-        
         if (txtPlan) {
             const footer = "\n\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas al 0212-5086321 / 0424-1090979 o acudir a la Emergencia.";
             txtPlan.value = finalText + (finalText ? footer : '');
@@ -280,14 +342,13 @@ const MODEL_UI = {
     }
 };
 
-// [JS-UNIV-003] GENERADORES DE DOCUMENTOS
+// [GEN-DOCS] GENERADORES DE DOCUMENTOS
 const MODEL_DOCS = {
     getContext: function() {
         const getVal = (path) => {
             const el = document.querySelector(`[name="${path}"]`);
             return el ? el.value : '';
         };
-
         return {
             paciente: {
                 nombre: getVal('nombres.primer_nombre') + ' ' + getVal('nombres.primer_apellido'),
@@ -303,7 +364,6 @@ const MODEL_DOCS = {
             }
         };
     },
-
     generateInf: function() {
         const ctx = this.getContext();
         return {
@@ -328,44 +388,60 @@ const MODEL_DOCS = {
             leftCol: { title: 'Rp.', content: ctx.consulta.recipe },
             rightCol: { title: 'Indicaciones', content: ctx.consulta.indicaciones }
         };
+    },
+    generateOrd: function() {
+        const ctx = this.getContext();
+        return {
+            type: 'ORD',
+            title: 'ORDEN QUIRÚRGICA',
+            orientation: 'portrait',
+            content: {
+                motivo: ctx.consulta.motivo,
+                dx: ctx.consulta.dx,
+                plan: ctx.consulta.plan,
+                estudios: document.getElementById('txt-estudios')?.value,
+                pe: document.getElementById('txt-pe-notas')?.value
+            }
+        };
     }
 };
- 
-// -----------------------------------------------------------------------
-// FIN DEL BLOQUE 1 
-// -----------------------------------------------------------------------
-// -----------------------------------------------------------------------
-//BLOQUE 2
-// -----------------------------------------------------------------------
-// [CONTRATO UNIVERSAL] CONEXIÓN CON INDEX.JS
-// Este bloque usa nombres genéricos (MODEL_UI, MODEL_DATA) para permitir intercambiabilidad.
 
+// [CONTRATO UNIVERSAL] CONEXIÓN CON INDEX.JS
 export const MODEL_DEFINITION = {
-    id: "ORL-001", 
+    id: "ORL-001",
     name: "Consulta Modelo Universal (ORL)",
     
     // [REESTRUCTURACIÓN FINAL PRO] INICIALIZACIÓN UI
     initUI: function(container, data = {}) {
-        // [FIX CRÍTICO] INYECTAR ESTRUCTURA HTML (ORDEN LÓGICO + 100% WIDTH + ESTUDIOS)
+        // 1. INYECTAR ESTRUCTURA HTML ORDENADA ESTRICTAMENTE
         container.innerHTML = `
             <div style="margin-bottom:20px; color:var(--text-dim); font-weight:600; font-size:0.9rem;">
                 * Campos obligatorios marcados con (*)
             </div>
 
-            <!-- SECCIÓN 1: MOTIVO Y EA -->
+            <!-- SECCIÓN 1: ENFERMEDAD ACTUAL -->
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <div class="input-group" style="width:100%;">
+                    <label style="font-weight:600; color:var(--accent-blue);">Enfermedad Actual (*)</label>
+                    <textarea class="txt-ea" rows="5" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Describa el padecimiento actual..."></textarea>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: MOTIVO DE CONSULTA -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                 <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--accent-blue);">Motivo de Consulta (*)</label>
                     <input type="text" class="txt-motivo" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Ej: Dolor de garganta...">
                     <div class="chips-container chips-motivo" style="margin-top:10px;"></div>
                 </div>
+            </div>
+
+            <!-- SECCIÓN 3: ANTECEDENTES PERSONALES Y FAMILIARES -->
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                <div style="margin-bottom:10px; font-size:0.8rem; color:var(--text-dim);">Anotaciones de consulta (Diferente a ficha del paciente)</div>
                 <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--accent-blue);">Enfermedad Actual (*)</label>
-                    <textarea class="txt-ea" rows="5" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Describa el padecimiento actual..."></textarea>
-                </div>
-                 <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--accent-blue);">Antecedentes Personales</label>
-                    <input type="text" class="txt-ap" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Ej: Asma...">
+                    <input type="text" class="txt-ap" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Ej: Asma actual...">
                     <div class="chips-container chips-ap" style="margin-top:10px;"></div>
                 </div>
                  <div class="input-group" style="width:100%;">
@@ -375,32 +451,38 @@ export const MODEL_DEFINITION = {
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: EXAMEN FÍSICO (SIEMPRE VISIBLE + TEXTO) -->
+            <!-- SECCIÓN 4: EXAMEN FÍSICO (SIEMPRE VISIBLE + TEXTO) -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
                     <i class="fas fa-stethoscope"></i> Examen Físico ORL
                 </div>
-                <div class="pe-panels">
-                    <!-- LÓGICA DE CHIPS SE INYECTA AQUÍ POR MODEL_UI.init(container) -->
-                    <!-- [FIX TEXTBOX PE] TEXTO PARA NOTAS DE EXAMEN -->
-                    <div style="margin-top:15px;">
-                        <label style="font-weight:600; color:var(--accent-blue); display:block; margin-bottom:5px;">Notas de Examen Físico</label>
-                        <textarea id="txt-pe-notas" rows="4" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Hallazgos positivos o negativos..."></textarea>
-                    </div>
+                <div class="pe-panels"></div>
+                <!-- [FIX TEXTBOX PE] TEXTO PARA NOTAS DE EXAMEN -->
+                <div style="margin-top:15px;">
+                    <label style="font-weight:600; color:var(--accent-blue); display:block; margin-bottom:5px;">Notas de Examen Físico</label>
+                    <textarea id="txt-pe-notas" rows="4" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Detalles adicionales del examen físico..."></textarea>
                 </div>
             </div>
 
-            <!-- SECCIÓN 3: ESTUDIOS EN CONSULTA -->
+            <!-- SECCIÓN 5: ESTUDIOS EN CONSULTA -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                  <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
                     <i class="fas fa-x-ray"></i> Estudios Solicitados / Realizados
                 </div>
+                 <!-- [FIX DROPDOWN ESTUDIOS] SELECTOR DE TIPO -->
                  <div class="input-group" style="width:100%;">
-                    <textarea id="txt-estudios" rows="4" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Detalles de estudios (Ej: Nasofibrolaringoscopia, Audiometría)..."></textarea>
+                    <label style="font-weight:600; color:var(--accent-blue);">Tipo de Estudio</label>
+                    <select id="sel-estudio-tipo" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;">
+                        <option value="">Seleccione...</option>
+                        ${Object.keys(MODEL_DATA.STUDIES).map(k => `<option value="${k}">${k}</option>`).join('')}
+                    </select>
+                </div>
+                 <div class="input-group" style="width:100%;">
+                    <textarea id="txt-estudios" rows="4" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Detalles de resultados..."></textarea>
                 </div>
             </div>
 
-            <!-- SECCIÓN 4: DIAGNÓSTICO -->
+            <!-- SECCIÓN 6: DIAGNÓSTICO -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                 <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--accent-blue);">Diagnóstico (*)</label>
@@ -409,7 +491,7 @@ export const MODEL_DEFINITION = {
                 </div>
             </div>
 
-            <!-- SECCIÓN 5: PLAN Y TRATAMIENTO -->
+            <!-- SECCIÓN 7: PLAN Y TRATAMIENTO -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                 <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--accent-blue);">Plan y Tratamiento (*)</label>
@@ -417,7 +499,7 @@ export const MODEL_DEFINITION = {
                 </div>
             </div>
 
-            <!-- SECCIÓN 6: RECETA E INDICACIONES (DINÁMICAS) -->
+            <!-- SECCIÓN 8: RECETA E INDICACIONES (DINÁMICAS) -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
                     <i class="fas fa-prescription-bottle-alt"></i> Recipe e Indicaciones Detalladas
@@ -433,12 +515,45 @@ export const MODEL_DEFINITION = {
                     <textarea class="txt-indicaciones" rows="6" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Dosis específicas..."></textarea>
                 </div>
             </div>
+
+            <!-- SECCIÓN 9: GENERACIÓN DE DOCUMENTOS -->
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px; background:var(--color-glass);">
+                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
+                    <i class="fas fa-file-medical-alt"></i> Generación de Documentos
+                </div>
+                 <div class="input-group" style="width:100%;">
+                    <label style="font-weight:600; color:var(--text-dim); display:block; margin-bottom:10px;">Seleccione qué incluir en la impresión final:</label>
+                    <div class="chips-container chips-docs" style="display:flex; flex-wrap:wrap; margin-bottom:15px;">
+                        <!-- Checkboxes estilizados como Chips -->
+                        <label class="chk-doc-inf" style="padding:5px 10px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:12px; cursor:pointer; margin-bottom:5px; display:inline-flex; align-items:center; gap:5px;">
+                            <input type="checkbox" class="chk-doc-inf" style="width:auto;">
+                            Informe Médico (INF)
+                        </label>
+                        <label class="chk-doc-rp" style="padding:5px 10px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:12px; cursor:pointer; margin-bottom:5px; display:inline-flex; align-items:center; gap:5px;">
+                            <input type="checkbox" class="chk-doc-rp" style="width:auto;">
+                            Recipe e Indicaciones (RP)
+                        </label>
+                        <label class="chk-doc-ord" style="padding:5px 10px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:12px; cursor:pointer; margin-bottom:5px; display:inline-flex; align-items:center; gap:5px;">
+                            <input type="checkbox" class="chk-doc-ord" style="width:auto;">
+                            Orden Quirúrgica (ORD)
+                        </label>
+                        <label class="chk-doc-con" style="padding:5px 10px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:12px; cursor:pointer; margin-bottom:5px; display:inline-flex; align-items:center; gap:5px;">
+                            <input type="checkbox" class="chk-doc-con" style="width:auto;">
+                            Consentimientos (CON)
+                        </label>
+                        <label class="chk-doc-lab" style="padding:5px 10px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:12px; cursor:pointer; margin-bottom:5px; display:inline-flex; align-items:center; gap:5px;">
+                            <input type="checkbox" class="chk-doc-lab" style="width:auto;">
+                            Laboratorios (LAB)
+                        </label>
+                    </div>
+                 </div>
+            </div>
         `;
 
-        // 1. Ahora SÍ ejecutamos la lógica genérica con nombres genéricos
+        // 2. Ejecutar Lógica Genérica
         MODEL_UI.init(container);
 
-        // 2. Si hay datos (Edición), llenamos los campos manualmente
+        // 3. Si hay datos (Edición), llenar campos
         if (data && Object.keys(data).length > 0) {
             const setVal = (sel, val) => {
                 const el = container.querySelector(sel);
@@ -448,34 +563,61 @@ export const MODEL_DEFINITION = {
             setVal('.txt-motivo', data.motivo);
             setVal('.txt-ap', data.ap);
             setVal('.txt-af', data.af);
-            setVal('.txt-dx', data.dx);
-            setVal('#txt-estudios', data.estudios);
             setVal('#txt-pe-notas', data.pe_notas);
+            setVal('#txt-estudios', data.estudios);
+            setVal('.txt-dx', data.dx);
             setVal('.txt-plan', data.plan);
             setVal('.txt-recipe', data.recipe);
             setVal('.txt-indicaciones', data.indicaciones);
+            
+            // Restaurar Checkboxes de Documentos si existen en data
+            if (data.docs_generated && Array.isArray(data.docs_generated)) {
+                const chkInf = container.querySelector('.chk-doc-inf');
+                const chkRp = container.querySelector('.chk-doc-rp');
+                const chkOrd = container.querySelector('.chk-doc-ord');
+                const chkCon = container.querySelector('.chk-doc-con');
+                const chkLab = container.querySelector('.chk-doc-lab');
+
+                if(chkInf) chkInf.checked = data.docs_generated.includes("INF");
+                if(chkRp) chkRp.checked = data.docs_generated.includes("RP");
+                if(chkOrd) chkOrd.checked = data.docs_generated.includes("ORD");
+                if(chkCon) chkCon.checked = data.docs_generated.includes("CON");
+                if(chkLab) chkLab.checked = data.docs_generated.includes("LAB");
+            }
         }
     },
     
-    // 2. Obtener Datos: Extrae la info del DOM
+    // 4. Obtener Datos
     getData: function(container) {
         const getVal = (sel) => container.querySelector(sel)?.value || '';
         
+        // Helper para leer Checkboxes de documentos
+        const getDocs = () => {
+            const docs = [];
+            if (container.querySelector('.chk-doc-inf')?.checked) docs.push("INF");
+            if (container.querySelector('.chk-doc-rp')?.checked) docs.push("RP");
+            if (container.querySelector('.chk-doc-ord')?.checked) docs.push("ORD");
+            if (container.querySelector('.chk-doc-con')?.checked) docs.push("CON");
+            if (container.querySelector('.chk-doc-lab')?.checked) docs.push("LAB");
+            return docs;
+        };
+
         return {
             ea: getVal('.txt-ea'),
             motivo: getVal('.txt-motivo'),
             ap: getVal('.txt-ap'), 
             af: getVal('.txt-af'), 
-            dx: getVal('.txt-dx'),
+            pe_notas: getVal('#txt-pe-notas'),
             estudios: getVal('#txt-estudios'),
-            pe_notas: getVal('#txt-pe-notas'), // NUEVO
+            dx: getVal('.txt-dx'),
             plan: getVal('.txt-plan'),
             recipe: getVal('.txt-recipe'),
-            indicaciones: getVal('.txt-indicaciones')
+            indicaciones: getVal('.txt-indicaciones'),
+            docs_generated: getDocs()
         };
     },
     
-    // 3. Validar: Chequeos básicos
+    // 5. Validar
     validate: function(data) {
         if (!data.motivo && !data.ea) {
             return "Debe ingresar al menos un Motivo o Enfermedad Actual.";
@@ -489,7 +631,7 @@ export const MODEL_DEFINITION = {
         return null; 
     },
     
-    // 4. Resumen: Texto corto para la lista principal
+    // 6. Resumen
     getSummary: function(data) {
         return data.motivo || data.dx || "Consulta Modelo";
     }
