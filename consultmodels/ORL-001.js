@@ -2,6 +2,7 @@
 
 // [DATA-01] DATOS Y CATÁLOGOS (GENÉRICO)
 const MODEL_DATA = {
+  
     MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
     ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
     },
@@ -688,4 +689,5 @@ export const MODEL_MODULE = {
     UI: MODEL_UI,
     DOCS: MODEL_DOCS
 };
+
 
