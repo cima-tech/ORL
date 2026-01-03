@@ -408,6 +408,7 @@ const MODEL_UI = {
         if(el) el.classList.add('hidden');
     },
 
+       // [FIX FINAL RECETA] RESTAURAR VISUAL Y LÓGICA
     renderRecipeChips: function() {
         const container = this.container.querySelector('.recipe-chips-container');
         if (!container) return;
@@ -422,10 +423,24 @@ const MODEL_UI = {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
                 chip.textContent = med;
-                chip.style.cssText = "padding:5px 10px !important; background:var(--color-accent) !important; color:white !important; border-radius:8px !important; cursor:pointer !important; display:inline-block !important; margin-right:5px !important; font-size:0.8rem !important;";
+                // Estilo base (Glass - Inactivo)
+                chip.style.cssText = "padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:8px !important; cursor:pointer !important; display:inline-block !important; margin-right:5px !important; font-size:0.8rem !important; color:var(--color-text) !important;";
                 
-                chip.addEventListener('click', () => chip.classList.toggle('on'));
-                this.handleMedSelection(med, category, chip.classList.contains('on'));
+                chip.addEventListener('click', () => {
+                    // TOGGLE VISUAL (AZUL <-> GLASS)
+                    const isNowActive = chip.classList.toggle('on');
+                    if (isNowActive) {
+                        // ESTADO ACTIVO (Azul)
+                        chip.style.background = 'var(--color-accent) !important';
+                        chip.style.color = 'white !important';
+                    } else {
+                        // ESTADO INACTIVO (Glass)
+                        chip.style.background = 'var(--color-glass-heavy) !important';
+                        chip.style.color = 'var(--color-text) !important';
+                    }
+                    // LÓGICA DE DATOS
+                    this.handleMedSelection(med, category, isNowActive);
+                });
                 chipBox.appendChild(chip);
             });
             container.appendChild(group);
@@ -433,10 +448,12 @@ const MODEL_UI = {
     },
 
     handleMedSelection: function(medName, category, isSelected) {
+        // 1. ACTUALIZAR RECIPE (TEXTO)
         const txtRecipe = this.container.querySelector('.txt-recipe');
         if (txtRecipe) {
             const current = txtRecipe.value.split('\n').filter(Boolean);
             if (isSelected) {
+                // Solo agregar si no está
                 if(!current.includes(medName)) current.push(medName);
             } else {
                 const idx = current.indexOf(medName);
@@ -444,21 +461,28 @@ const MODEL_UI = {
             }
             txtRecipe.value = current.join('\n');
         }
+        
+        // 2. ACTUALIZAR DROPDOWNS DE INDICACIONES
         const indContainer = this.container.querySelector('.indicaciones-dropdowns');
         if (!indContainer) return;
+
         if (isSelected) {
+            // Crear Wrapper
             const wrapper = document.createElement('div');
             wrapper.className = 'input-group';
             wrapper.style.marginBottom = "10px";
-            wrapper.id = `ind-wrap-${medName.replace(/[^a-zA-Z0-9]/g, '')}`;
+            wrapper.id = `ind-wrap-${medName.replace(/[^a-zA-Z0-9]/g, '')}`; // ID Limpio
+            
             const label = document.createElement('label');
             label.className = 'small';
             label.textContent = medName;
+            
             const select = document.createElement('select');
             select.className = 'indicacion-select';
             select.dataset.med = medName;
             select.style.cssText = "width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:5px; border-radius:4px;";
             select.innerHTML = '<option value="">-- Seleccione indicación --</option>';
+            
             const options = MODEL_DATA.INDICACIONES_OPTIONS[category] || MODEL_DATA.INDICACIONES_OPTIONS["Otros"];
             options.forEach(opt => {
                 const el = document.createElement('option');
@@ -466,11 +490,16 @@ const MODEL_UI = {
                 el.textContent = opt;
                 select.appendChild(el);
             });
+
+            // Al cambiar select -> ACTUALIZAR TEXTO PLAN
             select.onchange = () => this.syncIndicationsToText();
+            
             wrapper.appendChild(label);
             wrapper.appendChild(select);
             indContainer.appendChild(wrapper);
+
         } else {
+            // Eliminar Wrapper y ACTUALIZAR TEXTO PLAN
             const el = this.container.querySelector(`#ind-wrap-${medName.replace(/[^a-zA-Z0-9]/g, '')}`);
             if (el) el.remove();
             this.syncIndicationsToText();
@@ -480,21 +509,28 @@ const MODEL_UI = {
     syncIndicationsToText: function() {
         const txtInd = this.container.querySelector('.txt-indicaciones');
         const txtPlan = this.container.querySelector('.txt-plan');
+        
+        // Recolectar todas las selecciones
         const dropdowns = this.container.querySelectorAll('.indicacion-select');
         let lines = [];
+        
         dropdowns.forEach(dd => {
             if (dd.value) {
                 lines.push(`${dd.dataset.med}: ${dd.value}`);
             }
         });
+        
         const finalText = lines.join('\n\n');
+        
+        // 1. Poner en Indicaciones
         if (txtInd) txtInd.value = finalText;
+        
+        // 2. [REQUERIMIENTO] Copiar a Plan + Tratamiento
         if (txtPlan) {
             const footer = "\n\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas al 0212-5086321 / 0424-1090979 o acudir a la Emergencia.";
             txtPlan.value = finalText + (finalText ? footer : '');
         }
     }
-};
 
 // [GEN-DOCS] GENERADORES DE DOCUMENTOS
 const MODEL_DOCS = {
@@ -795,3 +831,4 @@ export const MODEL_MODULE = {
     UI: MODEL_UI,
     DOCS: MODEL_DOCS
 };
+
