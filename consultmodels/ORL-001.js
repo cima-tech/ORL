@@ -531,6 +531,7 @@ const MODEL_UI = {
             txtPlan.value = finalText + (finalText ? footer : '');
         }
     }
+};
 
 // [GEN-DOCS] GENERADORES DE DOCUMENTOS
 const MODEL_DOCS = {
@@ -831,4 +832,5 @@ export const MODEL_MODULE = {
     UI: MODEL_UI,
     DOCS: MODEL_DOCS
 };
+
 
