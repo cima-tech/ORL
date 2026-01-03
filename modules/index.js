@@ -442,6 +442,7 @@ class App {
         lastNames: "Gonzalez Yanez",
         defaultModel: "ORL-001"
     };
+    window.currentUser = this.currentUser;
     document.getElementById('userInfoDisplay').textContent = 
         `Dra. ${this.currentUser.names} ${this.currentUser.lastNames}`;
 
@@ -784,3 +785,4 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
