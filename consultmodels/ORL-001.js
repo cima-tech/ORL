@@ -111,7 +111,7 @@ const MODEL_DATA = {
     }
 };
 
-// [UI-LOGIC] LÓGICA DE MANIPULACIÓN DOM GENÉRICA
+// [UI-LOGIC] LÓGICA DE MANIPULACIÓN DOM GENÉRICA (CORREGIDO)
 const MODEL_UI = {
     activeIndications: {},
     currentPatient: null,
@@ -120,26 +120,18 @@ const MODEL_UI = {
         this.container = container;
         this.currentPatient = patient; // Guardar referencia al paciente
         
-        // Renderizar Chips de Texto
         this.renderChips('.chips-motivo', MODEL_DATA.MOTIVOS, '.txt-motivo');
         this.renderChips('.chips-ap', MODEL_DATA.ANTECEDENTES, '.txt-ap');
         this.renderChips('.chips-af', MODEL_DATA.ANTECEDENTES, '.txt-af');
         this.renderChips('.chips-dx', MODEL_DATA.DX, '.txt-dx');
-        
-        // Renderizar Estudios (Nuevo)
-        this.renderStudySelector();
-        
-        // Renderizar Receta Chips
+        this.renderPhysicalExam();
         this.renderRecipeChips();
-        
-        // Inicializar Enfermedad Actual
         this.initEA();
     },
 
     initEA: function() {
         const eaInput = this.container.querySelector('.txt-ea');
         if(eaInput && !eaInput.value) {
-            // Si tenemos paciente cargado, usar sus datos
             if (this.currentPatient) {
                 const sex = this.currentPatient.demografia?.genero || '[sexo]';
                 const age = this.currentPatient.demografia?.edad_auto || '[edad]';
@@ -155,16 +147,13 @@ const MODEL_UI = {
         select.id = 'sel-estudio-tipo';
         select.className = 'model-select';
         select.style.cssText = "width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;";
-        select.innerHTML = `<option value="">Seleccione Tipo de Estudio...</option>` +
+        select.innerHTML = `<option value="">Seleccione...</option>` +
             Object.keys(MODEL_DATA.STUDIES).map(k => `<option value="${k}">${k}</option>`).join('');
         
-        // Listener para renderizar estudios específicos
         select.onchange = () => {
             this.renderStudyDetails(select.value);
         };
 
-        // Inyectar en lugar específico (asumo que tienes un div 'study-detail-container' en el HTML o lo creas)
-        // Por simplicidad, lo inyecto después del select
         const container = this.container.querySelector('.studies-section');
         if (container) {
             const wrapper = document.createElement('div');
@@ -177,10 +166,9 @@ const MODEL_UI = {
     renderStudyDetails: function(studyType) {
         const detailContainer = this.container.querySelector('.studies-detail-container');
         if (!detailContainer) return;
-
         detailContainer.innerHTML = '';
 
-        if (!studyType) return; // Si no seleccionó nada, limpiar
+        if (!studyType) return;
 
         const data = MODEL_DATA.STUDIES[studyType];
         if (!data) return;
@@ -193,13 +181,11 @@ const MODEL_UI = {
             secDiv.innerHTML = `<div style="font-weight:700; color:var(--accent-blue); margin-bottom:5px;">${section}</div>`;
 
             const row = document.createElement('div');
-            row.className = 'input-row';
             
             Object.entries(items).forEach(([key, chips]) => {
                 const subDiv = document.createElement('div');
                 subDiv.style.marginBottom = "5px";
                 
-                // Label
                 const label = document.createElement('label');
                 label.textContent = key;
                 label.style.display = "block";
@@ -207,8 +193,8 @@ const MODEL_UI = {
                 label.style.color = "var(--text-secondary)";
                 label.style.marginBottom = "2px";
 
-                // Chips
                 const chipBox = document.createElement('div');
+                
                 chips.forEach(chipText => {
                     const chip = document.createElement('span');
                     chip.className = 'chip';
@@ -217,12 +203,10 @@ const MODEL_UI = {
                     chip.addEventListener('click', () => chip.classList.toggle('on'));
                     chipBox.appendChild(chip);
                 });
-
                 subDiv.appendChild(label);
                 subDiv.appendChild(chipBox);
                 row.appendChild(subDiv);
             });
-
             secDiv.appendChild(row);
             detailContainer.appendChild(secDiv);
         });
@@ -250,7 +234,6 @@ const MODEL_UI = {
         dataArray.forEach(text => {
             const chip = document.createElement('span');
             chip.textContent = text;
-            // [FIX] Estilos !important para asegurar visibilidad
             chip.style.cssText = `
                 padding:5px 10px !important; 
                 margin-right:5px !important; 
@@ -338,12 +321,16 @@ const MODEL_UI = {
         });
     },
 
+    // [FIX DE ID LIMPIO] ESTA ES LA FUNCIÓN QUE FALLABA
     handleMedSelection: function(medName, category, isSelected) {
+        // LIMPIAR NOMBRE PARA USARLO COMO ID (Quitar /, (, ))
+        const safeId = medName.replace(/[^a-zA-Z0-9]/g, '');
+        
         const txtRecipe = this.container.querySelector('.txt-recipe');
         if (txtRecipe) {
             const current = txtRecipe.value.split('\n').filter(Boolean);
             if (isSelected) {
-                if(!current.includes(medName)) current.push(medName);
+                current.push(medName);
             } else {
                 const idx = current.indexOf(medName);
                 if (idx > -1) current.splice(idx, 1);
@@ -356,7 +343,7 @@ const MODEL_UI = {
             const wrapper = document.createElement('div');
             wrapper.className = 'input-group';
             wrapper.style.marginBottom = "10px";
-            wrapper.id = `ind-wrap-${medName.replace(/\s/g, '')}`;
+            wrapper.id = `ind-wrap-${safeId}`; // USAR SAFEID AQUÍ
             const label = document.createElement('label');
             label.className = 'small';
             label.textContent = medName;
@@ -377,7 +364,8 @@ const MODEL_UI = {
             wrapper.appendChild(select);
             indContainer.appendChild(wrapper);
         } else {
-            const el = this.container.querySelector(`#ind-wrap-${medName.replace(/\s/g, '')}`);
+            // USAR SAFEID AQUÍ EN EL QUERYSELECTOR
+            const el = this.container.querySelector(`#ind-wrap-${safeId}`);
             if (el) el.remove();
             this.syncIndicationsToText();
         }
@@ -686,3 +674,4 @@ export const MODEL_MODULE = {
     UI: MODEL_UI,
     DOCS: MODEL_DOCS
 };
+
