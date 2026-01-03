@@ -102,29 +102,55 @@ const MODEL_DATA = {
     },
     
     PHYSICAL_EXAM: {
-        "Cara":{"Simetría":["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"]},
-        "Oído Derecho":{"Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],"Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],"Oído Medio":["Membrana Timpánica"],"Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]},
-        "Oído Izquierdo":{"Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],"Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],"Oído Medio":["Membrana Timpánica"],"Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]},
-        "Nariz":{"Fosa Nasal":["Fosa nasal permeable","LOE","LOE que obstruye compleamente fosa nasal izquierda","LOE que obstruye completamente fosa nasal derecha"],"Tabique":["Central","con desviación Dextroconvexa","con desviación Levoconvexa","con espolón óseo"],"Cornetes":["Cornete inferior eutrófico","Cornete inferior hipertrófico obstructivo","Cornete inferior con degeneración polipoidea","Cornete medio eutrófico","Cornete medio hipertrófico","Poliposis nasal"],"Mucosa":["Mucosa Indemne","Mucosa Pálida","Mucosa Eritematosa a nivel de Plexos","Epistaxis Anterior","Epistaxis Posterior"],"Rinorrea":["Rinorrea Hialina","Rinorrea Blanquecina","Rinorrea Amarillenta"]},
-        "Orofaringe":{"Lengua":["Lengua húmeda móvil","Lengua seca"],"Tonsilas":["Tonsilas grado I","Tonsilas grado II","Tonsilas grado III","Tonsilas grado IV","Tonsilas asimétricas","Tonsilas con placas blanquecinas"],"Rinofaringe":["congestiva","con rinorrea posterior escasa","con rinorrea posterior blanquecina","con placas blanquecinas"]},
-        "Cuello":{"Aspecto":["Móvil, sin lesiones aparentes"]}
+        "Cara":{
+            "Simetría":["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"]
+        },
+        "Oído Derecho":{
+            "Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],
+            "Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],
+            "Oído Medio":["Membrana Timpánica"],
+            "Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]
+        },
+        "Oído Izquierdo":{
+            "Oído Externo":["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],
+            "Conducto Auditivo Externo":["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"],
+            "Oído Medio":["Membrana Timpánica"],
+            "Membrana Timpánica":["indemne, movilidad conservada","Opaca","abombada con líquido retrotimpánico escaso","abombada con líquido retrotimpánico que limita movilidad","eritematosa con líquido retrotimpático amarillento","con perforación anterior","con perforación posterior","con perforación central","con perforación amplia","con perforación puntiforme"]
+        },
+        "Nariz":{
+            "Fosa Nasal":["Fosa nasal permeable","LOE","LOE que obstruye compleamente fosa nasal izquierda","LOE que obstruye completamente fosa nasal derecha"],
+            "Tabique":["Central","con desviación Dextroconvexa","con desviación Levoconvexa","con espolón óseo"],
+            "Cornetes":["Cornete inferior eutrófico","Cornete inferior hipertrófico obstructivo","Cornete inferior con degeneración polipoidea","Cornete medio eutrófico","Cornete medio hipertrófico obstructivo","Poliposis nasal"],
+            "Mucosa":["Mucosa Indemne","Mucosa Pálida","Mucosa Eritematosa a nivel de Plexos","Epistaxis Anterior","Epistaxis Posterior"],
+            "Rinorrea":["Rinorrea Hialina","Rinorrea Blanquecina","Rinorrea Amarillenta"]
+        },
+        "Orofaringe":{
+            "Lengua":["Lengua húmeda móvil","Lengua seca"],
+            "Tonsilas":["Tonsilas grado I","Tonsilas grado II","Tonsilas grado III","Tonsilas grado IV","Tonsilas asimétricas","Tonsilas con placas blanquecinas"],
+            "Rinofaringe":["congestiva","con rinorrea posterior escasa","con rinorrea posterior blanquecina","con placas blanquecinas"]
+        },
+        "Cuello":{
+            "Aspecto":["Móvil, sin lesiones aparentes"]
+        }
     }
 };
 
-// [UI-LOGIC] LÓGICA DE MANIPULACIÓN DOM GENÉRICA (CORREGIDO)
+// [UI-LOGIC] LÓGICA DE MANIPULACIÓN DOM GENÉRICA
 const MODEL_UI = {
     activeIndications: {},
     currentPatient: null,
 
     init: function(container, data = {}, patient = null) {
         this.container = container;
-        this.currentPatient = patient; // Guardar referencia al paciente
+        this.currentPatient = patient;
         
         this.renderChips('.chips-motivo', MODEL_DATA.MOTIVOS, '.txt-motivo');
         this.renderChips('.chips-ap', MODEL_DATA.ANTECEDENTES, '.txt-ap');
         this.renderChips('.chips-af', MODEL_DATA.ANTECEDENTES, '.txt-af');
         this.renderChips('.chips-dx', MODEL_DATA.DX, '.txt-dx');
+        
         this.renderPhysicalExam();
+        this.renderStudySection();
         this.renderRecipeChips();
         this.initEA();
     },
@@ -142,74 +168,23 @@ const MODEL_UI = {
         }
     },
 
-    renderStudySelector: function() {
-        const select = document.createElement('select');
-        select.id = 'sel-estudio-tipo';
-        select.className = 'model-select';
-        select.style.cssText = "width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;";
-        select.innerHTML = `<option value="">Seleccione...</option>` +
-            Object.keys(MODEL_DATA.STUDIES).map(k => `<option value="${k}">${k}</option>`).join('');
-        
-        select.onchange = () => {
-            this.renderStudyDetails(select.value);
-        };
-
-        const container = this.container.querySelector('.studies-section');
-        if (container) {
-            const wrapper = document.createElement('div');
-            wrapper.style.marginTop = "10px";
-            wrapper.appendChild(select);
-            container.appendChild(wrapper);
+    // [FIX TEXTBOX PE] ESCUCHAR ACUMULATIVO
+    appendPEText: function(text) {
+        const ta = this.container.querySelector('#txt-pe-notas');
+        if (ta) {
+            if (ta.value) ta.value += '\n';
+            ta.value += text;
         }
     },
 
-    renderStudyDetails: function(studyType) {
-        const detailContainer = this.container.querySelector('.studies-detail-container');
-        if (!detailContainer) return;
-        detailContainer.innerHTML = '';
-
-        if (!studyType) return;
-
-        const data = MODEL_DATA.STUDIES[studyType];
-        if (!data) return;
-
-        Object.entries(data).forEach(([section, items]) => {
-            const secDiv = document.createElement('div');
-            secDiv.className = 'glass-panel';
-            secDiv.style.padding = "10px";
-            secDiv.style.marginBottom = "10px";
-            secDiv.innerHTML = `<div style="font-weight:700; color:var(--accent-blue); margin-bottom:5px;">${section}</div>`;
-
-            const row = document.createElement('div');
-            
-            Object.entries(items).forEach(([key, chips]) => {
-                const subDiv = document.createElement('div');
-                subDiv.style.marginBottom = "5px";
-                
-                const label = document.createElement('label');
-                label.textContent = key;
-                label.style.display = "block";
-                label.style.fontWeight = "600";
-                label.style.color = "var(--text-secondary)";
-                label.style.marginBottom = "2px";
-
-                const chipBox = document.createElement('div');
-                
-                chips.forEach(chipText => {
-                    const chip = document.createElement('span');
-                    chip.className = 'chip';
-                    chip.textContent = chipText;
-                    chip.style.cssText = "padding:4px 8px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:8px; cursor:pointer; display:inline-block; margin-right:5px; font-size:0.75rem;";
-                    chip.addEventListener('click', () => chip.classList.toggle('on'));
-                    chipBox.appendChild(chip);
-                });
-                subDiv.appendChild(label);
-                subDiv.appendChild(chipBox);
-                row.appendChild(subDiv);
-            });
-            secDiv.appendChild(row);
-            detailContainer.appendChild(secDiv);
-        });
+    calculateAge: function(birthDateString) {
+        if(!birthDateString) return null;
+        const today = new Date();
+        const birthDate = new Date(birthDateString);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        return age;
     },
 
     updateTextInput: function(selector, text, isAdding) {
@@ -235,15 +210,10 @@ const MODEL_UI = {
             const chip = document.createElement('span');
             chip.textContent = text;
             chip.style.cssText = `
-                padding:5px 10px !important; 
-                margin-right:5px !important; 
-                background: var(--color-glass-heavy) !important; 
-                border:1px solid var(--color-border) !important; 
-                border-radius: 12px !important; 
-                cursor: pointer !important; 
-                display: inline-block !important; 
-                font-size:0.85rem !important; 
-                color: var(--color-text) !important; 
+                padding:5px 10px !important; margin-right:5px !important;
+                background: var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important;
+                border-radius: 12px !important; cursor: pointer !important; display: inline-block !important;
+                font-size:0.85rem !important; color: var(--color-text) !important;
                 transition: all 0.3s ease !important;
             `;
             chip.addEventListener('click', (e) => {
@@ -268,6 +238,7 @@ const MODEL_UI = {
         });
     },
 
+    // [FIX PE RENDER] RENDERIZADO DE PE CON TEXTBOX ACUMULATIVO
     renderPhysicalExam: function() {
         const container = this.container.querySelector('.pe-chips-container');
         if (!container) return;
@@ -284,18 +255,157 @@ const MODEL_UI = {
                 subDiv.style.marginBottom = "10px";
                 subDiv.innerHTML = `<div class="col small" style="font-weight:600; color:var(--text-secondary); width:150px;">${subKey}</div><div class="col chips" style="flex:1;"></div>`;
                 const chipsContainer = subDiv.querySelector('.chips');
+                
                 chips.forEach(chipText => {
                     const chip = document.createElement('span');
                     chip.className = 'chip';
                     chip.textContent = chipText;
                     chip.style.cssText = "padding:4px 8px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:8px !important; cursor:pointer !important; display:inline-block !important; margin-right:5px !important; font-size:0.75rem !important;";
-                    chip.addEventListener('click', () => chip.classList.toggle('on'));
+                    
+                    // [FIX] Lógica PE: Click -> Toggle -> Escribir en Main Textbox
+                    chip.addEventListener('click', () => {
+                        const isActive = chip.classList.toggle('on');
+                        if (isActive) {
+                            chip.style.background = 'var(--color-accent) !important';
+                            chip.style.color = 'white !important';
+                            this.appendPEText(`[${section}]: ${subKey} - ${chipText}`);
+                        } else {
+                            chip.style.background = 'var(--color-glass-heavy) !important';
+                            chip.style.color = 'var(--color-text) !important';
+                            // Nota: No borramos el texto para evitar borrar lo que el usuario escribió a mano.
+                        }
+                    });
+                    
                     chipsContainer.appendChild(chip);
                 });
                 secDiv.appendChild(subDiv);
             });
             container.appendChild(secDiv);
         });
+    },
+
+    // [FIX ESTUDIOS] RENDERIZADO DE ESTUDIOS CON DEEP-CHIPS Y TEXTAREA
+    renderStudySection: function() {
+        const wrapper = this.container.querySelector('.studies-wrapper');
+        if (!wrapper) return;
+        wrapper.innerHTML = '';
+
+        // 1. Crear Chips de Tipos de Estudios
+        const typeContainer = document.createElement('div');
+        typeContainer.className = 'input-group';
+        typeContainer.style.marginBottom = "15px";
+        typeContainer.innerHTML = '<label style="font-weight:600; color:var(--accent-blue);">Seleccione Estudios Realizados:</label><div class="study-types" style="display:flex; flex-wrap:wrap; gap:10px;"></div>';
+        const chipBox = typeContainer.querySelector('.study-types');
+
+        Object.keys(MODEL_DATA.STUDIES).forEach(typeKey => {
+            const typeChip = document.createElement('span');
+            typeChip.textContent = typeKey;
+            typeChip.className = 'study-type-chip';
+            typeChip.style.cssText = "padding:8px 12px; background:var(--color-glass-heavy); border:1px solid var(--color-border); color:var(--color-text); border-radius:15px; cursor:pointer; font-weight:600; display:inline-block;";
+            
+            typeChip.onclick = () => {
+                const isActive = typeChip.classList.toggle('on');
+                if (isActive) {
+                    typeChip.style.background = 'var(--color-accent)';
+                    typeChip.style.color = 'white';
+                    this.renderStudyDetails(typeKey); // Mostrar detalles
+                } else {
+                    typeChip.style.background = 'var(--color-glass-heavy)';
+                    typeChip.style.color = 'var(--color-text)';
+                    this.removeStudyDetails(typeKey); // Ocultar detalles
+                }
+            };
+            chipBox.appendChild(typeChip);
+        });
+        wrapper.appendChild(typeContainer);
+    },
+
+    renderStudyDetails: function(typeKey) {
+        const wrapper = this.container.querySelector('.studies-wrapper');
+        const data = MODEL_DATA.STUDIES[typeKey];
+        if (!data) return;
+
+        // 1. Contenedor Ocultable para este estudio
+        const detailDiv = document.createElement('div');
+        detailDiv.className = `study-detail-${typeKey} hidden`;
+        detailDiv.className = 'glass-panel';
+        detailDiv.style.padding = "15px";
+        detailDiv.style.marginBottom = "20px";
+        detailDiv.style.border = "1px solid var(--color-accent)";
+        detailDiv.style.display = 'block'; // Para que funcione .hidden de CSS
+        
+        detailDiv.innerHTML = `
+            <div style="font-weight:700; color:var(--accent-blue); margin-bottom:10px;">
+                Detalles: ${typeKey}
+                <button type="button" class="btn-close-study" data-type="${typeKey}" style="float:right; background:none; border:none; color:var(--text-dim); font-size:1.2rem; cursor:pointer;">&times;</button>
+            </div>
+        `;
+
+        // 2. Textbox Acumulativo para este estudio específico
+        const studyTA = document.createElement('textarea');
+        studyTA.id = `txt-study-${typeKey}`;
+        studyTA.rows = "4";
+        studyTA.style.cssText = "width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px; margin-bottom:15px;";
+        studyTA.placeholder = `Resultados y Hallazgos de ${typeKey}...`;
+        
+        detailDiv.appendChild(studyTA);
+
+        // 3. Chips internos
+        Object.entries(data).forEach(([section, chips]) => {
+            const secDiv = document.createElement('div');
+            secDiv.style.marginBottom = "10px";
+            secDiv.innerHTML = `<label style="font-weight:600; color:var(--accent-blue); display:block;">${section}</label>`;
+            
+            const chipBox = document.createElement('div');
+            chipBox.style.display = "flex";
+            chipBox.style.flexWrap = "wrap";
+            chipBox.style.gap = "5px";
+
+            chips.forEach(cText => {
+                const chip = document.createElement('span');
+                chip.textContent = cText;
+                chip.style.cssText = "padding:4px 8px; background:var(--color-glass-heavy); border:1px solid var(--color-border); border-radius:6px; cursor:pointer; font-size:0.75rem;";
+
+                // Lógica de click para chips de estudio
+                chip.addEventListener('click', () => {
+                    const isActive = chip.classList.toggle('on');
+                    if(isActive) {
+                        chip.style.background = 'var(--color-accent)';
+                        chip.style.color = 'white';
+                        // Escribir en el Textbox del estudio
+                        if(studyTA.value) studyTA.value += '\n';
+                        studyTA.value += `[${section}]: ${cText}`;
+                    } else {
+                        chip.style.background = 'var(--color-glass-heavy)';
+                        chip.style.color = 'var(--color-text)';
+                        // No borramos por seguridad
+                    }
+                });
+                chipBox.appendChild(chip);
+            });
+            secDiv.appendChild(chipBox);
+            detailDiv.appendChild(secDiv);
+        });
+
+        // Botón cerrar
+        const btn = detailDiv.querySelector('.btn-close-study');
+        btn.onclick = () => {
+            this.removeStudyDetails(typeKey);
+            // Desactivar el chip padre (tipo estudio)
+            const parentChip = this.container.querySelector(`.study-type-chip[data-id="${typeKey}"]`) || Array.from(this.container.querySelectorAll('.study-type-chip')).find(c => c.textContent === typeKey);
+            if(parentChip) {
+                parentChip.classList.remove('on');
+                parentChip.style.background = 'var(--color-glass-heavy)';
+                parentChip.style.color = 'var(--color-text)';
+            }
+        };
+
+        wrapper.appendChild(detailDiv);
+    },
+
+    removeStudyDetails: function(typeKey) {
+        const el = this.container.querySelector(`.study-detail-${typeKey}`);
+        if(el) el.classList.add('hidden');
     },
 
     renderRecipeChips: function() {
@@ -312,7 +422,8 @@ const MODEL_UI = {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
                 chip.textContent = med;
-                chip.style.cssText = "padding:5px 10px !important; background:var(--accent-blue) !important; color:white !important; border-radius:8px !important; cursor:pointer !important; display:inline-block !important; margin-right:5px !important; font-size:0.8rem !important;";
+                chip.style.cssText = "padding:5px 10px !important; background:var(--color-accent) !important; color:white !important; border-radius:8px !important; cursor:pointer !important; display:inline-block !important; margin-right:5px !important; font-size:0.8rem !important;";
+                
                 chip.addEventListener('click', () => chip.classList.toggle('on'));
                 this.handleMedSelection(med, category, chip.classList.contains('on'));
                 chipBox.appendChild(chip);
@@ -321,16 +432,12 @@ const MODEL_UI = {
         });
     },
 
-    // [FIX DE ID LIMPIO] ESTA ES LA FUNCIÓN QUE FALLABA
     handleMedSelection: function(medName, category, isSelected) {
-        // LIMPIAR NOMBRE PARA USARLO COMO ID (Quitar /, (, ))
-        const safeId = medName.replace(/[^a-zA-Z0-9]/g, '');
-        
         const txtRecipe = this.container.querySelector('.txt-recipe');
         if (txtRecipe) {
             const current = txtRecipe.value.split('\n').filter(Boolean);
             if (isSelected) {
-                current.push(medName);
+                if(!current.includes(medName)) current.push(medName);
             } else {
                 const idx = current.indexOf(medName);
                 if (idx > -1) current.splice(idx, 1);
@@ -343,7 +450,7 @@ const MODEL_UI = {
             const wrapper = document.createElement('div');
             wrapper.className = 'input-group';
             wrapper.style.marginBottom = "10px";
-            wrapper.id = `ind-wrap-${safeId}`; // USAR SAFEID AQUÍ
+            wrapper.id = `ind-wrap-${medName.replace(/[^a-zA-Z0-9]/g, '')}`;
             const label = document.createElement('label');
             label.className = 'small';
             label.textContent = medName;
@@ -364,8 +471,7 @@ const MODEL_UI = {
             wrapper.appendChild(select);
             indContainer.appendChild(wrapper);
         } else {
-            // USAR SAFEID AQUÍ EN EL QUERYSELECTOR
-            const el = this.container.querySelector(`#ind-wrap-${safeId}`);
+            const el = this.container.querySelector(`#ind-wrap-${medName.replace(/[^a-zA-Z0-9]/g, '')}`);
             if (el) el.remove();
             this.syncIndicationsToText();
         }
@@ -460,13 +566,12 @@ export const MODEL_DEFINITION = {
     id: "ORL-001",
     name: "Consulta Modelo Universal (ORL)",
     
-    // [REESTRUCTURACIÓN FINAL PRO] INICIALIZACIÓN UI
+    // [FINAL FIX] INICIALIZACIÓN UI
     initUI: function(container, data = {}, patient = null) {
-        // 1. INYECTAR ESTRUCTURA HTML ORDENADO ESTRÍCTAMENTE
+        
+        // 1. ESTRUCTURA HTML ORDENADA
         container.innerHTML = `
-            <div style="margin-bottom:20px; color:var(--text-dim); font-weight:600; font-size:0.9rem;">
-                * Campos obligatorios marcados con (*)
-            </div>
+            <div style="margin-bottom:20px; color:var(--text-dim); font-weight:600; font-size:0.9rem;">* Campos obligatorios marcados con (*)</div>
 
             <!-- SECCIÓN 1: ENFERMEDAD ACTUAL -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
@@ -500,33 +605,24 @@ export const MODEL_DEFINITION = {
                 </div>
             </div>
 
-            <!-- SECCIÓN 4: EXAMEN FÍSICO (SIEMPRE VISIBLE + TEXTO FUERA) -->
+            <!-- SECCIÓN 4: EXAMEN FÍSICO (PE + NOTAS) -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
-                <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
-                    <i class="fas fa-stethoscope"></i> Examen Físico ORL
-                </div>
+                <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);"><i class="fas fa-stethoscope"></i> Examen Físico ORL</div>
                 
-                <!-- [FIX] TEXTO PARA NOTAS DE EXAMEN FUERA DE PE-PANELS -->
+                <!-- [FIX] TEXTO PARA NOTAS ACUMULATIVAS DE PE -->
                 <div style="margin-top:15px;">
                     <label style="font-weight:600; color:var(--accent-blue); display:block; margin-bottom:5px;">Notas de Examen Físico</label>
-                    <textarea id="txt-pe-notas" rows="4" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Detalles adicionales del examen físico..."></textarea>
+                    <textarea id="txt-pe-notas" rows="6" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Los chips seleccionados se escribirán aquí..."></textarea>
                 </div>
 
-                <!-- Chips de Examen -->
-                <div class="pe-chips-container" style="margin-top:15px;"></div>
+                <div class="pe-chips-container"></div>
             </div>
 
-            <!-- SECCIÓN 5: ESTUDIOS EN CONSULTA -->
-            <div class="glass-panel studies-section" style="padding:20px; margin-bottom:20px;">
-                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
-                    <i class="fas fa-x-ray"></i> Estudios Solicitados / Realizados
-                </div>
-                 <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--accent-blue);">Tipo de Estudio</label>
-                    <!-- Select inyectado por JS -->
-                </div>
-                 <!-- Contenedor Detalles Estudios -->
-                 <div class="studies-detail-container"></div>
+            <!-- SECCIÓN 5: ESTUDIOS EN CONSULTA (DINÁMICOS) -->
+            <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
+                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);"><i class="fas fa-x-ray"></i> Estudios Solicitados / Realizados</div>
+                 <!-- [FIX] WRAPPER DINÁMICO DE ESTUDIOS -->
+                 <div class="studies-wrapper"></div>
             </div>
 
             <!-- SECCIÓN 6: DIAGNÓSTICO -->
@@ -546,11 +642,9 @@ export const MODEL_DEFINITION = {
                 </div>
             </div>
 
-            <!-- SECCIÓN 8: RECETA E INDICACIONES (DINÁMICAS) -->
+            <!-- SECCIÓN 8: RECETA E INDICACIONES -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px;">
-                <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
-                    <i class="fas fa-prescription-bottle-alt"></i> Recipe e Indicaciones Detalladas
-                </div>
+                <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);"><i class="fas fa-prescription-bottle-alt"></i> Recipe e Indicaciones Detalladas</div>
                 <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--text-dim);">Recipe</label>
                     <textarea class="txt-recipe" rows="6" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px; border-radius:8px;" placeholder="Medicamentos y dosis..."></textarea>
@@ -565,41 +659,34 @@ export const MODEL_DEFINITION = {
 
             <!-- SECCIÓN 9: GENERACIÓN DE DOCUMENTOS -->
             <div class="glass-panel" style="padding:20px; margin-bottom:20px; background:var(--color-glass);">
-                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);">
-                    <i class="fas fa-file-medical-alt"></i> Generación de Documentos
-                </div>
+                 <div style="margin-bottom:15px; font-weight:700; color:var(--accent-blue);"><i class="fas fa-file-medical-alt"></i> Generación de Documentos</div>
                  <div class="input-group" style="width:100%;">
                     <label style="font-weight:600; color:var(--text-dim); display:block; margin-bottom:10px;">Seleccione qué incluir en la impresión final:</label>
                     <div class="chips-container chips-docs" style="margin-bottom:15px;">
-                        <label class="chk-doc-inf" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
-                            <input type="checkbox" class="chk-doc-inf" style="width:auto;">
-                            Informe Médico (INF)
+                        <label class="chk-doc-inf" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; margin-bottom:5px !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
+                            <input type="checkbox" class="chk-doc-inf" style="width:auto;"> Informe Médico (INF)
                         </label>
-                        <label class="chk-doc-rp" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
-                            <input type="checkbox" class="chk-doc-rp" style="width:auto;">
-                            Recipe e Indicaciones (RP)
+                        <label class="chk-doc-rp" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; margin-bottom:5px !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
+                            <input type="checkbox" class="chk-doc-rp" style="width:auto;"> Recipe e Indicaciones (RP)
                         </label>
-                        <label class="chk-doc-ord" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
-                            <input type="checkbox" class="chk-doc-ord" style="width:auto;">
-                            Orden Quirúrgica (ORD)
+                        <label class="chk-doc-ord" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; margin-bottom:5px !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
+                            <input type="checkbox" class="chk-doc-ord" style="width:auto;"> Orden Quirúrgica (ORD)
                         </label>
-                        <label class="chk-doc-lab" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
-                            <input type="checkbox" class="chk-doc-lab" style="width:auto;">
-                            Consentimientos (CON)
+                         <label class="chk-doc-con" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; margin-bottom:5px !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
+                            <input type="checkbox" class="chk-doc-con" style="width:auto;"> Consentimientos (CON)
                         </label>
-                         <label class="chk-doc-con" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
-                            <input type="checkbox" class="chk-doc-con" style="width:auto;">
-                            Laboratorios (LAB)
+                         <label class="chk-doc-lab" style="padding:5px 10px !important; background:var(--color-glass-heavy) !important; border:1px solid var(--color-border) !important; border-radius:12px !important; cursor:pointer !important; margin-bottom:5px !important; display:inline-flex !important; align-items:center !important; gap:5px !important;">
+                            <input type="checkbox" class="chk-doc-lab" style="width:auto;"> Laboratorios (LAB)
                         </label>
                     </div>
                  </div>
             </div>
         `;
 
-        // 2. Ejecutar Lógica Genérica (Pasar 'patient')
+        // 2. EJECUTAR LÓGICA GENÉRICA (PASAR PATIENTE)
         MODEL_UI.init(container, data, patient);
 
-        // 3. Si hay datos (Edición), llenar campos
+        // 3. SI HAY DATOS (EDICIÓN)
         if (data && Object.keys(data).length > 0) {
             const setVal = (sel, val) => {
                 const el = container.querySelector(sel);
@@ -615,14 +702,29 @@ export const MODEL_DEFINITION = {
             setVal('.txt-recipe', data.recipe);
             setVal('.txt-indicaciones', data.indicaciones);
             
-            // Restaurar Checkboxes de Documentos
+            // RESTAURAR ESTUDIOS (Si existen en data)
+            if(data.studies_generated && Array.isArray(data.studies_generated)) {
+                // Lógica para re-activar estudios: Llamar renderStudyDetails y setear valor
+                data.studies_generated.forEach(studyKey => {
+                    // Renderizar contenedor (no re-renderizar el chip tipo si no quieres, pero esto es más fácil)
+                    const detail = MODEL_UI.renderStudyDetails.call(MODEL_UI, studyKey); 
+                    // Quitar clase hidden manualmente si el sistema no lo hace
+                    const el = container.querySelector(`.study-detail-${studyKey}`);
+                    if(el) el.classList.remove('hidden');
+                    
+                    // Setear valor del textbox específico
+                    const ta = document.getElementById(`txt-study-${studyKey}`);
+                    if(ta && data[`study_${studyKey}`]) ta.value = data[`study_${studyKey}`];
+                });
+            }
+
+            // RESTAURAR CHECKBOX DE DOCUMENTOS
             if (data.docs_generated && Array.isArray(data.docs_generated)) {
                 const chkInf = container.querySelector('.chk-doc-inf');
                 const chkRp = container.querySelector('.chk-doc-rp');
                 const chkOrd = container.querySelector('.chk-doc-ord');
                 const chkCon = container.querySelector('.chk-doc-con');
                 const chkLab = container.querySelector('.chk-doc-lab');
-
                 if(chkInf) chkInf.checked = data.docs_generated.includes("INF");
                 if(chkRp) chkRp.checked = data.docs_generated.includes("RP");
                 if(chkOrd) chkOrd.checked = data.docs_generated.includes("ORD");
@@ -632,8 +734,22 @@ export const MODEL_DEFINITION = {
         }
     },
     
+    // 4. OBTENER DATOS (ORDEN ESTRÍCTO + ESTUDIOS)
     getData: function(container) {
         const getVal = (sel) => container.querySelector(sel)?.value || '';
+        
+        // LEER ESTUDIOS (Iterar todos los txt-study-X)
+        const studies = {};
+        const studyTAs = container.querySelectorAll('textarea[id^="txt-study-"]');
+        studyTAs.forEach(ta => {
+            if(ta.value) {
+                // El ID es "txt-study-Nasofibrolaringoscopia"
+                const key = ta.id.replace('txt-study-', '');
+                studies[key] = ta.value;
+            }
+        });
+
+        // LEER CHECKBOXES DE DOCUMENTOS
         const getDocs = () => {
             const docs = [];
             if (container.querySelector('.chk-doc-inf')?.checked) docs.push("INF");
@@ -643,12 +759,15 @@ export const MODEL_DEFINITION = {
             if (container.querySelector('.chk-doc-lab')?.checked) docs.push("LAB");
             return docs;
         };
+
         return {
             ea: getVal('.txt-ea'),
             motivo: getVal('.txt-motivo'),
             ap: getVal('.txt-ap'), 
             af: getVal('.txt-af'), 
             pe_notas: getVal('#txt-pe-notas'),
+            studies_generated: Object.keys(studies), // Lista de nombres de estudios
+            ...studies, // Propiedades dinámicas "Nasofibrolaringoscopia": "texto..."
             dx: getVal('.txt-dx'),
             plan: getVal('.txt-plan'),
             recipe: getVal('.txt-recipe'),
@@ -657,6 +776,7 @@ export const MODEL_DEFINITION = {
         };
     },
     
+    // 5. VALIDAR
     validate: function(data) {
         if (!data.motivo && !data.ea) return "Debe ingresar al menos un Motivo o Enfermedad Actual.";
         if (!data.dx) return "Debe ingresar un Diagnóstico.";
@@ -664,6 +784,7 @@ export const MODEL_DEFINITION = {
         return null; 
     },
     
+    // 6. RESUMEN
     getSummary: function(data) {
         return data.motivo || data.dx || "Consulta Modelo";
     }
@@ -674,4 +795,3 @@ export const MODEL_MODULE = {
     UI: MODEL_UI,
     DOCS: MODEL_DOCS
 };
-
