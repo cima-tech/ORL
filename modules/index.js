@@ -715,7 +715,7 @@ class App {
     const db = this._getDB();
     
     // [FIX FINAL CRÍTICO] Si no hay usuario, crear uno fantasma por defecto
-    const currentUser = window.currentUser || { id: 'admin-00' };
+    const currentUser = window.currentUser || { id: 'U-001' };
 
     if (!db.consultations[docId]) db.consultations[docId] = [];
     
@@ -799,5 +799,6 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
 
