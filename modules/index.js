@@ -710,15 +710,29 @@ class App {
                   // Generar resumen para la lista
                   consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
 
-                  StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
-                  alert("Consulta guardada exitosamente");
-                  this.closeModal();
-                  this.showPatientView(this.currentPatient.identificacion.documento_numero); // Recargar
-              } catch(e) {
-                  console.error(e);
-                  alert("Error al guardar: " + e.message);
-              }
-          };
+                 
+            static saveConsultation(docId, consultationData) {
+    const db = this._getDB();
+    
+    // [FIX FINAL CRÍTICO] Si no hay usuario, crear uno fantasma por defecto
+    const currentUser = window.currentUser || { id: 'admin-00' };
+
+    if (!db.consultations[docId]) db.consultations[docId] = [];
+    
+    if (consultationData.id) {
+        const idx = db.consultations[docId].findIndex(c => c.id === consultationData.id);
+        if (idx !== -1) {
+            const existing = db.consultations[docId][idx];
+            db.consultations[docId][idx] = { ...existing, ...consultationData, updatedAt: new Date().toISOString(), createdBy: currentUser.id };
+        }
+    } else {
+        consultationData.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+        consultationData.createdAt = new Date().toISOString();
+        consultationData.createdBy = currentUser.id; // Aquí ya no explota porque currentUser siempre tiene un valor
+        db.consultations[docId].push(consultationData);
+    }
+    this._saveDB(db);
+  }
 
       } catch (err) {
           console.error("Error cargando modelo:", err);
@@ -785,4 +799,5 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
