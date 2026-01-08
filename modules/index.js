@@ -336,4 +336,397 @@ const Views = {
       } else {
         let inputHtml = '';
         if (type === 'select') {
-          inputHtml = `<select name="${inputName}" class="model-select" style="background:rgba(255,255,255,0.05);
+          inputHtml = `<select name="${inputName}" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:10px;">
+            <option value="">Seleccione...</option>${options.map(o => `<option value="${o}" ${value===o?'selected':''}>${o}</option>`).join('')}
+          </select>`;
+        } else if (type === 'textarea') {
+          inputHtml = `<textarea name="${inputName}" rows="3" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);" placeholder="${placeholder||''}">${value||''}</textarea>`;
+        } else {
+          inputHtml = `<input type="${type}" name="${inputName}" value="${value||''}" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);" placeholder="${placeholder||''}" step="${fieldConfig.step || 'any'}">`;
+        }
+        wrapper.innerHTML = `<label style="font-size:0.85rem; font-weight:600; color:var(--text-dim);">${label}</label>${inputHtml}`;
+      }
+      return wrapper;
+    };
+
+    const formCard = document.createElement('div');
+    formCard.className = 'glass-panel';
+    formCard.style.padding = "20px";
+
+    Object.entries(PATIENT_FIELD_CONFIG).forEach(([secKey, secConfig]) => {
+      const secDiv = document.createElement('div');
+      secDiv.style.marginBottom = "30px";
+      secDiv.style.borderBottom = "1px solid var(--color-border)";
+      secDiv.style.paddingBottom = "15px";
+
+      const title = document.createElement('h3');
+      title.textContent = secConfig.label;
+      title.style.color = "var(--accent-blue)";
+      title.style.marginBottom = "15px";
+      title.style.fontSize = "1.1rem";
+      secDiv.appendChild(title);
+
+      const row = document.createElement('div');
+      row.className = 'input-row';
+
+      if (secConfig.type === 'checkbox_list') {
+        secConfig.items.forEach(item => {
+          const val = getNestedValue(`${secKey}.${item.key}`, data);
+          row.appendChild(createField(secKey, { ...item, type: 'checkbox' }, val));
+        });
+        if (secConfig.extra_field) {
+          const val = getNestedValue(`${secKey}.${secConfig.extra_field}`, data);
+          const div = document.createElement('div');
+          div.className = 'input-group full-width';
+          div.innerHTML = `<label>Otros / Detalles</label><textarea name="${secKey}.${secConfig.extra_field}" rows="2" class="model-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text);">${val||''}</textarea>`;
+          row.appendChild(div);
+        }
+      } 
+      else if (secConfig.type === 'group_check_detail') {
+        secConfig.items.forEach(item => {
+          const valCheck = getNestedValue(`${secKey}.${item.key}_check`, data);
+          const valDetail = getNestedValue(`${secKey}.${item.key}_detalle`, data);
+          
+          const group = document.createElement('div');
+          group.className = 'glass-panel';
+          group.style.padding = "10px";
+          group.style.background = "rgba(255,255,255,0.05)";
+          group.style.border = "1px solid var(--color-border)";
+          group.innerHTML = `
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="${secKey}.${item.key}_check" style="width:auto;" ${valCheck ? 'checked' : ''}>
+              <label style="margin:0; font-weight:bold; color:var(--color-text);">${item.label}</label>
+            </div>
+            <input type="text" name="${secKey}.${item.key}_detalle" value="${valDetail||''}" placeholder="Especifique..." style="margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid var(--color-border); color:var(--color-text); padding:8px;">
+          `;
+          row.appendChild(group);
+        });
+      } 
+      else {
+        secConfig.fields.forEach(field => {
+          const val = getNestedValue(`${secKey}.${field.key}`, data);
+          row.appendChild(createField(secKey, field, val));
+        });
+      }
+
+      secDiv.appendChild(row);
+      formCard.appendChild(secDiv);
+    });
+
+    container.appendChild(formCard);
+  }
+};
+
+// [JS-IND-004] APLICACIÓN PRINCIPAL
+class App {
+  constructor() {
+    this.currentUser = null;
+    this.currentPatient = null;
+    this.currentEditingConsultationId = null;
+  }
+
+  async init() {
+    this.currentUser = {
+        id: "user-001",
+        names: "Valentina",
+        lastNames: "Gonzalez Yanez",
+        defaultModel: "ORL-001"
+    };
+    window.currentUser = this.currentUser; // IMPORTANTE: Globalizar al instanciar
+    document.getElementById('userInfoDisplay').textContent = 
+        `Dra. ${this.currentUser.names} ${this.currentUser.lastNames}`;
+
+    document.getElementById('btnHome').onclick = () => this.showDashboard();
+    document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
+    document.getElementById('btnTheme').onclick = () => this.toggleTheme();
+
+    this.showDashboard();
+  }
+
+  toggleTheme() {
+    document.body.classList.toggle('light-mode');
+  }
+
+  showDashboard() {
+    document.getElementById('dashboardView').classList.remove('hidden');
+    document.getElementById('patientView').classList.add('hidden');
+    this.currentPatient = null;
+  }
+
+  showPatientView(patientId) {
+    this.currentPatient = StorageService.getPatient(patientId);
+    if (!this.currentPatient) { alert("Paciente no encontrado"); return; }
+
+    document.getElementById('dashboardView').classList.add('hidden');
+    document.getElementById('patientView').classList.remove('hidden');
+
+    document.getElementById('patientHeaderTitle').textContent = 
+        `PACIENTE: ${this.currentPatient.nombres.primer_nombre} ${this.currentPatient.nombres.primer_apellido} (${patientId})`;
+    
+    Views.renderPatientInfo(document.getElementById('patientInfoContainer'), this.currentPatient);
+
+    const consults = StorageService.getConsultations(patientId);
+    document.getElementById('consultationsCount').textContent = `CONSULTAS (${consults.length})`;
+    Views.renderConsultationList(document.getElementById('consultationListContainer'), consults);
+
+    const pSec = document.getElementById('patientSection');
+    const pContent = pSec.querySelector('.section-content');
+    pContent.classList.add('expanded');
+    pContent.style.maxHeight = "1000px";
+  }
+  
+  editCurrentPatient() {
+      if (!this.currentPatient) return alert("No hay paciente seleccionado");
+
+      const modal = document.getElementById('editModal');
+      const body = document.getElementById('modalBody');
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
+
+      title.textContent = "Editar Ficha Paciente";
+      btn.textContent = "Guardar Cambios";
+      
+      body.innerHTML = ''; 
+      Views.renderPatientForm(body, this.currentPatient);
+      modal.classList.add('active');
+      
+      btn.onclick = () => {
+          const inputs = body.querySelectorAll('input, select, textarea');
+          const formData = new FormData();
+          inputs.forEach(input => { 
+              if(input.name) {
+                  formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value); 
+              }
+          });
+
+          try {
+              const raw = this.sanitizePatientData(formData);
+              raw.identificacion.uuid = this.currentPatient.identificacion.uuid; 
+              
+              const p = new PatientProfile(raw);
+              StorageService.savePatient(p);
+              
+              alert("Ficha actualizada exitosamente");
+              this.closeModal();
+              this.showPatientView(p.identificacion.documento_numero);
+          } catch(e) { alert("Error al guardar: " + e.message); }
+      };
+  }
+
+    viewFullHistory() {
+        if (!this.currentPatient) return;
+        alert("La ficha actual (Paciente) contiene toda la historia clínica. \nPara revisar detalles específicos, use la opción 'Editar Ficha'.");
+  }
+  
+  sanitizePatientData(formData) {
+      const raw = { 
+          identificacion: {}, nombres: {}, demografia: {}, datos_biologicos: {}, contacto: {}, redes_sociales: {}, 
+          contacto_emergencia: {}, alertas_clinicas: {}, seguridad_prioritaria: {}, datos_administrativos: {},
+          antecedentes_personales: {}, historial_quirurgico: {}, hospitalizaciones: {}, 
+          lesiones_y_fracturas: {}, antecedentes_familiares: {}, habitos: {}, contexto_social: {}, 
+          consentimientos: {}
+      };
+      
+      formData.forEach((value, key) => {
+          const parts = key.split('.');
+          let target = raw;
+          for (let i = 0; i < parts.length - 1; i++) {
+              if (!target[parts[i]]) target[parts[i]] = {};
+              target = target[parts[i]];
+          }
+          target[parts[parts.length - 1]] = value;
+      });
+
+      ['identificacion', 'nombres', 'demografia', 'datos_biologicos', 'contacto', 'redes_sociales', 'contacto_emergencia',
+       'seguridad_prioritaria', 'datos_administrativos', 'historial_quirurgico', 'hospitalizaciones', 'lesiones_y_fracturas',
+       'contexto_social', 'consentimientos'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec]) {
+            PATIENT_FIELD_CONFIG[sec].fields.forEach(f => {
+               if(f.type === 'checkbox') {
+                   const key = `${sec}.${f.key}`;
+                   if(!raw[sec][f.key]) raw[sec][f.key] = false;
+               }
+            });
+         }
+      });
+      ['antecedentes_personales', 'antecedentes_familiares'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
+            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
+               const key = `${sec}.${f.key}`;
+               if(!raw[sec][f.key]) raw[sec][f.key] = false;
+            });
+         }
+      });
+      ['alertas_clinicas'].forEach(sec => {
+         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
+            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
+               const key = `${sec}.${f.key}_check`;
+               if(!raw[sec][f.key+'_check']) raw[sec][f.key+'_check'] = false;
+            });
+         }
+      });
+
+      return raw;
+  }
+
+  createNewPatientWorkflow() {
+      const modal = document.getElementById('editModal');
+      const body = document.getElementById('modalBody');
+      document.getElementById('modalTitle').textContent = "Nuevo Paciente";
+      
+      body.innerHTML = ''; 
+      Views.renderPatientForm(body, {});
+      
+      modal.classList.add('active');
+      
+      document.getElementById('btnSaveConsultation').onclick = () => {
+          const inputs = body.querySelectorAll('input, select, textarea');
+          const formData = new FormData();
+          inputs.forEach(input => {
+              if (input.name) {
+                  if (input.type === 'checkbox') {
+                      formData.append(input.name, input.checked);
+                  } else {
+                      formData.append(input.name, input.value);
+                  }
+              }
+          });
+
+          try {
+              const raw = this.sanitizePatientData(formData);
+              const p = new PatientProfile(raw);
+              StorageService.savePatient(p);
+              
+              alert("Paciente creado exitosamente");
+              this.closeModal();
+              this.showPatientView(p.identificacion.documento_numero);
+          } catch(e) { 
+              console.error(e);
+              alert("Error al guardar paciente: " + e.message);
+          }
+      };
+  }
+
+  openNewConsultationUI() {
+      const modelSelect = document.getElementById('newConsultModelSelect');
+      const selectedModel = modelSelect.value;
+      this.openConsultationModal(null, selectedModel);
+  }
+
+  async editConsultation(consultationId, modelId) {
+      this.currentEditingConsultationId = consultationId;
+      const consults = StorageService.getConsultations(this.currentPatient.identificacion.documento_numero);
+      const data = consults.find(c => c.id === consultationId);
+      this.openConsultationModal(data, modelId);
+  }
+
+  async openConsultationModal(data, modelId) {
+      const modal = document.getElementById('editModal');
+      const body = document.getElementById('modalBody');
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
+
+      title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
+      btn.textContent = "Guardar Consulta";
+      
+      body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
+      modal.classList.add('active');
+
+      try {
+          const module = await import(`../consultmodels/${modelId}.js`);
+          
+          if (!module.MODEL_DEFINITION) {
+              throw new Error("El archivo no exporta MODEL_DEFINITION. Revisa el parche en ORL-001.js");
+          }
+
+          body.innerHTML = '';
+
+          module.MODEL_DEFINITION.initUI(body, data || {});
+
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+          
+          newBtn.onclick = async () => {
+              try {
+                  const consultData = module.MODEL_DEFINITION.getData(body);
+                  
+                  consultData.modelo = modelId;
+                  consultData.pacienteId = this.currentPatient.identificacion.documento_numero;
+                  
+                  if (data) consultData.id = data.id;
+
+                  consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
+
+                  StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
+                  alert("Consulta guardada exitosamente");
+                  this.closeModal();
+                  this.showPatientView(this.currentPatient.identificacion.documento_numero);
+              } catch(e) {
+                  console.error(e);
+                  alert("Error al guardar: " + e.message);
+              }
+          };
+
+      } catch (err) {
+          console.error("Error cargando modelo:", err);
+          body.innerHTML = `
+            <div style="color:var(--color-error); text-align:center; padding:20px;">
+                  <h3>Error Crítico</h3>
+                  <p>No se pudo cargar el modelo ${modelId}.</p>
+                  <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
+                  <p>Verifica la consola (F12) para más detalles.</p>
+            </div>`;
+          const btn = document.getElementById('btnSaveConsultation');
+          if(btn) btn.disabled = true;
+      }
+  }
+
+  showSearchModal() {
+      document.getElementById('searchModal').classList.add('active');
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      input.focus();
+      
+      input.oninput = () => {
+          const q = input.value;
+          if(q.length < 2) return;
+          const results = StorageService.search(q);
+          const div = document.getElementById('searchResults');
+          div.innerHTML = results.map(p => `
+              <div class="patient-info-item" style="cursor:pointer; margin-bottom:10px;" onclick="window.app.showPatientView('${p.identificacion.documento_numero}'); document.getElementById('searchModal').classList.remove('active');">
+                  <strong>${p.nombres.primer_nombre} ${p.nombres.primer_apellido}</strong> (${p.identificacion.documento_numero})
+              </div>
+          `).join('');
+      };
+  }
+
+  toggleSection(id) {
+      const sec = document.getElementById(id);
+      const content = sec.querySelector('.section-content');
+      const icon = sec.querySelector('.section-toggle i');
+      
+      if (content.classList.contains('expanded')) {
+          content.classList.remove('expanded');
+          content.style.maxHeight = "0";
+          icon.className = "fas fa-chevron-down";
+      } else {
+          content.classList.add('expanded');
+          content.style.maxHeight = "2000px";
+          icon.className = "fas fa-chevron-up";
+      }
+  }
+
+  toggleConsultationContent(id) {
+      const content = document.getElementById(`content-${id}`);
+      content.classList.toggle('expanded');
+  }
+
+  closeModal() {
+      document.getElementById('editModal').classList.remove('active');
+      this.currentEditingConsultationId = null;
+  }
+}
+
+// Inicializar
+window.app = new App();
+document.addEventListener('DOMContentLoaded', () => window.app.init());
