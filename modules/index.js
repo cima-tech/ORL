@@ -417,7 +417,8 @@ const Views = {
   }
 };
 
-// [JS-IND-004] APLICACIÓN PRINCIPAL
+/* modules/index.js -> Clase App (ACTUALIZADA V4) */
+
 class App {
   constructor() {
     this.currentUser = null;
@@ -426,21 +427,85 @@ class App {
   }
 
   async init() {
+    // 1. Cargar Usuario (Valentina Hardcoded)
     this.currentUser = {
         id: "user-001",
         names: "Valentina",
-        lastNames: "Gonzalez Yanez",
-        defaultModel: "ORL-001"
+        lastNames: "Gonzalez Yanez"
+        // NOTA: Ya NO asignamos defaultModel aquí. Se asigna en loadAvailableModels().
     };
-    window.currentUser = this.currentUser; // IMPORTANTE: Globalizar al instanciar
+    window.currentUser = this.currentUser; // Globalizar al instanciar
     document.getElementById('userInfoDisplay').textContent = 
         `Dra. ${this.currentUser.names} ${this.currentUser.lastNames}`;
 
+    // 2. Cargar Modelos Dinámicamente (NUEVA FUNCIÓN)
+    await this.loadAvailableModels();
+
+    // Listeners del Dock
     document.getElementById('btnHome').onclick = () => this.showDashboard();
     document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
     document.getElementById('btnTheme').onclick = () => this.toggleTheme();
+    
+    // Listener del botón Buscar (MOVIDO AL DOCK EN HTML ANTERIOR)
+    const btnSearch = document.getElementById('btnSearch');
+    if(btnSearch) {
+        btnSearch.onclick = () => this.showSearchModal();
+    }
 
     this.showDashboard();
+  }
+
+  // [NEW] FUNCIÓN DE ESCANEO DINÁMICO DE MODELOS
+  async loadAvailableModels() {
+      const select = document.getElementById('newConsultModelSelect');
+      if (!select) return;
+
+      // Registro de modelos esperados
+      const expectedModels = [
+          { id: "ORL-001", name: "ORL-001 - Consulta ORL" },
+          { id: "MEDGEN-001", name: "MEDGEN-001 - Consulta General" },
+          { id: "PEDI-001", name: "PEDI-001 - Consulta Pediátrica" }
+      ];
+
+      // Estado de carga
+      select.innerHTML = '<option value="" disabled selected>Escaneando modelos...</option>';
+
+      const validModels = [];
+
+      // Verificar disponibilidad dinámicamente
+      for (const model of expectedModels) {
+          try {
+              const response = await fetch(`../consultmodels/${model.id}.js`);
+              
+              if (response.ok) {
+                  validModels.push(model);
+              } else {
+                  console.warn(`Modelo ${model.id} no encontrado.`);
+              }
+          } catch (e) {
+              console.warn(`Modelo ${model.id} no encontrado.`, e);
+          }
+      }
+
+      // Limpiar y rellenar Select
+      select.innerHTML = '';
+      
+      if (validModels.length === 0) {
+          const opt = document.createElement('option');
+          opt.text = "No se encontraron modelos en 'consultmodels/'";
+          opt.disabled = true;
+          select.appendChild(opt);
+      } else {
+          validModels.forEach((model, index) => {
+              const opt = document.createElement('option');
+              opt.value = model.id;
+              opt.textContent = model.name;
+              select.appendChild(opt);
+          });
+          
+          // Seleccionar el primer modelo por defecto si no hay usuario
+          this.currentUser.defaultModel = validModels[0].id;
+      }
   }
 
   toggleTheme() {
@@ -726,7 +791,7 @@ class App {
       this.currentEditingConsultationId = null;
   }
 }
-
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
