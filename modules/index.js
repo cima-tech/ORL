@@ -1,12 +1,5 @@
 /* modules/index.js */
 
-/*
-  [GLOSARIO-INDEX]
-  StorageService -> Persistencia Local
-  PatientFieldConfig -> Esquema completo del paciente (A-R)
-  App -> Orquestador principal (Dashboard, Paciente, Modal)
-*/
-
 import UserProfile from './user-profile.js';
 import PatientProfile from './patient-profile.js';
 
@@ -30,7 +23,6 @@ class StorageService {
     const db = this._getDB();
     if (!db.consultations[docId]) db.consultations[docId] = [];
     
-    // [FIX FINAL CRÍTICO] Si no hay usuario, crear uno fantasma por defecto
     const currentUser = window.currentUser || { id: 'U-001' };
 
     if (consultationData.id) {
@@ -40,7 +32,6 @@ class StorageService {
             db.consultations[docId][idx] = { ...existing, ...consultationData, updatedAt: new Date().toISOString(), createdBy: currentUser.id };
         }
     } else {
-        // Nueva
         consultationData.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
         consultationData.createdAt = new Date().toISOString();
         consultationData.createdBy = currentUser.id;
@@ -70,7 +61,7 @@ class StorageService {
   static _saveDB(db) { localStorage.setItem(this.BASE_KEY, JSON.stringify(db)); }
 }
 
-// [JS-IND-002] CONFIGURACIÓN DE PACIENTE (COMPLETA A-R)
+// [JS-IND-002] CONFIGURACIÓN DE PACIENTE
 const PATIENT_FIELD_CONFIG = {
   identificacion: {
     label: "Identificación",
@@ -417,8 +408,7 @@ const Views = {
   }
 };
 
-/* modules/index.js -> Clase App (ACTUALIZADA V4) */
-
+// [JS-IND-004] APLICACIÓN PRINCIPAL
 class App {
   constructor() {
     this.currentUser = null;
@@ -427,26 +417,57 @@ class App {
   }
 
   async init() {
-    // 1. Cargar Usuario (Valentina Hardcoded)
+    // 1. Cargar Usuario
     this.currentUser = {
         id: "user-001",
         names: "Valentina",
-        lastNames: "Gonzalez Yanez"
-        // NOTA: Ya NO asignamos defaultModel aquí. Se asigna en loadAvailableModels().
+        lastNames: "Gonzalez Yanez",
+        defaultModel: "ORL-001"
     };
-    window.currentUser = this.currentUser; // Globalizar al instanciar
+    window.currentUser = this.currentUser;
     document.getElementById('userInfoDisplay').textContent = 
         `Dra. ${this.currentUser.names} ${this.currentUser.lastNames}`;
 
-    // 2. Cargar Modelos Dinámicamente (NUEVA FUNCIÓN)
-    await this.loadAvailableModels();
+    // 2. [SOLUCIÓN MÁGICA] Verificación Real de Modelos
+    // Leemos la lista HTML y tratamos de importar cada uno.
+    // Si falla, deshabilitamos la opción. Si tiene éxito, la habilitamos.
+    const select = document.getElementById('newConsultModelSelect');
+    if(select) {
+        const options = Array.from(select.options);
+        // Iterar sobre las opciones
+        for (const opt of options) {
+            const modelId = opt.value;
+            // Originalizar estado de carga
+            opt.disabled = false;
+            const originalText = opt.textContent.replace(" (Falta archivo)", "").replace(" (Listo)", "").replace(" (Error)", "");
+            opt.textContent = originalText + " (Verificando...)";
+            
+            // Intentar importar para verificar existencia
+            try {
+                const module = await import(`../consultmodels/${modelId}.js`);
+                if (!module.MODEL_DEFINITION) throw new Error("Sin MODEL_DEFINITION");
+                
+                // Éxito
+                opt.disabled = false;
+                opt.textContent = originalText; // Quitar "Verificando..."
+            } catch (e) {
+                // Error: No existe el archivo .js
+                console.warn(`Modelo ${modelId} no disponible.`, e);
+                opt.disabled = true;
+                opt.textContent = originalText + " (Falta archivo)";
+            }
+        }
+        
+        // Fallback para el primero
+        if(!this.currentUser.defaultModel) this.currentUser.defaultModel = options[0].value;
+    }
 
     // Listeners del Dock
     document.getElementById('btnHome').onclick = () => this.showDashboard();
     document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
     document.getElementById('btnTheme').onclick = () => this.toggleTheme();
     
-    // Listener del botón Buscar (MOVIDO AL DOCK EN HTML ANTERIOR)
+    // Listener del botón Buscar (que está en el dock)
     const btnSearch = document.getElementById('btnSearch');
     if(btnSearch) {
         btnSearch.onclick = () => this.showSearchModal();
@@ -455,66 +476,15 @@ class App {
     this.showDashboard();
   }
 
-  // [NEW] FUNCIÓN DE ESCANEO DINÁMICO DE MODELOS
-  async loadAvailableModels() {
-      const select = document.getElementById('newConsultModelSelect');
-      if (!select) return;
-
-      // Registro de modelos esperados
-      const expectedModels = [
-          { id: "ORL-001", name: "ORL-001 - Consulta ORL" },
-          { id: "MEDGEN-001", name: "MEDGEN-001 - Consulta General" },
-          { id: "PEDI-001", name: "PEDI-001 - Consulta Pediátrica" }
-      ];
-
-      // Estado de carga
-      select.innerHTML = '<option value="" disabled selected>Escaneando modelos...</option>';
-
-      const validModels = [];
-
-      // Verificar disponibilidad dinámicamente
-      for (const model of expectedModels) {
-          try {
-              const response = await fetch(`../consultmodels/${model.id}.js`);
-              
-              if (response.ok) {
-                  validModels.push(model);
-              } else {
-                  console.warn(`Modelo ${model.id} no encontrado.`);
-              }
-          } catch (e) {
-              console.warn(`Modelo ${model.id} no encontrado.`, e);
-          }
-      }
-
-      // Limpiar y rellenar Select
-      select.innerHTML = '';
-      
-      if (validModels.length === 0) {
-          const opt = document.createElement('option');
-          opt.text = "No se encontraron modelos en 'consultmodels/'";
-          opt.disabled = true;
-          select.appendChild(opt);
-      } else {
-          validModels.forEach((model, index) => {
-              const opt = document.createElement('option');
-              opt.value = model.id;
-              opt.textContent = model.name;
-              select.appendChild(opt);
-          });
-          
-          // Seleccionar el primer modelo por defecto si no hay usuario
-          this.currentUser.defaultModel = validModels[0].id;
-      }
-  }
-
   toggleTheme() {
     document.body.classList.toggle('light-mode');
   }
 
   showDashboard() {
-    document.getElementById('dashboardView').classList.remove('hidden');
-    document.getElementById('patientView').classList.add('hidden');
+    const db = document.getElementById('dashboardView');
+    const pv = document.getElementById('patientView');
+    if(db) db.classList.remove('hidden');
+    if(pv) pv.classList.add('hidden');
     this.currentPatient = null;
   }
 
@@ -522,8 +492,10 @@ class App {
     this.currentPatient = StorageService.getPatient(patientId);
     if (!this.currentPatient) { alert("Paciente no encontrado"); return; }
 
-    document.getElementById('dashboardView').classList.add('hidden');
-    document.getElementById('patientView').classList.remove('hidden');
+    const db = document.getElementById('dashboardView');
+    const pv = document.getElementById('patientView');
+    if(db) db.classList.add('hidden');
+    if(pv) pv.classList.remove('hidden');
 
     document.getElementById('patientHeaderTitle').textContent = 
         `PACIENTE: ${this.currentPatient.nombres.primer_nombre} ${this.currentPatient.nombres.primer_apellido} (${patientId})`;
@@ -791,7 +763,7 @@ class App {
       this.currentEditingConsultationId = null;
   }
 }
+
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
-
