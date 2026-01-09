@@ -1,0 +1,13 @@
+{
+    "id": "user-001",
+    "names": "Valentina",
+    "lastNames": "Gonzalez Yanez",
+    "title": "Dra.",
+    "defaultModel": "ORL-001",
+    "layout": {
+        "header": "user/user-001/layout/header-horizontal.png",
+        "footer": "user/user-001/layout/footer-horizontal.png",
+        "signature": "user/user-001/layout/signature.png",
+        "stamp": "user/user-001/layout/stamp.png"
+    }
+}
