@@ -61,7 +61,7 @@ class StorageService {
   static _saveDB(db) { localStorage.setItem(this.BASE_KEY, JSON.stringify(db)); }
 }
 
-// [JS-IND-002] CONFIGURACIÓN DE PACIENTE
+// [JS-IND-002] CONFIGURACIÓN DE PACIENTE (COMPLETA A-R)
 const PATIENT_FIELD_CONFIG = {
   identificacion: {
     label: "Identificación",
@@ -408,7 +408,7 @@ const Views = {
   }
 };
 
-// [JS-IND-004] APLICACIÓN PRINCIPAL
+// [JS-IND-004] APLICACIÓN PRINCIPAL (CON LÓGICA DE JSON Y ROLES)
 class App {
   constructor() {
     this.currentUser = null;
@@ -417,63 +417,109 @@ class App {
   }
 
   async init() {
-    // 1. Cargar Usuario
-    this.currentUser = {
-        id: "user-001",
-        names: "Valentina",
-        lastNames: "Gonzalez Yanez",
-        defaultModel: "ORL-001"
-    };
-    window.currentUser = this.currentUser;
-    document.getElementById('userInfoDisplay').textContent = 
-        `Dra. ${this.currentUser.names} ${this.currentUser.lastNames}`;
-
-    // 2. [SOLUCIÓN MÁGICA] Verificación Real de Modelos
-    // Leemos la lista HTML y tratamos de importar cada uno.
-    // Si falla, deshabilitamos la opción. Si tiene éxito, la habilitamos.
-    const select = document.getElementById('newConsultModelSelect');
-    if(select) {
-        const options = Array.from(select.options);
-        // Iterar sobre las opciones
-        for (const opt of options) {
-            const modelId = opt.value;
-            // Originalizar estado de carga
-            opt.disabled = false;
-            const originalText = opt.textContent.replace(" (Falta archivo)", "").replace(" (Listo)", "").replace(" (Error)", "");
-            opt.textContent = originalText + " (Verificando...)";
-            
-            // Intentar importar para verificar existencia
-            try {
-                const module = await import(`../consultmodels/${modelId}.js`);
-                if (!module.MODEL_DEFINITION) throw new Error("Sin MODEL_DEFINITION");
-                
-                // Éxito
-                opt.disabled = false;
-                opt.textContent = originalText; // Quitar "Verificando..."
-            } catch (e) {
-                // Error: No existe el archivo .js
-                console.warn(`Modelo ${modelId} no disponible.`, e);
-                opt.disabled = true;
-                opt.textContent = originalText + " (Falta archivo)";
-            }
-        }
+    const userInfoDisplay = document.getElementById('userInfoDisplay');
+    
+    // [NEW] CARGA AUTOMÁTICA DE USUARIO DESDE JSON
+    try {
+        const response = await fetch('user/user-001/user-001.json');
         
-        // Fallback para el primero
-        if(!this.currentUser.defaultModel) this.currentUser.defaultModel = options[0].value;
+        if (response.ok) {
+            const jsonData = await response.json();
+            
+            // [LÓGICA DE ROLES] Verificar que es Doctor para proceder
+            if (jsonData.role !== 'Doctor') {
+                console.error("Acceso denegado: El usuario no tiene el rol de Doctor.");
+                alert("Acceso denegado: Rol no válido.");
+                this.loadGuestMode();
+                return; // Detener ejecución
+            }
+
+            // Crear instancia de UserProfile (Pasamos null como catálogo por ahora)
+            this.currentUser = new UserProfile(null, jsonData);
+            
+            // Globalizar
+            window.currentUser = this.currentUser;
+            
+            // Actualizar Dock
+            if(userInfoDisplay) {
+                const title = this.currentUser.state.professional.titlePrefix || '';
+                userInfoDisplay.textContent = `${title} ${this.currentUser.getDisplayName()} (${this.currentUser.getDisplayRole()})`;
+            }
+            
+            console.log("Usuario cargado correctamente:", this.currentUser.getDisplayName());
+
+        } else {
+            throw new Error("Archivo de usuario no encontrado (404).");
+        }
+    } catch (e) {
+        console.warn("Fallo al cargar perfil de usuario. Cargando modo Invitado.", e);
+        this.loadGuestMode();
     }
+
+    // Cargar Modelos Dinámicamente
+    await this.loadAvailableModels();
 
     // Listeners del Dock
     document.getElementById('btnHome').onclick = () => this.showDashboard();
     document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
     document.getElementById('btnTheme').onclick = () => this.toggleTheme();
-    
-    // Listener del botón Buscar (que está en el dock)
+    const btnAgenda = document.getElementById('btnAgenda');
+    if(btnAgenda) btnAgenda.onclick = () => alert("Próximamente...");
     const btnSearch = document.getElementById('btnSearch');
-    if(btnSearch) {
-        btnSearch.onclick = () => this.showSearchModal();
-    }
+    if(btnSearch) btnSearch.onclick = () => this.showSearchModal();
 
     this.showDashboard();
+  }
+
+  loadGuestMode() {
+      this.currentUser = new UserProfile(null);
+      window.currentUser = this.currentUser;
+      
+      const display = document.getElementById('userInfoDisplay');
+      if(display) {
+          display.textContent = "Invitado";
+          display.style.color = "var(--color-text-dim)";
+      }
+  }
+
+  async loadAvailableModels() {
+      const select = document.getElementById('newConsultModelSelect');
+      if (!select) return;
+
+      // Lista de modelos esperados
+      const modelsToCheck = [
+          "ORL-001.js", 
+          "MEDGEN-001.js"
+      ];
+
+      select.innerHTML = '<option value="" disabled selected>Escaneando modelos...</option>';
+      const validModels = [];
+
+      for (const fileName of modelsToCheck) {
+          try {
+              await import(`../consultmodels/${fileName}`);
+              const modelId = fileName.replace('.js', '');
+              validModels.push({ id: modelId, name: modelId });
+          } catch (e) {
+              console.warn(`Modelo ${modelId} no encontrado.`);
+          }
+      }
+
+      select.innerHTML = '';
+      
+      if (validModels.length === 0) {
+          const opt = document.createElement('option');
+          opt.text = "No se encontraron modelos en 'consultmodels/'";
+          opt.disabled = true;
+          select.appendChild(opt);
+      } else {
+          validModels.forEach((model) => {
+              const opt = document.createElement('option');
+              opt.value = model.id;
+              opt.textContent = model.name;
+              select.appendChild(opt);
+          });
+      }
   }
 
   toggleTheme() {
@@ -481,35 +527,45 @@ class App {
   }
 
   showDashboard() {
-    const db = document.getElementById('dashboardView');
-    const pv = document.getElementById('patientView');
-    if(db) db.classList.remove('hidden');
-    if(pv) pv.classList.add('hidden');
+    document.getElementById('dashboardView').classList.remove('hidden');
+    document.getElementById('patientView').classList.add('hidden');
     this.currentPatient = null;
   }
 
   showPatientView(patientId) {
+    if (!patientId) {
+        alert("Error: ID de paciente perdido.");
+        this.showDashboard();
+        return;
+    }
+
     this.currentPatient = StorageService.getPatient(patientId);
     if (!this.currentPatient) { alert("Paciente no encontrado"); return; }
 
-    const db = document.getElementById('dashboardView');
-    const pv = document.getElementById('patientView');
-    if(db) db.classList.add('hidden');
-    if(pv) pv.classList.remove('hidden');
+    document.getElementById('dashboardView').classList.add('hidden');
+    document.getElementById('patientView').classList.remove('hidden');
 
-    document.getElementById('patientHeaderTitle').textContent = 
-        `PACIENTE: ${this.currentPatient.nombres.primer_nombre} ${this.currentPatient.nombres.primer_apellido} (${patientId})`;
+    const title = document.getElementById('patientHeaderTitle');
+    if(title) {
+        document.getElementById('patientHeaderTitle').textContent = 
+            `PACIENTE: ${this.currentPatient.nombres.primer_nombre} ${this.currentPatient.nombres.primer_apellido} (${patientId})`;
+    }
     
     Views.renderPatientInfo(document.getElementById('patientInfoContainer'), this.currentPatient);
 
     const consults = StorageService.getConsultations(patientId);
-    document.getElementById('consultationsCount').textContent = `CONSULTAS (${consults.length})`;
-    Views.renderConsultationList(document.getElementById('consultationListContainer'), consults);
+    const count = document.getElementById('consultationsCount');
+    if(count) document.getElementById('consultationsCount').textContent = `CONSULTAS (${consults.length})`;
+    
+    const list = document.getElementById('consultationListContainer');
+    if(list) Views.renderConsultationList(list, consults);
 
     const pSec = document.getElementById('patientSection');
-    const pContent = pSec.querySelector('.section-content');
-    pContent.classList.add('expanded');
-    pContent.style.maxHeight = "1000px";
+    const pContent = pSec ? pSec.querySelector('.section-content') : null;
+    if(pContent) {
+        pContent.classList.add('expanded');
+        pContent.style.maxHeight = "1000px";
+    }
   }
   
   editCurrentPatient() {
@@ -520,37 +576,43 @@ class App {
       const title = document.getElementById('modalTitle');
       const btn = document.getElementById('btnSaveConsultation');
 
-      title.textContent = "Editar Ficha Paciente";
-      btn.textContent = "Guardar Cambios";
+      if(title) title.textContent = "Editar Ficha Paciente";
+      if(btn) btn.textContent = "Guardar Cambios";
       
-      body.innerHTML = ''; 
-      Views.renderPatientForm(body, this.currentPatient);
-      modal.classList.add('active');
-      
-      btn.onclick = () => {
-          const inputs = body.querySelectorAll('input, select, textarea');
-          const formData = new FormData();
-          inputs.forEach(input => { 
-              if(input.name) {
-                  formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value); 
-              }
-          });
+      if(body) {
+          body.innerHTML = ''; 
+          Views.renderPatientForm(body, this.currentPatient);
+          modal.classList.add('active');
+          
+          const newBtn = btn.cloneNode(true);
+          if(btn) {
+              btn.parentNode.replaceChild(newBtn, btn);
+              newBtn.onclick = () => {
+                  const inputs = body.querySelectorAll('input, select, textarea');
+                  const formData = new FormData();
+                  inputs.forEach(input => { 
+                      if(input.name) {
+                          formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value); 
+                      }
+                  });
 
-          try {
-              const raw = this.sanitizePatientData(formData);
-              raw.identificacion.uuid = this.currentPatient.identificacion.uuid; 
-              
-              const p = new PatientProfile(raw);
-              StorageService.savePatient(p);
-              
-              alert("Ficha actualizada exitosamente");
-              this.closeModal();
-              this.showPatientView(p.identificacion.documento_numero);
-          } catch(e) { alert("Error al guardar: " + e.message); }
-      };
+                  try {
+                      const raw = this.sanitizePatientData(formData);
+                      raw.identificacion.uuid = this.currentPatient.identificacion.uuid; 
+                      
+                      const p = new PatientProfile(raw);
+                      StorageService.savePatient(p);
+                      
+                      alert("Ficha actualizada exitosamente");
+                      this.closeModal();
+                      this.showPatientView(p.identificacion.documento_numero);
+                  } catch(e) { alert("Error al guardar: " + e.message); }
+              };
+          }
+      }
   }
 
-    viewFullHistory() {
+  viewFullHistory() {
         if (!this.currentPatient) return;
         alert("La ficha actual (Paciente) contiene toda la historia clínica. \nPara revisar detalles específicos, use la opción 'Editar Ficha'.");
   }
@@ -609,14 +671,19 @@ class App {
   createNewPatientWorkflow() {
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
-      document.getElementById('modalTitle').textContent = "Nuevo Paciente";
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
+
+      if(title) title.textContent = "Nuevo Paciente";
       
-      body.innerHTML = ''; 
-      Views.renderPatientForm(body, {});
+      if(body) {
+          body.innerHTML = ''; 
+          Views.renderPatientForm(body, {});
+          modal.classList.add('active');
+      }
       
-      modal.classList.add('active');
-      
-      document.getElementById('btnSaveConsultation').onclick = () => {
+      const btnSave = document.getElementById('btnSaveConsultation');
+      if(bSave) btnSave.onclick = () => {
           const inputs = body.querySelectorAll('input, select, textarea');
           const formData = new FormData();
           inputs.forEach(input => {
@@ -646,12 +713,15 @@ class App {
 
   openNewConsultationUI() {
       const modelSelect = document.getElementById('newConsultModelSelect');
+      if(!modelSelect) return alert("Error crítico: Select no encontrado");
       const selectedModel = modelSelect.value;
       this.openConsultationModal(null, selectedModel);
   }
 
   async editConsultation(consultationId, modelId) {
       this.currentEditingConsultationId = consultationId;
+      if(!this.currentPatient) return alert("No hay paciente activo");
+      
       const consults = StorageService.getConsultations(this.currentPatient.identificacion.documento_numero);
       const data = consults.find(c => c.id === consultationId);
       this.openConsultationModal(data, modelId);
@@ -663,11 +733,13 @@ class App {
       const title = document.getElementById('modalTitle');
       const btn = document.getElementById('btnSaveConsultation');
 
-      title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
-      btn.textContent = "Guardar Consulta";
+      if(title) title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
+      if(btn) btn.textContent = "Guardar Consulta";
       
-      body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
-      modal.classList.add('active');
+      if(body) {
+          body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
+          modal.classList.add('active');
+      }
 
       try {
           const module = await import(`../consultmodels/${modelId}.js`);
@@ -676,90 +748,108 @@ class App {
               throw new Error("El archivo no exporta MODEL_DEFINITION. Revisa el parche en ORL-001.js");
           }
 
-          body.innerHTML = '';
+          if(body) body.innerHTML = '';
 
           module.MODEL_DEFINITION.initUI(body, data || {});
 
           const newBtn = btn.cloneNode(true);
-          btn.parentNode.replaceChild(newBtn, btn);
-          
-          newBtn.onclick = async () => {
-              try {
-                  const consultData = module.MODEL_DEFINITION.getData(body);
-                  
-                  consultData.modelo = modelId;
-                  consultData.pacienteId = this.currentPatient.identificacion.documento_numero;
-                  
-                  if (data) consultData.id = data.id;
+          if(btn) {
+              btn.parentNode.replaceChild(newBtn, btn);
+              
+              newBtn.onclick = async () => {
+                  try {
+                      const consultData = module.MODEL_DEFINITION.getData(body);
+                      
+                      consultData.modelo = modelId;
+                      if(this.currentPatient) {
+                          consultData.pacienteId = this.currentPatient.identificacion.documento_numero;
+                      }
+                      
+                      if (data) consultData.id = data.id;
 
-                  consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
+                      consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
 
-                  StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
-                  alert("Consulta guardada exitosamente");
-                  this.closeModal();
-                  this.showPatientView(this.currentPatient.identificacion.documento_numero);
-              } catch(e) {
-                  console.error(e);
-                  alert("Error al guardar: " + e.message);
-              }
-          };
+                      if(this.currentPatient) {
+                          StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
+                          alert("Consulta guardada exitosamente");
+                          this.closeModal();
+                          this.showPatientView(this.currentPatient.identificacion.documento_numero);
+                      }
+                  } catch(e) {
+                      console.error(e);
+                      alert("Error al guardar: " + e.message);
+                  }
+              };
+          }
 
       } catch (err) {
           console.error("Error cargando modelo:", err);
-          body.innerHTML = `
-            <div style="color:var(--color-error); text-align:center; padding:20px;">
-                  <h3>Error Crítico</h3>
-                  <p>No se pudo cargar el modelo ${modelId}.</p>
-                  <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
-                  <p>Verifica la consola (F12) para más detalles.</p>
-            </div>`;
-          const btn = document.getElementById('btnSaveConsultation');
-          if(btn) btn.disabled = true;
+          if(body) {
+              body.innerHTML = `
+                <div style="color:var(--color-error); text-align:center; padding:20px;">
+                      <h3>Error Crítico</h3>
+                      <p>No se pudo cargar el modelo ${modelId}.</p>
+                      <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
+                      <p>Verifica la consola (F12) para más detalles.</p>
+                </div>`;
+          }
+          const btnSave = document.getElementById('btnSaveConsultation');
+          if(bSave) btnSave.disabled = true;
       }
   }
 
   showSearchModal() {
-      document.getElementById('searchModal').classList.add('active');
+      const modal = document.getElementById('searchModal');
       const input = document.getElementById('searchInput');
-      input.value = '';
-      input.focus();
       
-      input.oninput = () => {
-          const q = input.value;
-          if(q.length < 2) return;
-          const results = StorageService.search(q);
-          const div = document.getElementById('searchResults');
-          div.innerHTML = results.map(p => `
-              <div class="patient-info-item" style="cursor:pointer; margin-bottom:10px;" onclick="window.app.showPatientView('${p.identificacion.documento_numero}'); document.getElementById('searchModal').classList.remove('active');">
-                  <strong>${p.nombres.primer_nombre} ${p.nombres.primer_apellido}</strong> (${p.identificacion.documento_numero})
-              </div>
-          `).join('');
-      };
+      if(modal && input) {
+          document.getElementById('searchModal').classList.add('active');
+          input.value = '';
+          input.focus();
+          
+          input.oninput = () => {
+              const q = input.value;
+              if(q.length < 2) return;
+              const results = StorageService.search(q);
+              const div = document.getElementById('searchResults');
+              if(div) {
+                  div.innerHTML = results.map(p => `
+                      <div class="patient-info-item" style="cursor:pointer; margin-bottom:10px;" onclick="window.app.showPatientView('${p.identificacion.documento_numero}'); document.getElementById('searchModal').classList.remove('active');">
+                          <strong>${p.nombres.primer_nombre} ${p.nombres.primer_apellido}</strong> (${p.identificacion.documento_numero})
+                      </div>
+                  `).join('');
+              }
+          };
+      }
   }
 
   toggleSection(id) {
       const sec = document.getElementById(id);
+      if(!sec) return;
       const content = sec.querySelector('.section-content');
       const icon = sec.querySelector('.section-toggle i');
       
-      if (content.classList.contains('expanded')) {
-          content.classList.remove('expanded');
-          content.style.maxHeight = "0";
-          icon.className = "fas fa-chevron-down";
-      } else {
-          content.classList.add('expanded');
-          content.style.maxHeight = "2000px";
-          icon.className = "fas fa-chevron-up";
+      if (content && icon) {
+          if (content.classList.contains('expanded')) {
+              content.classList.remove('expanded');
+              content.style.maxHeight = "0";
+              icon.className = "fas fa-chevron-down";
+          } else {
+              content.classList.add('expanded');
+              content.style.maxHeight = "2000px";
+              icon.className = "fas fa-chevron-up";
+          }
       }
   }
 
   toggleConsultationContent(id) {
       const content = document.getElementById(`content-${id}`);
-      content.classList.toggle('expanded');
+      if(content) content.classList.toggle('expanded');
   }
 
   closeModal() {
-      document.getElementById('editModal').classList.remove('active');
+      const modal = document.getElementById('editModal');
+      if(modal) modal.classList.remove('active');
       this.currentEditingConsultationId = null;
   }
 }
