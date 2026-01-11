@@ -313,7 +313,14 @@ export const MODEL_DEFINITION = {
     
     // [REESTRUCTURACIÓN FINAL] INICIALIZACIÓN UI
     initUI: function(container, data = {}) {
-        // [FIX CRÍTICO] INYECTAR ESTRUCTURA HTML (ORDEN LÓGICO + 100% WIDTH + ESTUDIOS)
+      // Si estamos creando una nueva consulta y hay consultas anteriores
+    if (!data.id && data.inheritPrevious) {
+        // Aquí se cargarían los datos de la última consulta
+        // y se pre-llenarían los campos
+    }
+    // ... resto del código existente
+}  
+      // [FIX CRÍTICO] INYECTAR ESTRUCTURA HTML (ORDEN LÓGICO + 100% WIDTH + ESTUDIOS)
         container.innerHTML = `
             <div style="margin-bottom:20px; color:var(--text-dim); font-weight:600; font-size:0.9rem;">
                 * Campos obligatorios marcados con (*)
@@ -465,3 +472,4 @@ export const ORL_MODULE = {
 };
 
 /* [FIN DEL ARCHIVO ORL-001.js] */
+
