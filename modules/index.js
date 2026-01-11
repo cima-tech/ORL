@@ -409,7 +409,7 @@ const Views = {
 };
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL (CON LÓGICA DE JSON Y ROLES)
-/* modules/index.js -> Clase App (ESTABLE V5 CON REGISTRO JSON) */
+/* modules/index.js -> Clase App (V6 - CORREGIDA) */
 
 class App {
   constructor() {
@@ -419,28 +419,24 @@ class App {
   }
 
   async init() {
-    // [1] INICIALIZACIÓN DE USUARIO (Protegido contra fallo)
+    // [1] INICIALIZACIÓN DE USUARIO
     const userInfoDisplay = document.getElementById('userInfoDisplay');
     
     try {
         const response = await fetch('user/user-001/user-001.json');
-        
         if (response.ok) {
             const jsonData = await response.json();
-            
             if (jsonData.role !== 'Doctor') {
-                console.error("Rol no válido.");
+                alert("Acceso denegado: El usuario no tiene el rol de Doctor.");
                 this.loadGuestMode();
                 return;
             }
-
             this.currentUser = new UserProfile(null, jsonData);
             window.currentUser = this.currentUser;
             
             if(userInfoDisplay) {
                 userInfoDisplay.textContent = `${this.currentUser.getDisplayTitle()} (${this.currentUser.getDisplayRole()})`;
             }
-            console.log("Perfil cargado:", this.currentUser.getDisplayName());
         } else {
             throw new Error("404 Usuario");
         }
@@ -468,52 +464,40 @@ class App {
     this.showDashboard();
   }
 
-  // [NUEVO] FUNCIÓN LIMPIA DE CARGA DE MODELOS
   async loadAvailableModels() {
       const select = document.getElementById('newConsultModelSelect');
       if (!select) return;
 
       select.innerHTML = '<option value="" disabled selected>Cargando...</option>';
-
       const validModels = [];
       let defaultSelected = null;
 
       try {
-          // 1. Leer el Registro JSON
           const response = await fetch('modules/consultmodels.json');
           
           if (response.ok) {
               const registry = await response.json();
 
-              // 2. Iterar sobre el registro (Lo que tú pongas en el JSON)
               for (const item of registry) {
                   try {
-                      // 3. Verificar si el archivo JS EXISTE realmente
                       await import(`../consultmodels/${item.id}.js`);
-                      
-                      // Si llega aquí, existe.
                       validModels.push(item);
-
-                      // 4. Verificar si es el favorito del usuario
-                      if (this.currentUser.state.professional.defaultConsultationModel === item.id) {
+                      
+                      // Chequear si es favorito
+                      if (this.currentUser && this.currentUser.state.professional.defaultConsultationModel === item.id) {
                           defaultSelected = item.id;
                       }
 
                   } catch (e) {
-                      console.warn(`Modelo declarado en JSON no encontrado: ${item.id}`, e);
-                      // NO ROMPER. Seguir buscando otros.
+                      console.warn(`Modelo en JSON no encontrado: ${item.id}`);
                   }
               }
-          } else {
-              throw new Error("No se pudo leer consultmodels.json");
           }
-
       } catch (e) {
-          console.error("Error crítico al leer registro de modelos:", e);
-          // Si falla el JSON, no cargamos nada.
+          console.error("Error leyendo JSON de modelos:", e);
       }
 
-      // 5. Rellenar Select
+      // Rellenar Select
       select.innerHTML = '';
       
       if (validModels.length === 0) {
@@ -529,7 +513,6 @@ class App {
               select.appendChild(opt);
           });
 
-          // 6. Seleccionar el favorito o el primero
           if (defaultSelected) {
               select.value = defaultSelected;
           } else {
@@ -544,7 +527,7 @@ class App {
       
       const display = document.getElementById('userInfoDisplay');
       if(display) {
-          display.textContent = "Invitado - Iniciar Sesión";
+          display.textContent = "Invitado";
           display.style.color = "var(--color-text-dim)";
       }
   }
@@ -581,8 +564,7 @@ class App {
             `PACIENTE: ${this.currentPatient.nombres.primer_nombre} ${this.currentPatient.nombres.primer_apellido} (${patientId})`;
     }
     
-    const infoCont = document.getElementById('patientInfoContainer');
-    if(infoCont) Views.renderPatientInfo(infoCont, this.currentPatient);
+    Views.renderPatientInfo(document.getElementById('patientInfoContainer'), this.currentPatient);
 
     const consults = StorageService.getConsultations(patientId);
     const count = document.getElementById('consultationsCount');
@@ -592,17 +574,15 @@ class App {
     if(list) Views.renderConsultationList(list, consults);
 
     const pSec = document.getElementById('patientSection');
-    if(pSec) {
-        const pContent = pSec.querySelector('.section-content');
-        if(pContent) {
-            pContent.classList.add('expanded');
-            pContent.style.maxHeight = "1000px";
-        }
+    const pContent = pSec ? pSec.querySelector('.section-content') : null;
+    if(pContent) {
+        pContent.classList.add('expanded');
+        pContent.style.maxHeight = "1000px";
     }
   }
   
   editCurrentPatient() {
-      if (!this.currentPatient) return;
+      if (!this.currentPatient) return alert("No hay paciente seleccionado");
 
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
@@ -610,14 +590,14 @@ class App {
       const btn = document.getElementById('btnSaveConsultation');
 
       if(title) title.textContent = "Editar Ficha Paciente";
-      if(btn) btn.textContent = "Guardar Cambios";
+      if(btn) btn.textContent = "Guardar Ficha";
       
       if(body) {
           body.innerHTML = ''; 
           Views.renderPatientForm(body, this.currentPatient);
           modal.classList.add('active');
           
-          // FIX CORRECCIÓN DE CONTEXTO (THIS)
+          // CLONAR BOTÓN PARA EVITAR LISTENERS VIEJOS
           const newBtn = btn.cloneNode(true);
           if(btn) {
               btn.parentNode.replaceChild(newBtn, btn);
@@ -631,7 +611,6 @@ class App {
                   });
 
                   try {
-                      // CORRECCIÓN: Usar window.app
                       const raw = window.app.sanitizePatientData(formData);
                       raw.identificacion.uuid = this.currentPatient.identificacion.uuid; 
                       
@@ -647,62 +626,7 @@ class App {
       }
   }
 
-    viewFullHistory() {
-        if (!this.currentPatient) return;
-        alert("Ver 'Editar Ficha' para detalles completos.");
-  }
-  
-  sanitizePatientData(formData) {
-      const raw = { 
-          identificacion: {}, nombres: {}, demografia: {}, datos_biologicos: {}, contacto: {}, redes_sociales: {}, 
-          contacto_emergencia: {}, alertas_clinicas: {}, seguridad_prioritaria: {}, datos_administrativos: {},
-          antecedentes_personales: {}, historial_quirurgico: {}, hospitalizaciones: {}, 
-          lesiones_y_fracturas: {}, antecedentes_familiares: {}, habitos: {}, contexto_social: {}, 
-          consentimientos: {}
-      };
-      
-      formData.forEach((value, key) => {
-          const parts = key.split('.');
-          let target = raw;
-          for (let i = 0; i < parts.length - 1; i++) {
-              if (!target[parts[i]]) target[parts[i]] = {};
-              target = target[parts[i]];
-          }
-          target[parts[parts.length - 1]] = value;
-      });
-
-      ['identificacion', 'nombres', 'demografia', 'datos_biologicos', 'contacto', 'redes_sociales', 'contacto_emergencia',
-       'seguridad_prioritaria', 'datos_administrativos', 'historial_quirurgico', 'hospitalizaciones', 'lesiones_y_fracturas',
-       'contexto_social', 'consentimientos'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec]) {
-            PATIENT_FIELD_CONFIG[sec].fields.forEach(f => {
-               if(f.type === 'checkbox') {
-                   const key = `${sec}.${f.key}`;
-                   if(!raw[sec][f.key]) raw[sec][f.key] = false;
-               }
-            });
-         }
-      });
-      ['antecedentes_personales', 'antecedentes_familiares'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
-            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
-               const key = `${sec}.${f.key}`;
-               if(!raw[sec][f.key]) raw[sec][f.key] = false;
-            });
-         }
-      });
-      ['alertas_clinicas'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
-            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
-               const key = `${sec}.${f.key}_check`;
-               if(!raw[sec][f.key+'_check']) raw[sec][f.key+'_check'] = false;
-            });
-         }
-      });
-
-      return raw;
-  }
-
+  // [FIX] createNewPatientWorkflow CON BOTÓN CORREGIDO
   createNewPatientWorkflow() {
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
@@ -717,9 +641,16 @@ class App {
           modal.classList.add('active');
       }
       
-      const btnSave = document.getElementById('btnSaveConsultation');
-      if(bSave) {
-          btnSave.onclick = () => {
+      // USAR btnSave (NO bSave)
+      if(btn) {
+          // [CORRECCIÓN DE TEXTO] Cambiar a Guardar Paciente
+          btn.textContent = "Guardar Paciente";
+          
+          // CLONAR BOTÓN (Seguridad)
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+          
+          newBtn.onclick = () => {
               const inputs = body.querySelectorAll('input, select, textarea');
               const formData = new FormData();
               inputs.forEach(input => {
@@ -733,7 +664,7 @@ class App {
               });
 
               try {
-                  const raw = this.sanitizePatientData(formData);
+                  const raw = window.app.sanitizePatientData(formData);
                   const p = new PatientProfile(raw);
                   StorageService.savePatient(p);
                   
@@ -750,7 +681,7 @@ class App {
 
   openNewConsultationUI() {
       const modelSelect = document.getElementById('newConsultModelSelect');
-      if(!modelSelect) return;
+      if(!modelSelect) return alert("No se encontró selector de modelos");
       const selectedModel = modelSelect.value;
       this.openConsultationModal(null, selectedModel);
   }
@@ -758,7 +689,7 @@ class App {
   async editConsultation(consultationId, modelId) {
       this.currentEditingConsultationId = consultationId;
       if(!this.currentPatient) return;
-
+      
       const consults = StorageService.getConsultations(this.currentPatient.identificacion.documento_numero);
       const data = consults.find(c => c.id === consultationId);
       this.openConsultationModal(data, modelId);
@@ -771,10 +702,10 @@ class App {
       const btn = document.getElementById('btnSaveConsultation');
 
       if(title) title.textContent = data ? `Editar Consulta (${data.id})` : "Nueva Consulta";
-      if(btn) btn.textContent = "Guardar Consulta";
+      if(btn) btn.textContent = "Guardar Consulta"; // Aquí sí dice Consulta
       
       if(body) {
-          body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo ' + modelId + '...</div>';
+          body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo...</div>';
           modal.classList.add('active');
       }
 
@@ -789,10 +720,11 @@ class App {
 
           module.MODEL_DEFINITION.initUI(body, data || {});
 
-          // FIX CORRECCIÓN DE CONTEXTO
+          // CLONAR BOTÓN
           const newBtn = btn.cloneNode(true);
           if(btn) {
               btn.parentNode.replaceChild(newBtn, btn);
+              
               newBtn.onclick = async () => {
                   try {
                       const consultData = module.MODEL_DEFINITION.getData(body);
@@ -825,8 +757,8 @@ class App {
               body.innerHTML = `
                 <div style="color:var(--color-error); text-align:center; padding:20px;">
                       <h3>Error Crítico</h3>
-                      <p>No se pudo cargar el modelo ${modelId}.</p>
-                      <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
+                      <p>No se pudo cargar el modelo.</p>
+                      <p>${err.message}</p>
                 </div>`;
           }
           const btnSave = document.getElementById('btnSaveConsultation');
@@ -861,7 +793,7 @@ class App {
 
   toggleSection(id) {
       const sec = document.getElementById(id);
-      if (!sec) return;
+      if(!sec) return;
       const content = sec.querySelector('.section-content');
       const icon = sec.querySelector('.section-toggle i');
       
@@ -893,6 +825,7 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
 
 
