@@ -2,19 +2,13 @@
   "id": "user-001",
   "role": "Doctor",
   "username": "tudraorl",
-  "state": {
-    "currentStep": 1,
-    "isComplete": false
-  },
   "identity": {
     "names": "Valentina",
     "lastNames": "Gonzalez Yanez",
     "emailProfessional": "tudraorl@gmail.com",
     "emailPersonal": "vgy13@hotmail.com",
     "accountPassword": "astroyluna",
-    "confirmAccountPassword": "astroyluna",
-    "avatarFile": null,
-    "avatarPreview": null
+    "confirmAccountPassword": "astroyluna"
   },
   "personal": {
     "documentType": "CI",
@@ -27,6 +21,7 @@
     "healthConditions": "Ninguna"
   },
   "professional": {
+    "role": "Doctor",
     "titlePrefix": "Dra.",
     "specialty": "Otorrinolaringología",
     "specialtyCode": "ORL-001",
