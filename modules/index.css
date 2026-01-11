@@ -1,81 +1,422 @@
-/* modules/index.css */
-
-/* ... (variables y reset, manteniendo el efecto glass más transparente) */
+/* modules/index.css - Versión Glasslike Mejorada */
 
 :root {
-    /* Dark Mode Default - Más transparente */
-    --color-bg: #0a0e17;
-    
-    /* Glass Effect Mejorado (Dark) - Más transparente */
+    /* Dark Mode Glass */
+    --color-bg: rgba(10, 14, 23, 0.85);
     --color-glass: rgba(255, 255, 255, 0.05);
     --color-glass-heavy: rgba(255, 255, 255, 0.1);
-    --color-glass-border: rgba(255, 255, 255, 0.15);
+    --color-glass-border: rgba(255, 255, 255, 0.08);
     
-    /* ... (el resto de variables) */
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-heavy: rgba(255, 255, 255, 0.15);
+    --color-text: rgba(240, 240, 240, 0.95);
+    --color-text-dim: rgba(160, 160, 160, 0.8);
+
+    /* Accent */
+    --color-accent: rgba(59, 130, 246, 0.9);
+    --color-accent-hover: rgba(37, 99, 235, 0.95);
+
+    --color-success: rgba(16, 185, 129, 0.9);
+    --color-warning: rgba(245, 158, 11, 0.9);
+    --color-error: rgba(239, 68, 68, 0.9);
+    
+    --radius: 16px;
+    --radius-sm: 8px;
+    --radius-lg: 20px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Sombras Glass */
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --shadow-heavy: 0 16px 48px rgba(0, 0, 0, 0.3);
+    --shadow-inset: inset 0 1px 2px rgba(255, 255, 255, 0.05);
 }
 
 body.light-mode {
-    /* Fondo Base Claro */
-    --color-bg: #f0f2f5;
+    --color-bg: rgba(240, 242, 245, 0.85);
+    --color-glass: rgba(255, 255, 255, 0.6);
+    --color-glass-heavy: rgba(255, 255, 255, 0.75);
+    --color-glass-border: rgba(255, 255, 255, 0.3);
     
-    /* Glass Effect en Modo Claro - Más transparente */
-    --color-glass: rgba(255, 255, 255, 0.3);
-    --color-glass-heavy: rgba(255, 255, 255, 0.5);
-    --color-glass-border: rgba(255, 255, 255, 0.4);
+    --color-border: rgba(0, 0, 0, 0.08);
+    --color-border-heavy: rgba(0, 0, 0, 0.12);
+    --color-text: rgba(30, 41, 59, 0.95);
+    --color-text-dim: rgba(100, 116, 139, 0.8);
     
-    /* ... (el resto de variables) */
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --shadow-heavy: 0 16px 48px rgba(0, 0, 0, 0.1);
+    --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ... (reset y base) */
+/* Reset y Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
 
-/* [CSS-CONSOLA] */
-.console-drawer {
+body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+    transition: all var(--transition);
+    backdrop-filter: blur(20px);
+}
+
+/* Deshabilitar menú contextual */
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Login */
+.login-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(40px);
+    background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent);
+}
+
+.login-glass {
+    background: var(--color-glass);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: var(--shadow-heavy);
+    animation: fadeIn 0.5s ease;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-header h1 {
+    font-size: 2.5rem;
+    margin: 10px 0;
+    background: linear-gradient(135deg, var(--color-accent), #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-form .input-group {
+    margin-bottom: 20px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--color-text-dim);
+}
+
+.login-form input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--color-glass-heavy);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.login-form input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.login-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-2px);
+}
+
+.login-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--color-glass);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    color: var(--color-text-dim);
+}
+
+/* Dock Superior Mejorado */
+.dock-doctor {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-glass);
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    padding: 10px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 1000;
+    box-shadow: var(--shadow-heavy);
+    min-width: 700px;
+}
+
+.dock-doctor span:not(.user-info) {
+    cursor: pointer;
+    padding: 8px 15px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+}
+
+.dock-doctor span:not(.user-info):hover {
+    background: var(--color-glass-heavy);
+    border-color: var(--color-glass-border);
+    color: var(--color-accent);
+    transform: translateY(-2px);
+}
+
+.user-info {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    background: var(--color-glass-heavy);
+    border-radius: var(--radius);
+    border: 1px solid var(--color-glass-border);
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-dim);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.logout-btn:hover {
+    color: var(--color-error);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.badge {
+    background: var(--color-error);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+}
+
+/* Contenedores de Vista */
+.doctor-container {
+    padding: 100px 20px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.view-content {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Agenda */
+#agendaView {
+    background: var(--color-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow);
+}
+
+/* Buzón */
+.inbox-header, .models-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--color-glass);
+    border-radius: var(--radius-lg);
+}
+
+.inbox-list, .models-list {
+    display: grid;
+    gap: 15px;
+}
+
+.inbox-item, .model-item {
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.inbox-item:hover, .model-item:hover {
+    background: var(--color-glass-heavy);
+    border-color: var(--color-accent);
+    transform: translateX(5px);
+}
+
+/* Modal de Búsqueda Mejorado */
+.search-input {
+    width: 100%;
+    padding: 15px 20px;
+    background: var(--color-glass-heavy);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-size: 1rem;
+    margin-bottom: 20px;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Drawer de Log */
+.log-drawer {
     position: fixed;
     top: 0;
-    right: -400px;
+    right: 0;
     width: 400px;
     height: 100vh;
-    background: var(--color-bg);
+    background: var(--color-glass);
+    backdrop-filter: blur(30px);
     border-left: 1px solid var(--color-glass-border);
-    z-index: 3000;
+    z-index: 2000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
     display: flex;
     flex-direction: column;
-    transition: right 0.3s ease;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
 }
 
-.console-drawer.active {
-    right: 0;
+.log-drawer.open {
+    transform: translateX(0);
 }
 
-.console-header {
-    padding: 15px 20px;
+.log-header {
+    padding: 20px;
     border-bottom: 1px solid var(--color-glass-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--color-glass);
 }
 
-.console-body {
+.log-body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background: rgba(0,0,0,0.2);
 }
 
-#consoleOutput {
-    color: var(--color-text);
-    font-family: monospace;
+.log-content {
+    font-family: 'Courier New', monospace;
     font-size: 0.9rem;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    line-height: 1.4;
 }
 
-.console-footer {
+.log-entry {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--color-glass-border);
+}
+
+.log-footer {
     padding: 15px 20px;
     border-top: 1px solid var(--color-glass-border);
-    background: var(--color-glass);
+    display: flex;
+    gap: 10px;
 }
 
-/* ... (el resto de estilos) */
+.log-input {
+    flex: 1;
+    padding: 10px;
+    background: var(--color-glass-heavy);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+}
+
+.log-btn {
+    padding: 10px 20px;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    cursor: pointer;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Clases de utilidad */
+.hidden { display: none !important; }
+.fade-in { animation: fadeIn 0.3s ease; }
+.slide-in { animation: slideIn 0.3s ease; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dock-doctor {
+        min-width: 95%;
+        flex-wrap: wrap;
+        padding: 10px 15px;
+        gap: 10px;
+    }
+    
+    .log-drawer {
+        width: 100%;
+    }
+    
+    .doctor-container {
+        padding-top: 120px;
+    }
+}
