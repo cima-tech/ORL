@@ -24,23 +24,21 @@
         <span>|</span>
         <!-- Switch Light/Dark -->
         <span id="btnTheme" title="Cambiar Tema"><i class="fas fa-adjust"></i> Tema</span>
-        <span class="user-info" id="userInfoDisplay">
-            <i class="fas fa-spinner fa-spin"></i> Cargando usuario...
-        </span>
+        <span class="user-info" id="userInfoDisplay">Cargando usuario...</span>
+        <span>|</span>
+        <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</span>
     </div>
     
     <!-- [HTML-002] CONTENEDOR PRINCIPAL -->
     <main class="doctor-container" id="mainContainer">
-        
-        <!-- Vista Dashboard (Por defecto) -->
-        <div id="dashboardView">
+        <!-- Vista por defecto: Búsqueda o vacía -->
+        <div id="defaultView">
             <div style="text-align:center; padding:50px; color:var(--color-text-dim);">
-                <h2 style="color:var(--color-accent); margin-bottom:20px;">Bienvenido a CIMA</h2>
-                <p style="margin-bottom:30px;">Sistema Clínico Modular Avanzado</p>
-                <div class="new-consultation" style="margin-top:20px; display:inline-block; max-width:400px;" onclick="window.app.showSearchModal()">
-                    <i class="fas fa-search" style="font-size:2rem; margin-bottom:15px;"></i>
+                <h2>Bienvenido a CIMA</h2>
+                <p>Seleccione un paciente para comenzar.</p>
+                <div class="new-consultation" style="margin-top:20px; display:inline-block;" onclick="window.app.showSearchModal()">
+                    <i class="fas fa-search"></i>
                     <h3>Buscar Paciente</h3>
-                    <p style="margin-top:10px; font-size:0.9rem;">Busque un paciente existente o cree uno nuevo</p>
                 </div>
             </div>
         </div>
@@ -96,15 +94,22 @@
                 <i class="fas fa-plus-circle"></i>
                 <h3>Nueva Consulta</h3>
                 <p>Iniciar nueva consulta médica con este paciente</p>
-                <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--color-glass-border);">
-                    <p style="margin-bottom:10px;"><strong>Modelo:</strong></p>
-                    <select id="newConsultModelSelect" class="model-select" style="width:100%;">
-                        <option value="" disabled selected>Seleccionar modelo...</option>
-                        <!-- Se llenará dinámicamente -->
+                <p style="margin-top:10px;">
+                    Modelo: 
+                    <select id="newConsultModelSelect" class="model-select">
+                        <!-- LISTA DE MODELOS (Definida en HTML para facilidad) -->
+                        <option value="ORL-001">ORL-001 - Consulta ORL</option>
+                        <option value="MEDGEN-001">MEDGEN-001 - Consulta General</option>
+                        <option value="PEDI-001">PEDI-001 - Consulta Pediátrica</option>
                     </select>
-                </div>
+                </p>
             </div>
 
+        </div>
+
+        <!-- Vista Agenda (Oculta por defecto) -->
+        <div id="agendaView" class="hidden">
+            <div id="calendarContainer"></div>
         </div>
     </main>
 
@@ -127,15 +132,55 @@
 
     <!-- [HTML-004] MODAL DE BÚSQUEDA -->
     <div id="searchModal" class="modal-overlay">
-        <div class="modal-box" style="height:auto; max-height:80vh; width:90%; max-width:600px;">
+        <div class="modal-box" style="height:auto; max-height:80vh;">
             <div class="modal-header">
                 <span class="modal-title">Buscar Paciente</span>
                 <button class="close-modal" onclick="document.getElementById('searchModal').classList.remove('active')">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="text" id="searchInput" placeholder="Nombre, Apellido o Cédula..." class="model-select" style="width:100%; padding:15px; font-size:1.1rem; margin-bottom:20px;">
+                <input type="text" id="searchInput" placeholder="Nombre o Cédula..." class="model-select" style="width:100%; padding:15px; font-size:1.1rem; margin-bottom:20px;">
                 <div id="searchResults"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- [HTML-005] MODAL DE INICIO DE SESIÓN -->
+    <div id="loginModal" class="modal-overlay active">
+        <div class="modal-box" style="height:auto; max-height:80vh; width:400px;">
+            <div class="modal-header">
+                <span class="modal-title">Iniciar Sesión</span>
+                <button class="close-modal" onclick="document.getElementById('loginModal').classList.remove('active')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="loginForm">
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:5px; color:var(--color-text);">Usuario</label>
+                        <input type="text" id="loginUsername" class="model-select" style="width:100%; padding:10px; background:rgba(255,255,255,0.1); border:1px solid var(--color-glass-border); color:var(--color-text);" placeholder="Nombre de usuario">
+                    </div>
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label style="display:block; margin-bottom:5px; color:var(--color-text);">Contraseña</label>
+                        <input type="password" id="loginPassword" class="model-select" style="width:100%; padding:10px; background:rgba(255,255,255,0.1); border:1px solid var(--color-glass-border); color:var(--color-text);" placeholder="Contraseña">
+                    </div>
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <button class="action-btn" id="btnLogin" style="width:100%;">Iniciar Sesión</button>
+                    </div>
+                    <div id="loginMessage" style="color:var(--color-error); text-align:center;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [HTML-006] DRAWER DE CONSOLA -->
+    <div id="consoleDrawer" class="console-drawer">
+        <div class="console-header">
+            <span>Consola de Depuración</span>
+            <button class="close-console" onclick="window.app.toggleConsole()">&times;</button>
+        </div>
+        <div class="console-body">
+            <pre id="consoleOutput"></pre>
+        </div>
+        <div class="console-footer">
+            <button class="action-btn secondary" onclick="document.getElementById('consoleOutput').textContent = '';">Limpiar</button>
         </div>
     </div>
 
