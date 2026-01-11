@@ -409,8 +409,6 @@ const Views = {
 };
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL (CON LÓGICA DE JSON Y ROLES)
-/* modules/index.js -> Clase App (ESTABLE FINAL) */
-
 /* modules/index.js -> Clase App (ESTABLE V5 CON REGISTRO JSON) */
 
 class App {
@@ -895,5 +893,6 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
 
 
