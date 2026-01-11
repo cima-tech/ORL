@@ -409,6 +409,8 @@ const Views = {
 };
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL (CON LÓGICA DE JSON Y ROLES)
+/* modules/index.js -> Clase App (ESTABLE FINAL) */
+
 class App {
   constructor() {
     this.currentUser = null;
@@ -417,99 +419,91 @@ class App {
   }
 
   async init() {
+    // [1] INICIARIZACIÓN DE USUARIO (SIN HARDCODEO)
     const userInfoDisplay = document.getElementById('userInfoDisplay');
     
-    // [NEW] CARGA AUTOMÁTICA DE USUARIO DESDE JSON
     try {
+        // Intenta leer el JSON del perfil
         const response = await fetch('user/user-001/user-001.json');
         
         if (response.ok) {
             const jsonData = await response.json();
             
-            // [LÓGICA DE ROLES] Verificar que es Doctor para proceder
+            // Verificación básica de rol
             if (jsonData.role !== 'Doctor') {
-                console.error("Acceso denegado: El usuario no tiene el rol de Doctor.");
-                alert("Acceso denegado: Rol no válido.");
+                alert("El usuario no tiene rol de Doctor.");
                 this.loadGuestMode();
-                return; // Detener ejecución
+                return;
             }
 
-            // Crear instancia de UserProfile (Pasamos null como catálogo por ahora)
+            // Crear objeto UserProfile usando el JSON
             this.currentUser = new UserProfile(null, jsonData);
-            
-            // Globalizar
             window.currentUser = this.currentUser;
             
-            // Actualizar Dock
             if(userInfoDisplay) {
-                const title = this.currentUser.state.professional.titlePrefix || '';
-                userInfoDisplay.textContent = `${title} ${this.currentUser.getDisplayName()} (${this.currentUser.getDisplayRole()})`;
+                userInfoDisplay.textContent = `${this.currentUser.getDisplayTitle()} (${this.currentUser.getDisplayRole()})`;
             }
-            
-            console.log("Usuario cargado correctamente:", this.currentUser.getDisplayName());
-
+            console.log("Perfil cargado:", this.currentUser.getDisplayName());
         } else {
-            throw new Error("Archivo de usuario no encontrado (404).");
+            throw new Error("Archivo JSON no encontrado");
         }
     } catch (e) {
-        console.warn("Fallo al cargar perfil de usuario. Cargando modo Invitado.", e);
+        console.warn("No se pudo cargar perfil. Cargando Invitado.", e);
         this.loadGuestMode();
     }
 
-    // Cargar Modelos Dinámicamente
+    // [2] CARGA DE MODELOS (REGISTRO ESTABLE)
     await this.loadAvailableModels();
 
-    // Listeners del Dock
+    // [3] LISTENERS
     document.getElementById('btnHome').onclick = () => this.showDashboard();
     document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
     document.getElementById('btnTheme').onclick = () => this.toggleTheme();
-    const btnAgenda = document.getElementById('btnAgenda');
-    if(btnAgenda) btnAgenda.onclick = () => alert("Próximamente...");
+    document.getElementById('btnAgenda').onclick = () => alert("Próximamente...");
+    
     const btnSearch = document.getElementById('btnSearch');
     if(btnSearch) btnSearch.onclick = () => this.showSearchModal();
 
     this.showDashboard();
   }
 
-  loadGuestMode() {
-      this.currentUser = new UserProfile(null);
-      window.currentUser = this.currentUser;
-      
-      const display = document.getElementById('userInfoDisplay');
-      if(display) {
-          display.textContent = "Invitado";
-          display.style.color = "var(--color-text-dim)";
-      }
-  }
-
+  // [FIX FINAL] ESCANEO DE MODELOS (SIN 404, SIN ERRORES)
   async loadAvailableModels() {
       const select = document.getElementById('newConsultModelSelect');
       if (!select) return;
 
-      // Lista de modelos esperados
-      const modelsToCheck = [
-          "ORL-001.js", 
-          "MEDGEN-001.js"
+      // [REGISTRO]: Aquí defines los modelos que TIENES.
+      // NO pongas archivos que no existen o dará error 404.
+      const modelsRegistry = [
+          "ORL-001.js"
+          // "MEDGEN-001.js"  // <--- ELIMINADO PARA EVITAR EL ERROR 404
       ];
 
       select.innerHTML = '<option value="" disabled selected>Escaneando modelos...</option>';
       const validModels = [];
 
-      for (const fileName of modelsToCheck) {
+      // Bucle de verificación segura
+      for (const fileName of modelsRegistry) {
           try {
+              // Usamos IMPORT para ver si existe y es módulo válido
               await import(`../consultmodels/${fileName}`);
+              
+              // Si llega aquí, el archivo cargó correctamente.
               const modelId = fileName.replace('.js', '');
               validModels.push({ id: modelId, name: modelId });
+              
+              console.log(`Modelo verificado: ${modelId}`);
           } catch (e) {
-              console.warn(`Modelo ${modelId} no encontrado.`);
+              console.warn(`Modelo no encontrado o inválido: ${fileName}`);
           }
       }
 
+      // Rellenar Select
       select.innerHTML = '';
       
       if (validModels.length === 0) {
           const opt = document.createElement('option');
-          opt.text = "No se encontraron modelos en 'consultmodels/'";
+          opt.text = "No se encontraron modelos válidos.";
           opt.disabled = true;
           select.appendChild(opt);
       } else {
@@ -519,6 +513,25 @@ class App {
               opt.textContent = model.name;
               select.appendChild(opt);
           });
+          // Seleccionar el primero
+          select.selectedIndex = 0;
+      }
+  }
+
+  loadGuestMode() {
+      this.currentUser = {
+          id: 'guest',
+          names: 'Invitado',
+          lastNames: 'Sistema',
+          role: 'Guest',
+          state: { professional: { role: 'Guest', titlePrefix: '' } }
+      };
+      window.currentUser = this.currentUser;
+      
+      const display = document.getElementById('userInfoDisplay');
+      if(display) {
+          display.textContent = "Invitado - Iniciar Sesión";
+          display.style.color = "var(--color-text-dim)";
       }
   }
 
@@ -612,62 +625,6 @@ class App {
       }
   }
 
-  viewFullHistory() {
-        if (!this.currentPatient) return;
-        alert("La ficha actual (Paciente) contiene toda la historia clínica. \nPara revisar detalles específicos, use la opción 'Editar Ficha'.");
-  }
-  
-  sanitizePatientData(formData) {
-      const raw = { 
-          identificacion: {}, nombres: {}, demografia: {}, datos_biologicos: {}, contacto: {}, redes_sociales: {}, 
-          contacto_emergencia: {}, alertas_clinicas: {}, seguridad_prioritaria: {}, datos_administrativos: {},
-          antecedentes_personales: {}, historial_quirurgico: {}, hospitalizaciones: {}, 
-          lesiones_y_fracturas: {}, antecedentes_familiares: {}, habitos: {}, contexto_social: {}, 
-          consentimientos: {}
-      };
-      
-      formData.forEach((value, key) => {
-          const parts = key.split('.');
-          let target = raw;
-          for (let i = 0; i < parts.length - 1; i++) {
-              if (!target[parts[i]]) target[parts[i]] = {};
-              target = target[parts[i]];
-          }
-          target[parts[parts.length - 1]] = value;
-      });
-
-      ['identificacion', 'nombres', 'demografia', 'datos_biologicos', 'contacto', 'redes_sociales', 'contacto_emergencia',
-       'seguridad_prioritaria', 'datos_administrativos', 'historial_quirurgico', 'hospitalizaciones', 'lesiones_y_fracturas',
-       'contexto_social', 'consentimientos'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec]) {
-            PATIENT_FIELD_CONFIG[sec].fields.forEach(f => {
-               if(f.type === 'checkbox') {
-                   const key = `${sec}.${f.key}`;
-                   if(!raw[sec][f.key]) raw[sec][f.key] = false;
-               }
-            });
-         }
-      });
-      ['antecedentes_personales', 'antecedentes_familiares'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
-            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
-               const key = `${sec}.${f.key}`;
-               if(!raw[sec][f.key]) raw[sec][f.key] = false;
-            });
-         }
-      });
-      ['alertas_clinicas'].forEach(sec => {
-         if(PATIENT_FIELD_CONFIG[sec] && PATIENT_FIELD_CONFIG[sec].items) {
-            PATIENT_FIELD_CONFIG[sec].items.forEach(f => {
-               const key = `${sec}.${f.key}_check`;
-               if(!raw[sec][f.key+'_check']) raw[sec][f.key+'_check'] = false;
-            });
-         }
-      });
-
-      return raw;
-  }
-
   createNewPatientWorkflow() {
       const modal = document.getElementById('editModal');
       const body = document.getElementById('modalBody');
@@ -683,7 +640,7 @@ class App {
       }
       
       const btnSave = document.getElementById('btnSaveConsultation');
-      if(bSave) btnSave.onclick = () => {
+      if(btnSave) btnSave.onclick = () => {
           const inputs = body.querySelectorAll('input, select, textarea');
           const formData = new FormData();
           inputs.forEach(input => {
@@ -713,15 +670,15 @@ class App {
 
   openNewConsultationUI() {
       const modelSelect = document.getElementById('newConsultModelSelect');
-      if(!modelSelect) return alert("Error crítico: Select no encontrado");
+      if(!modelSelect) return;
       const selectedModel = modelSelect.value;
       this.openConsultationModal(null, selectedModel);
   }
 
   async editConsultation(consultationId, modelId) {
       this.currentEditingConsultationId = consultationId;
-      if(!this.currentPatient) return alert("No hay paciente activo");
-      
+      if(!this.currentPatient) return;
+
       const consults = StorageService.getConsultations(this.currentPatient.identificacion.documento_numero);
       const data = consults.find(c => c.id === consultationId);
       this.openConsultationModal(data, modelId);
@@ -745,7 +702,7 @@ class App {
           const module = await import(`../consultmodels/${modelId}.js`);
           
           if (!module.MODEL_DEFINITION) {
-              throw new Error("El archivo no exporta MODEL_DEFINITION. Revisa el parche en ORL-001.js");
+              throw new Error("El archivo no exporta MODEL_DEFINITION.");
           }
 
           if(body) body.innerHTML = '';
@@ -790,11 +747,11 @@ class App {
                       <h3>Error Crítico</h3>
                       <p>No se pudo cargar el modelo ${modelId}.</p>
                       <p style="font-size:0.8rem; color:var(--text-dim);">${err.message}</p>
-                      <p>Verifica la consola (F12) para más detalles.</p>
+                      <p>Verifica que el archivo existe en consultmodels/ y la consola (F12).</p>
                 </div>`;
           }
           const btnSave = document.getElementById('btnSaveConsultation');
-          if(bSave) btnSave.disabled = true;
+          if(btnSave) btnSave.disabled = true;
       }
   }
 
@@ -825,7 +782,7 @@ class App {
 
   toggleSection(id) {
       const sec = document.getElementById(id);
-      if(!sec) return;
+      if (!sec) return;
       const content = sec.querySelector('.section-content');
       const icon = sec.querySelector('.section-toggle i');
       
@@ -857,3 +814,4 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
