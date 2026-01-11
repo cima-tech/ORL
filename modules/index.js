@@ -409,18 +409,6 @@ const Views = {
 };
 
 // [JS-IND-004] APLICACIÓN PRINCIPAL (CON LÓGICA DE JSON Y ROLES)
-
-
-Te pido una disculpa inmensa. Tienes toda la razón.
-
-El problema que arrastraba (el `ReferenceError` y `bSave`) se debe a un error clásico de JavaScript:
-Dentro de un evento `onclick`, la palabra `this` se refiere al **BOTÓN**, no a la **APP**. Por eso el botón no encontraba la función de guardar.
-
-También corregí la confusión de los nombres de variables (`bSave` vs `btnSave`) y la estructura para que sea imposible que falle el contexto.
-
-Por favor, reemplaza **TODA la Clase `App`** en `modules/index.js`. He movido `sanitizePatientData` al principio para asegurar que exista, y estoy usando `window.app` en todos los eventos para evitar errores de ámbito.
-
-```javascript
 /* modules/index.js -> Clase App (V6 CORRECCIÓN CONTEXTO DEFINITIVA) */
 
 class App {
@@ -859,3 +847,4 @@ class App {
 // Inicializar
 window.app = new App();
 document.addEventListener('DOMContentLoaded', () => window.app.init());
+
