@@ -1,32 +1,34 @@
-/* modules/index.css */
+/* modules/index.css - V4.0.1 */
 
 /*
   [GLOSARIO-ESTILOS]
   :root -> Variables base (Modo Dark)
   .light-mode -> Sobreescritura para Modo Claro
   .glass-panel -> Efecto Vidrio Mejorado (Blur + Sombra + Transparencia)
-  .dock-doctor -> Barra de navegación superior
-  .wallpaper-* -> Clases para cargar imágenes de fondo
 */
 
-/* [CSS-001] VARIABLES Y RESET */
+/* [CSS-001] VARIABLES Y RESET - GLASS MEJORADO */
 :root {
-    /* Dark Mode Default */
+    /* Dark Mode Default - Fondo más oscuro para mejor contraste glass */
     --color-bg: #0a0e17;
     
-    /* Glass Effect Mejorado (Dark) */
-    --color-glass: rgba(255, 255, 255, 0.08);
-    --color-glass-heavy: rgba(255, 255, 255, 0.15);
-    --color-glass-border: rgba(255, 255, 255, 0.12);
+    /* Glass Effect Mejorado (Dark) - Más transparencia para mejor efecto */
+    --color-glass: rgba(255, 255, 255, 0.1);
+    --color-glass-heavy: rgba(255, 255, 255, 0.2);
+    --color-glass-border: rgba(255, 255, 255, 0.15);
     
-    --color-border: rgba(255, 255, 255, 0.12);
-    --color-border-heavy: rgba(255, 255, 255, 0.2);
-    --color-text: #f0f0f0;
-    --color-text-dim: #a0a0a0;
+    /* Variables para controles de glass */
+    --glass-blur: 20px;
+    --glass-blur-heavy: 30px;
+    
+    --color-border: rgba(255, 255, 255, 0.15);
+    --color-border-heavy: rgba(255, 255, 255, 0.25);
+    --color-text: #ffffff;
+    --color-text-dim: #b0b0b0;
 
-    /* Accent Azul Corporativo */
-    --color-accent: #3b82f6;
-    --color-accent-hover: #2563eb;
+    /* Accent Azul Corporativo - Más vibrante */
+    --color-accent: #4f8cff;
+    --color-accent-hover: #3a7cff;
 
     --color-success: #10b981;
     --color-warning: #f59e0b;
@@ -38,33 +40,30 @@
     --transition: 0.3s ease;
     
     /* Sombras Profundas para efecto 3D del Vidrio */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.5);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.6);
 }
 
 /* [CSS-002] MODO CLARO (Light Mode) - Glass Effect Mejorado */
 body.light-mode {
-    /* Fondo Base Claro */
-    --color-bg: #f0f2f5; /* Blanco pálido suave */
+    /* Fondo Base Claro - Más suave */
+    --color-bg: #f5f7fa;
     
-    /* Glass Effect en Modo Claro */
-    /* Truco: Para que se vea 'Glass' en blanco, el fondo del panel debe ser
-       blanco con muy poca transparencia, y el borde sutil.
-       El 'frost' se logra con el backdrop-filter (Blur). */
-    --color-glass: rgba(255, 255, 255, 0.45); 
-    --color-glass-heavy: rgba(255, 255, 255, 0.60);
+    /* Glass Effect en Modo Claro - Blanco más transparente */
+    --color-glass: rgba(255, 255, 255, 0.8);
+    --color-glass-heavy: rgba(255, 255, 255, 0.9);
     --color-glass-border: rgba(255, 255, 255, 0.4);
     
     /* Bordes más sutiles en claro */
-    --color-border: rgba(0, 0, 0, 0.08);
-    --color-border-heavy: rgba(0, 0, 0, 0.12);
+    --color-border: rgba(0, 0, 0, 0.1);
+    --color-border-heavy: rgba(0, 0, 0, 0.15);
     
     --color-text: #1e293b;
     --color-text-dim: #64748b;
     
     /* Sombras suaves para el modo claro */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.12);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.15);
 }
 
 /* Reset y Base */
@@ -85,45 +84,60 @@ body {
 }
 
 /* [CSS-WALLPAPER] SOPORTE DE FONDOS */
-/* Para activar un wallpaper, agrega una de estas clases al <body> en el HTML
-   Ejemplo: <body class="wallpaper-1"> */
 body.wallpaper-1 {
-    background: url('../user/user-001/wallpaper-1.jpg') center/cover no-repeat;
-    background-attachment: fixed; /* Efecto Parallax opcional */
+    background: url('../user/user-001/wallpaper-1.jpg') center/cover no-repeat fixed;
 }
 body.wallpaper-2 {
-    background: url('../user/user-001/wallpaper-2.jpg') center/cover no-repeat;
+    background: url('../user/user-001/wallpaper-2.jpg') center/cover no-repeat fixed;
 }
 
-/* Fondo de ambiente (Si no hay wallpaper) */
+/* Fondo de ambiente (Si no hay wallpaper) - Mejorado para glass */
 .background {
-    position: fixed; inset: 0; width: 100%; height: 100%;
-    /* Gradiente por defecto si no hay imagen */
-    background: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.10) 0%, transparent 40%);
+    position: fixed; 
+    inset: 0; 
+    width: 100%; 
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.10) 0%, transparent 40%),
+        linear-gradient(135deg, rgba(10, 14, 23, 0.8) 0%, rgba(10, 14, 23, 0.9) 100%);
     filter: blur(40px);
     z-index: -1;
     transition: filter var(--transition);
 }
 
-/* [CSS-DOCK] BARRA DE HERRAMIENTAS SUPERIOR */
+.light-mode .background {
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(79, 140, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(79, 140, 255, 0.05) 0%, transparent 40%),
+        linear-gradient(135deg, rgba(245, 247, 250, 0.8) 0%, rgba(245, 247, 250, 0.9) 100%);
+}
+
+/* [CSS-DOCK] BARRA DE HERRAMIENTAS SUPERIOR - GLASS MEJORADO */
 .dock-doctor {
     position: fixed;
-    top: 20px; left: 50%;
+    top: 20px; 
+    left: 50%;
     transform: translateX(-50%);
-    background: var(--color-glass); /* Usamos el fondo glass del tema */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--color-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-lg);
-    padding: 10px 20px;
+    padding: 10px 25px;
     display: flex;
-    gap: 20px; /* Espacio entre herramientas */
-    z-index: 100;
+    gap: 20px;
+    z-index: 1000;
     box-shadow: var(--shadow-heavy);
     min-width: 600px;
     justify-content: center;
     align-items: center;
+    transition: all var(--transition);
+}
+
+.dock-doctor:hover {
+    backdrop-filter: blur(var(--glass-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
 }
 
 .dock-doctor span {
@@ -137,47 +151,58 @@ body.wallpaper-2 {
     align-items: center;
     gap: 8px;
     color: var(--color-text);
-    background: rgba(255,255,255,0.05); /* Fondo sutil para los items del dock */
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
 }
 
 .dock-doctor span:hover {
     background: var(--color-glass-heavy);
     color: var(--color-accent);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
 }
 
 .user-info {
-    margin-left: auto; /* Empuja a la derecha */
+    margin-left: auto;
     color: var(--color-accent);
     font-weight: 600;
     border-left: 1px solid var(--color-glass-border);
     padding-left: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* [CSS-CONTENEDOR PRINCIPAL] */
 .doctor-container {
-    padding: 110px 20px 40px 20px; /* Ajuste para Dock superior */
+    padding: 110px 20px 40px 20px;
     max-width: 1200px;
     margin: 0 auto;
-    min-height: 100vh; /* Asegura que el contenido cubra la pantalla al quitar el dashboard */
+    min-height: 100vh;
 }
 
-/* [CSS-SECCIONES PLEGABLES] */
+/* [CSS-SECCIONES PLEGABLES] - GLASS MEJORADO */
 .collapsible-section {
     background: var(--color-glass);
-    backdrop-filter: blur(20px); /* Glass fuerte */
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-lg);
     margin-bottom: 20px;
     overflow: hidden;
-    transition: var(--transition);
-    /* Sombra 3D suave */
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.05);
+    transition: all var(--transition);
+    box-shadow: var(--shadow);
+}
+
+.collapsible-section:hover {
+    backdrop-filter: blur(var(--glass-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+    box-shadow: var(--shadow-heavy);
 }
 
 .section-header {
     padding: 20px 25px;
-    background: rgba(0,0,0,0.02); /* Fondo sutil para distinguir header */
+    background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid var(--color-glass-border);
     display: flex;
     justify-content: space-between;
@@ -185,9 +210,13 @@ body.wallpaper-2 {
     cursor: pointer;
     transition: background 0.2s;
 }
-.light-mode .section-header { background: rgba(255,255,255,0.1); }
+.light-mode .section-header { 
+    background: rgba(255, 255, 255, 0.1); 
+}
 
-.section-header:hover { background: var(--color-glass-heavy); }
+.section-header:hover { 
+    background: var(--color-glass-heavy); 
+}
 
 .section-content {
     padding: 0 25px;
@@ -196,8 +225,12 @@ body.wallpaper-2 {
     transition: max-height 0.5s ease;
 }
 
-.section-content-inner { padding: 25px 0; }
-.section-content.expanded { max-height: 5000px; }
+.section-content-inner { 
+    padding: 25px 0; 
+}
+.section-content.expanded { 
+    max-height: 5000px; 
+}
 
 /* [CSS-GRID PACIENTE] */
 .patient-info-grid {
@@ -209,27 +242,54 @@ body.wallpaper-2 {
 
 .patient-info-item {
     background: var(--color-glass-heavy);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius);
     padding: 15px;
-    /* Sombra interna para dar profundidad */
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    transition: all var(--transition);
 }
 
-.info-label { font-size: 0.85rem; color: var(--color-text-dim); margin-bottom: 4px; }
-.info-value { font-size: 1rem; font-weight: 500; color: var(--color-text); }
+.patient-info-item:hover {
+    background: var(--color-glass);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+}
+
+.info-label { 
+    font-size: 0.85rem; 
+    color: var(--color-text-dim); 
+    margin-bottom: 4px; 
+    font-weight: 600;
+}
+.info-value { 
+    font-size: 1rem; 
+    font-weight: 500; 
+    color: var(--color-text); 
+}
 
 /* [CSS-LISTA CONSULTAS] */
-.consultations-list { display: flex; flex-direction: column; gap: 15px; }
+.consultations-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+}
 
 .consultation-item {
-    background: var(--color-glass-heavy);
+    background: var(--color-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--color-glass-border);
     border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all var(--transition);
 }
-.consultation-item:hover { border-color: var(--color-accent); box-shadow: var(--shadow); }
+.consultation-item:hover { 
+    border-color: var(--color-accent); 
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(var(--glass-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+}
 
 .consultation-header {
     padding: 15px 20px;
@@ -237,117 +297,309 @@ body.wallpaper-2 {
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
+    background: rgba(255, 255, 255, 0.03);
 }
-.consultation-title { display: flex; align-items: center; gap: 10px; }
-.consultation-meta { display: flex; gap: 15px; font-size: 0.85rem; color: var(--color-text-dim); }
+.consultation-title { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+}
+.consultation-meta { 
+    display: flex; 
+    gap: 15px; 
+    font-size: 0.85rem; 
+    color: var(--color-text-dim); 
+}
 
 .consultation-content {
     padding: 0 20px;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease;
-    background: rgba(0,0,0,0.02); /* Capa de fondo sutil para contenido */
+    background: rgba(255, 255, 255, 0.02);
     border-top: 1px solid var(--color-glass-border);
 }
-.consultation-content-inner { padding: 20px 0; }
-.consultation-content.expanded { max-height: 1000px; }
+.consultation-content-inner { 
+    padding: 20px 0; 
+}
+.consultation-content.expanded { 
+    max-height: 1000px; 
+}
 
 /* Botones de acción */
-.actions-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+.actions-row { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 15px; 
+    flex-wrap: wrap; 
+}
 .action-btn {
-    padding: 8px 16px;
+    padding: 10px 18px;
     border-radius: var(--radius-sm);
     background: var(--color-accent);
+    backdrop-filter: blur(10px);
     border: none;
     color: white;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition);
     display: inline-flex;
     align-items: center;
     gap: 8px;
     font-size: 0.9rem;
+    font-weight: 500;
 }
-.action-btn:hover { background: var(--color-accent-hover); transform: translateY(-2px); }
-.action-btn.secondary { background: transparent; border: 1px solid var(--color-accent); color: var(--color-text); }
-.action-btn.secondary:hover { background: var(--color-glass-heavy); }
+.action-btn:hover { 
+    background: var(--color-accent-hover); 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.action-btn.secondary { 
+    background: transparent; 
+    border: 1px solid var(--color-accent); 
+    color: var(--color-text); 
+}
+.action-btn.secondary:hover { 
+    background: var(--color-glass-heavy); 
+    color: var(--color-accent);
+}
 
 /* [CSS-NUEVA CONSULTA] */
 .new-consultation {
-    background: rgba(255,255,255,0.03); /* Muy sutil */
-    border: 1px dashed var(--color-glass-border);
+    background: var(--color-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 2px dashed var(--color-glass-border);
     border-radius: var(--radius-lg);
     padding: 30px;
     text-align: center;
     margin-top: 20px;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all var(--transition);
 }
-.new-consultation:hover { border-color: var(--color-accent); background: var(--color-glass); }
-.model-select {
-    background: var(--color-glass);
-    color: var(--color-text);
-    border: 1px solid var(--color-glass-border);
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    outline: none;
+.new-consultation:hover { 
+    border-color: var(--color-accent); 
+    background: var(--color-glass-heavy);
+    backdrop-filter: blur(var(--glass-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+    transform: translateY(-3px);
 }
 
-/* [CSS-MODAL] */
+.model-select {
+    background: var(--color-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--color-text);
+    border: 1px solid var(--color-glass-border);
+    padding: 10px 15px;
+    border-radius: var(--radius-sm);
+    outline: none;
+    font-size: 0.95rem;
+    transition: all var(--transition);
+}
+
+.model-select:focus {
+    border-color: var(--color-accent);
+    background: var(--color-glass-heavy);
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
+}
+
+/* [CSS-MODAL] - GLASS MEJORADO */
 .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6); /* Fondo oscuro difuso */
-    backdrop-filter: blur(5px);
+    position: fixed; 
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 2000;
     display: none;
     justify-content: center;
     align-items: center;
+    animation: fadeIn 0.3s ease;
 }
-.modal-overlay.active { display: flex; }
+.modal-overlay.active { 
+    display: flex; 
+}
+
 .modal-box {
-    background: var(--color-bg); /* Fondo solido detrás del glass */
-    width: 95%; max-width: 1000px; height: 90vh;
+    background: var(--color-glass);
+    backdrop-filter: blur(var(--glass-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+    width: 95%; 
+    max-width: 1000px; 
+    height: 90vh;
     border-radius: var(--radius-lg);
-    display: flex; flex-direction: column;
+    display: flex; 
+    flex-direction: column;
     border: 1px solid var(--color-glass-border);
     box-shadow: var(--shadow-heavy);
+    animation: slideUp 0.4s ease;
 }
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 .modal-header {
-    padding: 15px 25px;
+    padding: 20px 30px;
     border-bottom: 1px solid var(--color-glass-border);
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--color-glass);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
 }
-.modal-title { font-size: 1.2rem; font-weight: 600; color: var(--color-accent); }
-.close-modal { background: none; border: none; color: var(--color-text); font-size: 1.5rem; cursor: pointer; }
-.close-modal:hover { color: var(--color-accent); }
+.modal-title { 
+    font-size: 1.3rem; 
+    font-weight: 600; 
+    color: var(--color-accent); 
+}
+.close-modal { 
+    background: none; 
+    border: none; 
+    color: var(--color-text); 
+    font-size: 1.8rem; 
+    cursor: pointer; 
+    transition: var(--transition);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+}
+.close-modal:hover { 
+    color: var(--color-accent); 
+    background: var(--color-glass-heavy);
+}
 
 .modal-body {
     flex: 1;
-    padding: 25px;
+    padding: 30px;
     overflow-y: auto;
     position: relative;
 }
 .modal-footer {
-    padding: 15px 25px;
+    padding: 20px 30px;
     border-top: 1px solid var(--color-glass-border);
-    display: flex; justify-content: flex-end; gap: 15px;
-    background: var(--color-glass);
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
 }
 
-/* Elementos dentro del Modal (Inputs Estilos Glass) */
+/* Estilos para elementos dentro del modal */
 .modal-body .glass-panel {
     background: var(--color-glass);
+    backdrop-filter: blur(15px);
     border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Chips estilo glass - para ORL */
+.chip {
+    padding: 8px 16px;
+    background: var(--color-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-glass-border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-block;
+    margin: 5px;
+    transition: all 0.2s;
+    color: var(--color-text);
+}
+.chip:hover {
+    background: var(--color-glass-heavy);
+    transform: translateY(-2px);
+}
+.chip.on {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+}
+
+/* Inputs dentro del modal */
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+    background: var(--color-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-text);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    transition: all var(--transition);
+    width: 100%;
+}
+
+.modal-body input:focus,
+.modal-body select:focus,
+.modal-body textarea:focus {
+    border-color: var(--color-accent);
+    background: var(--color-glass-heavy);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .dock-doctor { min-width: 95%; flex-wrap: wrap; padding: 10px; }
-    .patient-info-grid { grid-template-columns: 1fr; }
-    .doctor-container { padding-top: 140px; }
+    .dock-doctor { 
+        min-width: 95%; 
+        flex-wrap: wrap; 
+        padding: 10px 15px;
+        gap: 10px;
+    }
+    .patient-info-grid { 
+        grid-template-columns: 1fr; 
+    }
+    .doctor-container { 
+        padding-top: 140px; 
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .modal-box {
+        width: 98%;
+        height: 95vh;
+        margin: 10px;
+    }
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 15px 20px;
+    }
 }
 
 /* Utility */
 .hidden { display: none !important; }
 .fade-in { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-glass);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-hover);
+}
