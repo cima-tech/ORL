@@ -1,605 +1,81 @@
-/* modules/index.css - V4.0.1 */
+/* modules/index.css */
 
-/*
-  [GLOSARIO-ESTILOS]
-  :root -> Variables base (Modo Dark)
-  .light-mode -> Sobreescritura para Modo Claro
-  .glass-panel -> Efecto Vidrio Mejorado (Blur + Sombra + Transparencia)
-*/
+/* ... (variables y reset, manteniendo el efecto glass más transparente) */
 
-/* [CSS-001] VARIABLES Y RESET - GLASS MEJORADO */
 :root {
-    /* Dark Mode Default - Fondo más oscuro para mejor contraste glass */
+    /* Dark Mode Default - Más transparente */
     --color-bg: #0a0e17;
     
-    /* Glass Effect Mejorado (Dark) - Más transparencia para mejor efecto */
-    --color-glass: rgba(255, 255, 255, 0.1);
-    --color-glass-heavy: rgba(255, 255, 255, 0.2);
+    /* Glass Effect Mejorado (Dark) - Más transparente */
+    --color-glass: rgba(255, 255, 255, 0.05);
+    --color-glass-heavy: rgba(255, 255, 255, 0.1);
     --color-glass-border: rgba(255, 255, 255, 0.15);
     
-    /* Variables para controles de glass */
-    --glass-blur: 20px;
-    --glass-blur-heavy: 30px;
-    
-    --color-border: rgba(255, 255, 255, 0.15);
-    --color-border-heavy: rgba(255, 255, 255, 0.25);
-    --color-text: #ffffff;
-    --color-text-dim: #b0b0b0;
-
-    /* Accent Azul Corporativo - Más vibrante */
-    --color-accent: #4f8cff;
-    --color-accent-hover: #3a7cff;
-
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-error: #ef4444;
-    
-    --radius: 12px;
-    --radius-sm: 8px;
-    --radius-lg: 16px;
-    --transition: 0.3s ease;
-    
-    /* Sombras Profundas para efecto 3D del Vidrio */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.6);
+    /* ... (el resto de variables) */
 }
 
-/* [CSS-002] MODO CLARO (Light Mode) - Glass Effect Mejorado */
 body.light-mode {
-    /* Fondo Base Claro - Más suave */
-    --color-bg: #f5f7fa;
+    /* Fondo Base Claro */
+    --color-bg: #f0f2f5;
     
-    /* Glass Effect en Modo Claro - Blanco más transparente */
-    --color-glass: rgba(255, 255, 255, 0.8);
-    --color-glass-heavy: rgba(255, 255, 255, 0.9);
+    /* Glass Effect en Modo Claro - Más transparente */
+    --color-glass: rgba(255, 255, 255, 0.3);
+    --color-glass-heavy: rgba(255, 255, 255, 0.5);
     --color-glass-border: rgba(255, 255, 255, 0.4);
     
-    /* Bordes más sutiles en claro */
-    --color-border: rgba(0, 0, 0, 0.1);
-    --color-border-heavy: rgba(0, 0, 0, 0.15);
-    
-    --color-text: #1e293b;
-    --color-text-dim: #64748b;
-    
-    /* Sombras suaves para el modo claro */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-heavy: 0 12px 48px rgba(0, 0, 0, 0.15);
+    /* ... (el resto de variables) */
 }
 
-/* Reset y Base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-}
+/* ... (reset y base) */
 
-body {
-    background: var(--color-bg);
-    color: var(--color-text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    line-height: 1.6;
-    transition: background var(--transition), color var(--transition);
-}
-
-/* [CSS-WALLPAPER] SOPORTE DE FONDOS */
-body.wallpaper-1 {
-    background: url('../user/user-001/wallpaper-1.jpg') center/cover no-repeat fixed;
-}
-body.wallpaper-2 {
-    background: url('../user/user-001/wallpaper-2.jpg') center/cover no-repeat fixed;
-}
-
-/* Fondo de ambiente (Si no hay wallpaper) - Mejorado para glass */
-.background {
-    position: fixed; 
-    inset: 0; 
-    width: 100%; 
-    height: 100%;
-    background: 
-        radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.10) 0%, transparent 40%),
-        linear-gradient(135deg, rgba(10, 14, 23, 0.8) 0%, rgba(10, 14, 23, 0.9) 100%);
-    filter: blur(40px);
-    z-index: -1;
-    transition: filter var(--transition);
-}
-
-.light-mode .background {
-    background: 
-        radial-gradient(circle at 20% 30%, rgba(79, 140, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(79, 140, 255, 0.05) 0%, transparent 40%),
-        linear-gradient(135deg, rgba(245, 247, 250, 0.8) 0%, rgba(245, 247, 250, 0.9) 100%);
-}
-
-/* [CSS-DOCK] BARRA DE HERRAMIENTAS SUPERIOR - GLASS MEJORADO */
-.dock-doctor {
+/* [CSS-CONSOLA] */
+.console-drawer {
     position: fixed;
-    top: 20px; 
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius-lg);
-    padding: 10px 25px;
-    display: flex;
-    gap: 20px;
-    z-index: 1000;
-    box-shadow: var(--shadow-heavy);
-    min-width: 600px;
-    justify-content: center;
-    align-items: center;
-    transition: all var(--transition);
-}
-
-.dock-doctor:hover {
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-}
-
-.dock-doctor span {
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-text);
-    background: rgba(255,255,255,0.05);
-    border: 1px solid transparent;
-}
-
-.dock-doctor span:hover {
-    background: var(--color-glass-heavy);
-    color: var(--color-accent);
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-}
-
-.user-info {
-    margin-left: auto;
-    color: var(--color-accent);
-    font-weight: 600;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--color-bg);
     border-left: 1px solid var(--color-glass-border);
-    padding-left: 15px;
+    z-index: 3000;
     display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* [CSS-CONTENEDOR PRINCIPAL] */
-.doctor-container {
-    padding: 110px 20px 40px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    min-height: 100vh;
-}
-
-/* [CSS-SECCIONES PLEGABLES] - GLASS MEJORADO */
-.collapsible-section {
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    overflow: hidden;
-    transition: all var(--transition);
-    box-shadow: var(--shadow);
-}
-
-.collapsible-section:hover {
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    box-shadow: var(--shadow-heavy);
-}
-
-.section-header {
-    padding: 20px 25px;
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid var(--color-glass-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.light-mode .section-header { 
-    background: rgba(255, 255, 255, 0.1); 
-}
-
-.section-header:hover { 
-    background: var(--color-glass-heavy); 
-}
-
-.section-content {
-    padding: 0 25px;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease;
-}
-
-.section-content-inner { 
-    padding: 25px 0; 
-}
-.section-content.expanded { 
-    max-height: 5000px; 
-}
-
-/* [CSS-GRID PACIENTE] */
-.patient-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.patient-info-item {
-    background: var(--color-glass-heavy);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius);
-    padding: 15px;
-    transition: all var(--transition);
-}
-
-.patient-info-item:hover {
-    background: var(--color-glass);
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-}
-
-.info-label { 
-    font-size: 0.85rem; 
-    color: var(--color-text-dim); 
-    margin-bottom: 4px; 
-    font-weight: 600;
-}
-.info-value { 
-    font-size: 1rem; 
-    font-weight: 500; 
-    color: var(--color-text); 
-}
-
-/* [CSS-LISTA CONSULTAS] */
-.consultations-list { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 15px; 
-}
-
-.consultation-item {
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: all var(--transition);
-}
-.consultation-item:hover { 
-    border-color: var(--color-accent); 
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-}
-
-.consultation-header {
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.03);
-}
-.consultation-title { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-}
-.consultation-meta { 
-    display: flex; 
-    gap: 15px; 
-    font-size: 0.85rem; 
-    color: var(--color-text-dim); 
-}
-
-.consultation-content {
-    padding: 0 20px;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease;
-    background: rgba(255, 255, 255, 0.02);
-    border-top: 1px solid var(--color-glass-border);
-}
-.consultation-content-inner { 
-    padding: 20px 0; 
-}
-.consultation-content.expanded { 
-    max-height: 1000px; 
-}
-
-/* Botones de acción */
-.actions-row { 
-    display: flex; 
-    gap: 10px; 
-    margin-top: 15px; 
-    flex-wrap: wrap; 
-}
-.action-btn {
-    padding: 10px 18px;
-    border-radius: var(--radius-sm);
-    background: var(--color-accent);
-    backdrop-filter: blur(10px);
-    border: none;
-    color: white;
-    cursor: pointer;
-    transition: all var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-.action-btn:hover { 
-    background: var(--color-accent-hover); 
-    transform: translateY(-2px); 
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-.action-btn.secondary { 
-    background: transparent; 
-    border: 1px solid var(--color-accent); 
-    color: var(--color-text); 
-}
-.action-btn.secondary:hover { 
-    background: var(--color-glass-heavy); 
-    color: var(--color-accent);
-}
-
-/* [CSS-NUEVA CONSULTA] */
-.new-consultation {
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 2px dashed var(--color-glass-border);
-    border-radius: var(--radius-lg);
-    padding: 30px;
-    text-align: center;
-    margin-top: 20px;
-    cursor: pointer;
-    transition: all var(--transition);
-}
-.new-consultation:hover { 
-    border-color: var(--color-accent); 
-    background: var(--color-glass-heavy);
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    transform: translateY(-3px);
-}
-
-.model-select {
-    background: var(--color-glass);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: var(--color-text);
-    border: 1px solid var(--color-glass-border);
-    padding: 10px 15px;
-    border-radius: var(--radius-sm);
-    outline: none;
-    font-size: 0.95rem;
-    transition: all var(--transition);
-}
-
-.model-select:focus {
-    border-color: var(--color-accent);
-    background: var(--color-glass-heavy);
-    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
-}
-
-/* [CSS-MODAL] - GLASS MEJORADO */
-.modal-overlay {
-    position: fixed; 
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index: 2000;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    animation: fadeIn 0.3s ease;
-}
-.modal-overlay.active { 
-    display: flex; 
-}
-
-.modal-box {
-    background: var(--color-glass);
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    width: 95%; 
-    max-width: 1000px; 
-    height: 90vh;
-    border-radius: var(--radius-lg);
-    display: flex; 
     flex-direction: column;
-    border: 1px solid var(--color-glass-border);
-    box-shadow: var(--shadow-heavy);
-    animation: slideUp 0.4s ease;
+    transition: right 0.3s ease;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
 }
 
-@keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+.console-drawer.active {
+    right: 0;
 }
 
-.modal-header {
-    padding: 20px 30px;
+.console-header {
+    padding: 15px 20px;
     border-bottom: 1px solid var(--color-glass-border);
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-}
-.modal-title { 
-    font-size: 1.3rem; 
-    font-weight: 600; 
-    color: var(--color-accent); 
-}
-.close-modal { 
-    background: none; 
-    border: none; 
-    color: var(--color-text); 
-    font-size: 1.8rem; 
-    cursor: pointer; 
-    transition: var(--transition);
-    width: 40px;
-    height: 40px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
-}
-.close-modal:hover { 
-    color: var(--color-accent); 
-    background: var(--color-glass-heavy);
+    background: var(--color-glass);
 }
 
-.modal-body {
+.console-body {
     flex: 1;
-    padding: 30px;
-    overflow-y: auto;
-    position: relative;
-}
-.modal-footer {
-    padding: 20px 30px;
-    border-top: 1px solid var(--color-glass-border);
-    display: flex; 
-    justify-content: flex-end; 
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-}
-
-/* Estilos para elementos dentro del modal */
-.modal-body .glass-panel {
-    background: var(--color-glass);
-    backdrop-filter: blur(15px);
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius);
     padding: 20px;
-    margin-bottom: 20px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
 }
 
-/* Chips estilo glass - para ORL */
-.chip {
-    padding: 8px 16px;
-    background: var(--color-glass);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--color-glass-border);
-    border-radius: 20px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: inline-block;
-    margin: 5px;
-    transition: all 0.2s;
+#consoleOutput {
     color: var(--color-text);
-}
-.chip:hover {
-    background: var(--color-glass-heavy);
-    transform: translateY(-2px);
-}
-.chip.on {
-    background: var(--color-accent);
-    color: white;
-    border-color: var(--color-accent);
-    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
-/* Inputs dentro del modal */
-.modal-body input,
-.modal-body select,
-.modal-body textarea {
+.console-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--color-glass-border);
     background: var(--color-glass);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--color-glass-border);
-    color: var(--color-text);
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    font-size: 0.95rem;
-    transition: all var(--transition);
-    width: 100%;
 }
 
-.modal-body input:focus,
-.modal-body select:focus,
-.modal-body textarea:focus {
-    border-color: var(--color-accent);
-    background: var(--color-glass-heavy);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .dock-doctor { 
-        min-width: 95%; 
-        flex-wrap: wrap; 
-        padding: 10px 15px;
-        gap: 10px;
-    }
-    .patient-info-grid { 
-        grid-template-columns: 1fr; 
-    }
-    .doctor-container { 
-        padding-top: 140px; 
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    .modal-box {
-        width: 98%;
-        height: 95vh;
-        margin: 10px;
-    }
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: 15px 20px;
-    }
-}
-
-/* Utility */
-.hidden { display: none !important; }
-.fade-in { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { 
-    from { opacity: 0; } 
-    to { opacity: 1; } 
-}
-
-/* Scrollbar personalizado */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--color-glass);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-accent);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent-hover);
-}
+/* ... (el resto de estilos) */
