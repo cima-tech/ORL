@@ -1,101 +1,97 @@
-/* consultmodels/MEDGEN-001.js */
+/* consultmodels/MEDGEN-001.js - Modelo de Medicina General */
 
 export const MODEL_DEFINITION = {
     id: "MEDGEN-001",
-    name: "Consulta de Medicina General",
+    name: "Medicina General",
     
     initUI: function(container, data = {}) {
         container.innerHTML = `
-            <div style="margin-bottom:20px; color:var(--color-text-dim); font-weight:600; font-size:0.9rem;">
-                * Campos obligatorios marcados con (*)
-            </div>
-
-            <div class="glass-panel" style="padding:25px; margin-bottom:25px;">
-                <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Motivo de Consulta (*)</label>
-                    <textarea class="txt-motivo" rows="3" style="width:100%;" placeholder="Describa el motivo de consulta...">${data.motivo || ''}</textarea>
+            <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
+                <div class="input-group" style="width: 100%;">
+                    <label>Motivo de Consulta</label>
+                    <input type="text" class="txt-motivo" 
+                           value="${data.motivo || ''}"
+                           placeholder="Ej: Fiebre, dolor de cabeza...">
                 </div>
                 
-                <div class="input-group" style="width:100%; margin-top:20px;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Enfermedad Actual (*)</label>
-                    <textarea class="txt-ea" rows="5" style="width:100%;" placeholder="Historia de la enfermedad actual...">${data.ea || ''}</textarea>
+                <div class="input-group" style="width: 100%; margin-top: 20px;">
+                    <label>Enfermedad Actual</label>
+                    <textarea class="txt-ea" rows="4">${data.ea || ''}</textarea>
                 </div>
             </div>
-
-            <div class="glass-panel" style="padding:25px; margin-bottom:25px;">
-                <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Examen Físico</label>
-                    <textarea class="txt-examen" rows="4" style="width:100%;" placeholder="Hallazgos del examen físico...">${data.examen || ''}</textarea>
+            
+            <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
+                <h3>Examen Físico</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Temperatura (°C)</label>
+                        <input type="number" step="0.1" class="txt-temp" 
+                               value="${data.temp || ''}">
+                    </div>
+                    <div class="input-group">
+                        <label>Presión Arterial</label>
+                        <input type="text" class="txt-pa" 
+                               value="${data.pa || ''}" 
+                               placeholder="120/80">
+                    </div>
+                    <div class="input-group">
+                        <label>Frecuencia Cardíaca</label>
+                        <input type="number" class="txt-fc" 
+                               value="${data.fc || ''}">
+                    </div>
+                </div>
+                
+                <div class="input-group" style="width: 100%; margin-top: 20px;">
+                    <label>Examen Físico Detallado</label>
+                    <textarea class="txt-examen" rows="4">${data.examen || ''}</textarea>
                 </div>
             </div>
-
-            <div class="glass-panel" style="padding:25px; margin-bottom:25px;">
-                <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Diagnóstico (*)</label>
-                    <textarea class="txt-dx" rows="3" style="width:100%;" placeholder="Diagnóstico principal...">${data.dx || ''}</textarea>
+            
+            <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
+                <div class="input-group" style="width: 100%;">
+                    <label>Diagnóstico</label>
+                    <input type="text" class="txt-dx" 
+                           value="${data.dx || ''}"
+                           placeholder="Diagnóstico principal...">
+                </div>
+                
+                <div class="input-group" style="width: 100%; margin-top: 20px;">
+                    <label>Plan y Tratamiento</label>
+                    <textarea class="txt-plan" rows="4">${data.plan || ''}</textarea>
                 </div>
             </div>
-
-            <div class="glass-panel" style="padding:25px; margin-bottom:25px;">
-                <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Plan de Tratamiento (*)</label>
-                    <textarea class="txt-plan" rows="6" style="width:100%;" placeholder="Tratamiento indicado...">${data.plan || ''}</textarea>
-                </div>
-            </div>
-
-            <div class="glass-panel" style="padding:25px; margin-bottom:25px;">
-                <div class="input-group" style="width:100%;">
-                    <label style="font-weight:600; color:var(--color-accent); margin-bottom:10px; display:block;">Recipe</label>
-                    <textarea class="txt-recipe" rows="6" style="width:100%;" placeholder="Medicamentos recetados...">${data.recipe || ''}</textarea>
-                </div>
+            
+            <div class="glass-panel" style="padding: 20px;">
+                <label>
+                    <input type="checkbox" class="chk-inherit" 
+                           ${data.inheritPrevious ? 'checked' : ''}>
+                    Heredar datos de la consulta anterior
+                </label>
             </div>
         `;
-
-        // Aplicar estilos glass a los inputs
-        const textareas = container.querySelectorAll('textarea');
-        textareas.forEach(ta => {
-            ta.style.cssText = "width:100%; background:var(--color-glass); border:1px solid var(--color-glass-border); color:var(--color-text); padding:12px; border-radius:8px; backdrop-filter:blur(10px); font-size:0.95rem;";
-            ta.addEventListener('focus', function() {
-                this.style.background = "var(--color-glass-heavy)";
-                this.style.borderColor = "var(--color-accent)";
-            });
-            ta.addEventListener('blur', function() {
-                this.style.background = "var(--color-glass)";
-                this.style.borderColor = "var(--color-glass-border)";
-            });
-        });
     },
     
     getData: function(container) {
-        const getVal = (sel) => container.querySelector(sel)?.value || '';
-        
         return {
-            motivo: getVal('.txt-motivo'),
-            ea: getVal('.txt-ea'),
-            examen: getVal('.txt-examen'),
-            dx: getVal('.txt-dx'),
-            plan: getVal('.txt-plan'),
-            recipe: getVal('.txt-recipe')
+            motivo: container.querySelector('.txt-motivo')?.value || '',
+            ea: container.querySelector('.txt-ea')?.value || '',
+            temp: container.querySelector('.txt-temp')?.value || '',
+            pa: container.querySelector('.txt-pa')?.value || '',
+            fc: container.querySelector('.txt-fc')?.value || '',
+            examen: container.querySelector('.txt-examen')?.value || '',
+            dx: container.querySelector('.txt-dx')?.value || '',
+            plan: container.querySelector('.txt-plan')?.value || '',
+            inheritPrevious: container.querySelector('.chk-inherit')?.checked || false
         };
     },
     
     validate: function(data) {
-        if (!data.motivo.trim()) {
-            return "Debe ingresar un Motivo de Consulta.";
-        }
-        if (!data.ea.trim()) {
-            return "Debe ingresar la Enfermedad Actual.";
-        }
-        if (!data.dx.trim()) {
-            return "Debe ingresar un Diagnóstico.";
-        }
-        if (!data.plan.trim()) {
-            return "Debe ingresar un Plan de Tratamiento.";
-        }
+        if (!data.motivo) return "Debe ingresar un motivo de consulta";
+        if (!data.dx) return "Debe ingresar un diagnóstico";
         return null;
     },
     
     getSummary: function(data) {
-        return data.motivo || data.dx || "Consulta Medicina General";
+        return `${data.motivo} - ${data.dx}`.substring(0, 50);
     }
 };
