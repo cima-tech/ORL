@@ -218,135 +218,36 @@
             }
         }
         
-        /* Vista pública inicial */
-        #publicView {
-            min-height: 100vh;
+        /* Main content area - EMPTY as requested */
+        #mainContent {
+            padding: 100px 20px 40px;
+            min-height: calc(100vh - 80px);
             display: flex;
-            flex-direction: column;
-        }
-        
-        .public-header {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--color-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--color-glass-border);
-            border-radius: var(--radius-lg);
-            padding: 12px 25px;
-            display: flex;
-            gap: 25px;
-            z-index: 100;
-            box-shadow: var(--shadow-heavy);
-            min-width: 500px;
+            align-items: center;
             justify-content: center;
         }
         
-        .public-header span {
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: var(--radius-sm);
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .empty-state {
+            text-align: center;
+            color: var(--color-text-dim);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
             color: var(--color-text);
         }
         
-        .public-header span:hover {
-            background: var(--color-glass-heavy);
-            color: var(--color-accent);
-        }
-        
-        .public-main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 120px 20px 40px;
-        }
-        
-        .public-hero {
-            text-align: center;
-            max-width: 800px;
-        }
-        
-        .public-hero i {
-            font-size: 5rem;
-            color: var(--color-accent);
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        
-        .public-hero h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--color-accent), #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .public-hero p {
-            font-size: 1.3rem;
-            color: var(--color-text-dim);
-            margin-bottom: 50px;
-            line-height: 1.6;
-        }
-        
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 25px;
-            max-width: 800px;
+        .empty-state p {
+            max-width: 500px;
             margin: 0 auto;
-        }
-        
-        .quick-action {
-            background: var(--color-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--color-glass-border);
-            border-radius: var(--radius-lg);
-            padding: 30px 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-        
-        .quick-action:hover {
-            background: var(--color-glass-heavy);
-            transform: translateY(-5px);
-            border-color: var(--color-accent);
-            box-shadow: var(--shadow-heavy);
-        }
-        
-        .quick-action i {
-            font-size: 2.8rem;
-            margin-bottom: 20px;
-            color: var(--color-accent);
-        }
-        
-        .quick-action h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.3rem;
-            color: var(--color-text);
-        }
-        
-        .quick-action p {
-            margin: 0;
-            color: var(--color-text-dim);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        
-        /* Aplicación principal (oculta inicialmente) */
-        #appView {
-            display: none;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -355,44 +256,27 @@
     <div id="publicView">
         <div class="background"></div>
         
-        <!-- Barra superior pública -->
-        <div class="public-header">
+        <!-- Barra superior pública MINIMALISTA - SOLO LAS 3 OPCIONES -->
+        <div class="dock dock-doctor" style="top: 20px; left: 50%; transform: translateX(-50%);">
             <span id="btnPatientAccess"><i class="fas fa-user-injured"></i> Área de Paciente</span>
-            <span id="btnDoctorLogin"><i class="fas fa-user-md"></i> Acceso Profesional</span>
-            <span id="btnCreateAccount"><i class="fas fa-user-plus"></i> Crear Cuenta</span>
+            <span id="btnDoctorLogin"><i class="fas fa-user-md"></i> Acceso Médico</span>
+            <span id="btnCreateAccount"><i class="fas fa-user-plus"></i> Solicitar Acceso</span>
+            <span id="btnThemePublic" style="margin-left: auto;"><i class="fas fa-adjust"></i> Tema</span>
         </div>
         
-        <!-- Contenido principal público -->
-        <main class="public-main">
-            <div class="public-hero">
+        <!-- CONTENIDO PRINCIPAL VACÍO como pediste -->
+        <main id="mainContent">
+            <div class="empty-state">
                 <i class="fas fa-stethoscope"></i>
-                <h1>Sistema Clínico Modular CIMA</h1>
-                <p>Plataforma integral para gestión médica profesional y registro seguro de pacientes</p>
-                
-                <div class="quick-actions">
-                    <div class="quick-action" onclick="window.app.openPatientAccess()">
-                        <i class="fas fa-file-medical"></i>
-                        <h3>Solicitar Documentos</h3>
-                        <p>Historial médico, recetas, informes y constancias</p>
-                    </div>
-                    <div class="quick-action" onclick="window.app.openPatientAccess()">
-                        <i class="fas fa-user-edit"></i>
-                        <h3>Actualizar Datos</h3>
-                        <p>Mantenga su información médica actualizada</p>
-                    </div>
-                    <div class="quick-action" onclick="window.app.openDoctorLogin()">
-                        <i class="fas fa-clinic-medical"></i>
-                        <h3>Acceso Profesional</h3>
-                        <p>Para médicos y personal de salud autorizado</p>
-                    </div>
-                </div>
+                <h2>Sistema Clínico Modular CIMA</h2>
+                <p>Seleccione una opción de la barra superior para comenzar</p>
             </div>
         </main>
     </div>
     
     <!-- VISTA PRIVADA (Se muestra después del login) -->
-    <div id="appView">
-        <!-- Barra superior profesional -->
+    <div id="appView" style="display: none;">
+        <!-- Barra superior profesional COMPLETA -->
         <div class="dock dock-doctor">
             <span id="btnHome"><i class="fas fa-home"></i> Inicio</span>
             <span>|</span>
@@ -410,7 +294,7 @@
             <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Salir</span>
         </div>
         
-        <!-- Contenedor principal profesional -->
+        <!-- Contenedor principal profesional (vacío inicialmente) -->
         <main class="doctor-container" id="mainContainer">
             <!-- Se cargará dinámicamente -->
         </main>
@@ -508,27 +392,11 @@
                     <button class="form-tab" data-tab="request">Solicitar</button>
                 </div>
                 
-                <!-- Tab: Registro de Paciente (FORMULARIO COMPLETO usando patient-profile.js) -->
+                <!-- Tab: Registro de Paciente -->
                 <div id="registerTab" class="tab-content active">
-                    <h4 style="margin-bottom: 20px; color: var(--color-text);">Registro de Paciente</h4>
-                    <p style="color: var(--color-text-dim); margin-bottom: 25px;">
-                        Complete todos los campos requeridos para su registro médico. 
-                        <strong>Todos los datos son obligatorios por razones legales y de seguridad del paciente.</strong>
-                    </p>
-                    
-                    <form id="patientPublicForm">
-                        <!-- Este formulario se generará dinámicamente con TODOS los campos de PATIENT_FIELD_CONFIG -->
-                        <div id="patientFormContainer"></div>
-                        
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--color-glass-border);">
-                            <button type="submit" class="login-btn">
-                                <i class="fas fa-paper-plane"></i> Enviar Registro Completo
-                            </button>
-                            <p style="margin-top: 15px; color: var(--color-text-dim); font-size: 0.9rem; text-align: center;">
-                                * Sus datos serán revisados por nuestro personal médico antes de ser incorporados al sistema.
-                            </p>
-                        </div>
-                    </form>
+                    <div id="patientFormContainer">
+                        <!-- Formulario se generará aquí dinámicamente -->
+                    </div>
                 </div>
                 
                 <!-- Tab: Login Paciente -->
@@ -553,18 +421,11 @@
                             <i class="fas fa-sign-in-alt"></i> Acceder como Paciente
                         </button>
                     </form>
-                    
-                    <p style="margin-top: 20px; color: var(--color-text-dim); font-size: 0.9rem; text-align: center;">
-                        Si no tiene código de acceso, solicítelo en su última consulta o regístrese como paciente nuevo.
-                    </p>
                 </div>
                 
                 <!-- Tab: Solicitud de Documentos -->
                 <div id="requestTab" class="tab-content">
                     <h4 style="margin-bottom: 20px; color: var(--color-text);">Solicitar Documentos Médicos</h4>
-                    <p style="color: var(--color-text-dim); margin-bottom: 25px;">
-                        Solicite copias de sus documentos médicos
-                    </p>
                     
                     <form id="documentRequestForm">
                         <div class="login-input-group">
