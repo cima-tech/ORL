@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,471 +8,204 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="modules/index.css">
     <style>
-        /* Estilos para drawers overlay */
-        .drawer-overlay {
+        /* Estilos para el efecto glass mejorado */
+        body::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .drawer-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-        
-        /* Drawers */
-        .drawer {
-            position: fixed;
-            top: 0;
-            right: -500px;
-            width: 500px;
-            height: 100vh;
-            background: var(--color-bg);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border-left: 1px solid var(--color-glass-border);
-            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.4);
-            z-index: 2001;
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .drawer.open {
-            right: 0;
-        }
-        
-        .drawer-header {
-            padding: 25px 30px;
-            border-bottom: 1px solid var(--color-glass-border);
-            background: var(--color-glass);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        
-        .drawer-header h3 {
-            margin: 0;
-            color: var(--color-accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .drawer-body {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-        
-        .close-drawer {
-            background: none;
-            border: none;
-            color: var(--color-text);
-            font-size: 1.8rem;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-        
-        .close-drawer:hover {
-            background: var(--color-glass-heavy);
-        }
-        
-        /* Login form styles */
-        .login-container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .login-input-group {
-            margin-bottom: 20px;
-        }
-        
-        .login-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        .login-input {
             width: 100%;
-            padding: 14px 16px;
-            background: var(--color-glass);
-            border: 1px solid var(--color-glass-border);
-            border-radius: var(--radius);
-            color: var(--color-text);
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+                linear-gradient(135deg, rgba(10, 14, 23, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
+            z-index: -2;
         }
         
-        .login-input:focus {
-            outline: none;
-            border-color: var(--color-accent);
+        .glass-layer {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--color-accent);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        
-        .login-btn:hover {
-            background: var(--color-accent-hover);
-        }
-        
-        .login-error {
-            color: var(--color-error);
-            margin-top: 15px;
-            text-align: center;
-            padding: 10px;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: var(--radius);
-        }
-        
-        .auth-switch {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--color-glass-border);
-        }
-        
-        .auth-link {
-            color: var(--color-accent);
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .auth-link:hover {
-            text-decoration: underline;
-        }
-        
-        /* Patient form tabs */
-        .form-tabs {
-            display: flex;
-            gap: 1px;
-            margin-bottom: 25px;
-            background: var(--color-glass-border);
-            border-radius: var(--radius);
-            overflow: hidden;
-        }
-        
-        .form-tab {
-            flex: 1;
-            padding: 15px;
-            background: var(--color-glass);
-            border: none;
-            color: var(--color-text-dim);
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        
-        .form-tab.active {
-            background: var(--color-glass-heavy);
-            color: var(--color-accent);
-            font-weight: 600;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .drawer {
-                width: 100%;
-                right: -100%;
-            }
-        }
-        
-        /* Main content area - EMPTY as requested */
-        #mainContent {
-            padding: 100px 20px 40px;
-            min-height: calc(100vh - 80px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .empty-state {
-            text-align: center;
-            color: var(--color-text-dim);
-        }
-        
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        
-        .empty-state h2 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            color: var(--color-text);
-        }
-        
-        .empty-state p {
-            max-width: 500px;
-            margin: 0 auto;
-            line-height: 1.6;
+        .glass-layer-heavy {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(40px) saturate(250%);
+            -webkit-backdrop-filter: blur(40px) saturate(250%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
 <body>
-    <!-- VISTA PÚBLICA (Inicial) -->
-    <div id="publicView">
-        <div class="background"></div>
-        
-        <!-- Barra superior pública MINIMALISTA - SOLO LAS 3 OPCIONES -->
-        <div class="dock dock-doctor" style="top: 20px; left: 50%; transform: translateX(-50%);">
-            <span id="btnPatientAccess"><i class="fas fa-user-injured"></i> Área de Paciente</span>
-            <span id="btnDoctorLogin"><i class="fas fa-user-md"></i> Acceso Médico</span>
-            <span id="btnCreateAccount"><i class="fas fa-user-plus"></i> Solicitar Acceso</span>
-            <span id="btnThemePublic" style="margin-left: auto;"><i class="fas fa-adjust"></i> Tema</span>
-        </div>
-        
-        <!-- CONTENIDO PRINCIPAL VACÍO como pediste -->
-        <main id="mainContent">
-            <div class="empty-state">
+    <!-- Overlay para fondos -->
+    <div class="background-overlay"></div>
+    
+    <!-- Barra superior minimalista -->
+    <div class="main-dock glass-layer-heavy">
+        <div class="dock-left">
+            <span class="logo" id="btnHome">
                 <i class="fas fa-stethoscope"></i>
-                <h2>Sistema Clínico Modular CIMA</h2>
-                <p>Seleccione una opción de la barra superior para comenzar</p>
-            </div>
-        </main>
-    </div>
-    
-    <!-- VISTA PRIVADA (Se muestra después del login) -->
-    <div id="appView" style="display: none;">
-        <!-- Barra superior profesional COMPLETA -->
-        <div class="dock dock-doctor">
-            <span id="btnHome"><i class="fas fa-home"></i> Inicio</span>
-            <span>|</span>
-            <span id="btnNewPatient"><i class="fas fa-user-plus"></i> Nuevo Paciente</span>
-            <span>|</span>
-            <span id="btnSearch" title="Buscar Paciente"><i class="fas fa-search"></i> Buscar</span>
-            <span>|</span>
-            <span id="btnAgenda"><i class="fas fa-calendar-alt"></i> Agenda</span>
-            <span>|</span>
-            <span id="btnBuzon" title="Buzón de Pacientes"><i class="fas fa-inbox"></i> Buzón</span>
-            <span>|</span>
-            <span id="btnTheme" title="Cambiar Tema"><i class="fas fa-adjust"></i> Tema</span>
-            <span class="user-info" id="userInfoDisplay"></span>
-            <span>|</span>
-            <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Salir</span>
+                <span>CIMA</span>
+            </span>
         </div>
         
-        <!-- Contenedor principal profesional (vacío inicialmente) -->
-        <main class="doctor-container" id="mainContainer">
-            <!-- Se cargará dinámicamente -->
-        </main>
+        <div class="dock-center" id="mainNav">
+            <!-- Se llenará dinámicamente según autenticación -->
+        </div>
+        
+        <div class="dock-right">
+            <span id="btnTheme" title="Cambiar tema">
+                <i class="fas fa-adjust"></i>
+            </span>
+        </div>
     </div>
     
-    <!-- OVERLAY PARA DRAWERS -->
-    <div id="drawerOverlay" class="drawer-overlay"></div>
+    <!-- Contenido principal (siempre vacío inicialmente) -->
+    <main id="mainContent" class="main-content">
+        <!-- Se llenará dinámicamente según acciones -->
+    </main>
     
-    <!-- DRAWER: Acceso Profesional (Login Médico) -->
-    <div id="doctorLoginDrawer" class="drawer">
-        <div class="drawer-header">
-            <h3><i class="fas fa-user-md"></i> Acceso Profesional</h3>
-            <button class="close-drawer" onclick="window.app.closeDrawer('doctorLoginDrawer')">&times;</button>
+    <!-- Drawer de Login (slide desde derecha) -->
+    <div id="loginDrawer" class="drawer right-drawer">
+        <div class="drawer-header glass-layer">
+            <h3><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h3>
+            <button class="close-drawer" onclick="CIMA.closeDrawer('loginDrawer')">&times;</button>
         </div>
         <div class="drawer-body">
-            <div class="login-container">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <i class="fas fa-stethoscope" style="font-size: 3rem; color: var(--color-accent);"></i>
-                    <h2 style="margin: 15px 0 10px 0;">Acceso Médico</h2>
-                    <p style="color: var(--color-text-dim);">Ingrese sus credenciales para acceder al sistema</p>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Usuario</label>
+                    <input type="text" id="username" placeholder="tudraorl" autocomplete="username">
                 </div>
-                
-                <form id="doctorLoginForm">
-                    <div class="login-input-group">
-                        <label class="login-label">Usuario</label>
-                        <input type="text" id="doctorUsername" class="login-input" placeholder="Nombre de usuario" value="tudraorl">
-                    </div>
-                    
-                    <div class="login-input-group">
-                        <label class="login-label">Contraseña</label>
-                        <input type="password" id="doctorPassword" class="login-input" placeholder="Contraseña" value="astroyluna">
-                    </div>
-                    
-                    <button type="submit" class="login-btn">
-                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button type="submit" class="auth-btn">
+                    <i class="fas fa-sign-in-alt"></i> Ingresar
+                </button>
+                <div class="auth-links">
+                    <a href="#" onclick="CIMA.switchDrawer('loginDrawer', 'patientAccessDrawer')">
+                        <i class="fas fa-user-injured"></i> Acceso Paciente
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Drawer de Acceso Paciente -->
+    <div id="patientAccessDrawer" class="drawer right-drawer">
+        <div class="drawer-header glass-layer">
+            <h3><i class="fas fa-user-injured"></i> Área del Paciente</h3>
+            <button class="close-drawer" onclick="CIMA.closeDrawer('patientAccessDrawer')">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="patient-options">
+                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientLoginDrawer')">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Iniciar Sesión</span>
+                    <small>Pacientes registrados</small>
+                </button>
+                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientRegisterDrawer')">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Nuevo Registro</span>
+                    <small>Completar ficha completa</small>
+                </button>
+                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientRequestDrawer')">
+                    <i class="fas fa-file-medical"></i>
+                    <span>Solicitar Documentos</span>
+                    <small>Informes, certificados</small>
+                </button>
+            </div>
+            <div class="auth-links">
+                <a href="#" onclick="CIMA.switchDrawer('patientAccessDrawer', 'loginDrawer')">
+                    <i class="fas fa-user-md"></i> Acceso Médico
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Drawer de Registro Paciente (con formulario completo) -->
+    <div id="patientRegisterDrawer" class="drawer right-drawer wide-drawer">
+        <div class="drawer-header glass-layer">
+            <h3><i class="fas fa-user-plus"></i> Registro Completo de Paciente</h3>
+            <button class="close-drawer" onclick="CIMA.closeDrawer('patientRegisterDrawer')">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div id="patientFormContainer"></div>
+        </div>
+    </div>
+    
+    <!-- Drawer de Log del Sistema -->
+    <div id="logDrawer" class="drawer right-drawer">
+        <div class="drawer-header glass-layer">
+            <h3><i class="fas fa-terminal"></i> Log del Sistema</h3>
+            <button class="close-drawer" onclick="CIMA.closeDrawer('logDrawer')">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="log-content" id="logContent">
+                <!-- Log entries aparecerán aquí -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay para cerrar drawers -->
+    <div id="drawerOverlay" class="drawer-overlay" onclick="CIMA.closeAllDrawers()"></div>
+    
+    <!-- Modales existentes (mantenidos para compatibilidad) -->
+    <div id="searchModal" class="modal-overlay">
+        <!-- Mantener igual -->
+    </div>
+    
+    <div id="editModal" class="modal-overlay">
+        <!-- Mantener igual -->
+    </div>
+    
+    <!-- Nuevo Modal para Documentos -->
+    <div id="documentModal" class="modal-overlay">
+        <div class="modal-box document-preview">
+            <div class="modal-header glass-layer">
+                <span class="modal-title" id="documentTitle">Documento</span>
+                <div class="document-actions">
+                    <select id="documentType" class="doc-type-select">
+                        <option value="informe">Informe Médico</option>
+                        <option value="recipe">Recipe e Indicaciones</option>
+                        <option value="laboratorio">Orden de Laboratorio</option>
+                        <option value="quirurgica">Orden Quirúrgica</option>
+                        <option value="referencia">Referencia/Interconsulta</option>
+                        <option value="constancia">Constancia Médica</option>
+                    </select>
+                    <button class="action-btn" onclick="CIMA.addSignature()">
+                        <i class="fas fa-signature"></i> Firma
                     </button>
-                </form>
-                
-                <div id="doctorLoginError" class="login-error" style="display: none;"></div>
-                
-                <div class="auth-switch">
-                    <p>¿No tiene cuenta profesional? 
-                        <span class="auth-link" onclick="window.app.openCreateAccount()">
-                            <i class="fas fa-user-plus"></i> Solicitar acceso
-                        </span>
-                    </p>
+                    <button class="action-btn" onclick="CIMA.addStamp()">
+                        <i class="fas fa-stamp"></i> Sello
+                    </button>
+                    <button class="close-modal" onclick="CIMA.closeModal('documentModal')">&times;</button>
                 </div>
+            </div>
+            <div class="modal-body" id="documentBody">
+                <!-- Vista previa del documento -->
+                <div class="document-paper" id="documentPaper">
+                    <!-- Contenido del documento -->
+                </div>
+            </div>
+            <div class="modal-footer glass-layer">
+                <button class="action-btn secondary" onclick="CIMA.closeModal('documentModal')">Cancelar</button>
+                <button class="action-btn" onclick="CIMA.generatePDF()">
+                    <i class="fas fa-file-pdf"></i> Generar PDF
+                </button>
+                <button class="action-btn" onclick="CIMA.printDocument()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
             </div>
         </div>
     </div>
     
-    <!-- DRAWER: Crear Cuenta Profesional -->
-    <div id="createAccountDrawer" class="drawer">
-        <div class="drawer-header">
-            <h3><i class="fas fa-user-plus"></i> Solicitar Acceso</h3>
-            <button class="close-drawer" onclick="window.app.closeDrawer('createAccountDrawer')">&times;</button>
-        </div>
-        <div class="drawer-body">
-            <div style="max-width: 400px; margin: 0 auto;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--color-accent);"></i>
-                    <h2 style="margin: 15px 0 10px 0;">Solicitud de Acceso</h2>
-                    <p style="color: var(--color-text-dim);">Contacte al administrador del sistema para solicitar una cuenta profesional</p>
-                </div>
-                
-                <div style="background: var(--color-glass); padding: 25px; border-radius: var(--radius); margin-bottom: 25px;">
-                    <h4 style="margin-top: 0; color: var(--color-accent);">Información de contacto:</h4>
-                    <p><i class="fas fa-envelope" style="margin-right: 10px;"></i> administracion@cima-sistema.com</p>
-                    <p><i class="fas fa-phone" style="margin-right: 10px;"></i> +1 (555) 123-4567</p>
-                </div>
-                
-                <div class="auth-switch">
-                    <p>¿Ya tiene cuenta? 
-                        <span class="auth-link" onclick="window.app.openDoctorLogin()">
-                            <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-                        </span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- DRAWER: Área de Paciente -->
-    <div id="patientAccessDrawer" class="drawer">
-        <div class="drawer-header">
-            <h3><i class="fas fa-user-injured"></i> Área de Paciente</h3>
-            <button class="close-drawer" onclick="window.app.closeDrawer('patientAccessDrawer')">&times;</button>
-        </div>
-        <div class="drawer-body">
-            <div style="max-width: 500px; margin: 0 auto;">
-                <!-- Tabs -->
-                <div class="form-tabs">
-                    <button class="form-tab active" data-tab="register">Registrarse</button>
-                    <button class="form-tab" data-tab="login">Acceso Paciente</button>
-                    <button class="form-tab" data-tab="request">Solicitar</button>
-                </div>
-                
-                <!-- Tab: Registro de Paciente -->
-                <div id="registerTab" class="tab-content active">
-                    <div id="patientFormContainer">
-                        <!-- Formulario se generará aquí dinámicamente -->
-                    </div>
-                </div>
-                
-                <!-- Tab: Login Paciente -->
-                <div id="loginTab" class="tab-content">
-                    <h4 style="margin-bottom: 20px; color: var(--color-text);">Acceso de Paciente</h4>
-                    <p style="color: var(--color-text-dim); margin-bottom: 25px;">
-                        Si ya tiene una cuenta de paciente, ingrese sus credenciales
-                    </p>
-                    
-                    <form id="patientLoginForm">
-                        <div class="login-input-group">
-                            <label class="login-label">Documento de Identidad</label>
-                            <input type="text" class="login-input" placeholder="Ej: V-12345678" required>
-                        </div>
-                        
-                        <div class="login-input-group">
-                            <label class="login-label">Código de Acceso</label>
-                            <input type="password" class="login-input" placeholder="Código proporcionado en consulta" required>
-                        </div>
-                        
-                        <button type="submit" class="login-btn">
-                            <i class="fas fa-sign-in-alt"></i> Acceder como Paciente
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Tab: Solicitud de Documentos -->
-                <div id="requestTab" class="tab-content">
-                    <h4 style="margin-bottom: 20px; color: var(--color-text);">Solicitar Documentos Médicos</h4>
-                    
-                    <form id="documentRequestForm">
-                        <div class="login-input-group">
-                            <label class="login-label">Documento de Identidad *</label>
-                            <input type="text" class="login-input" placeholder="Ej: V-12345678" required>
-                        </div>
-                        
-                        <div class="login-input-group">
-                            <label class="login-label">Tipo de Documento *</label>
-                            <select class="login-input" required>
-                                <option value="">Seleccione...</option>
-                                <option value="historial_completo">Historial Médico Completo</option>
-                                <option value="recetas">Recetas Médicas</option>
-                                <option value="informes">Informes de Consulta</option>
-                                <option value="constancias">Constancias de Asistencia</option>
-                                <option value="resultados">Resultados de Estudios</option>
-                                <option value="otros">Otros Documentos</option>
-                            </select>
-                        </div>
-                        
-                        <div class="login-input-group">
-                            <label class="login-label">Período solicitado</label>
-                            <input type="text" class="login-input" placeholder="Ej: Enero 2023 - Actualidad">
-                        </div>
-                        
-                        <div class="login-input-group">
-                            <label class="login-label">Observaciones</label>
-                            <textarea class="login-input" rows="4" placeholder="Detalles adicionales de su solicitud..."></textarea>
-                        </div>
-                        
-                        <button type="submit" class="login-btn">
-                            <i class="fas fa-file-medical"></i> Enviar Solicitud
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- MODALES EXISTENTES (se mantienen igual) -->
-    <div id="editModal" class="modal-overlay"></div>
-    <div id="searchModal" class="modal-overlay"></div>
-    <div id="buzonModal" class="modal-overlay"></div>
-    <div id="logDrawer" class="log-drawer"></div>
-
-    <!-- SCRIPTS -->
+    <!-- Scripts -->
+    <script type="module" src="modules/start.js"></script>
     <script type="module" src="modules/index.js"></script>
 </body>
 </html>
