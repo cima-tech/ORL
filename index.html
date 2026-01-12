@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,194 +7,186 @@
     <title>CIMA — Sistema Clínico Modular</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="modules/index.css">
+    <style>
+        /* Estilos temporales para login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 100%);
+        }
+        
+        .login-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #3b82f6;
+        }
+        
+        .login-logo i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #2563eb;
+        }
+        
+        .login-error {
+            color: #ef4444;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-    <!-- Vista de Login (inicial) -->
-    <div id="loginView" class="login-container">
-        <div class="login-glass">
-            <div class="login-header">
-                <i class="fas fa-stethoscope" style="font-size: 3rem; color: var(--color-accent);"></i>
-                <h1>CIMA</h1>
-                <p>Sistema Clínico Modular Inteligente</p>
+    <!-- Contenedor de Login -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-stethoscope"></i>
+                <h2>CIMA</h2>
+                <p>Sistema Clínico Modular</p>
             </div>
             
-            <form id="loginForm" class="login-form">
-                <div class="input-group">
-                    <label><i class="fas fa-user-md"></i> Usuario</label>
-                    <input type="text" id="loginUsername" value="tudraorl" required>
-                </div>
-                
-                <div class="input-group">
-                    <label><i class="fas fa-lock"></i> Contraseña</label>
-                    <input type="password" id="loginPassword" value="astroyluna" required>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                </button>
-                
-                <div class="login-info">
-                    <p><strong>Usuario demo:</strong> tudraorl</p>
-                    <p><strong>Contraseña:</strong> astroyluna</p>
-                </div>
+            <form id="loginForm">
+                <input type="text" id="username" class="login-input" placeholder="Usuario" required>
+                <input type="password" id="password" class="login-input" placeholder="Contraseña" required>
+                <button type="submit" class="login-btn">Iniciar Sesión</button>
             </form>
+            
+            <div id="loginError" class="login-error"></div>
+            
+            <div style="margin-top: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.9rem;">
+                <p>Usuario de prueba: user-001</p>
+            </div>
         </div>
     </div>
-
-    <!-- Vista Principal (oculta inicialmente) -->
-    <div id="mainApp" class="hidden">
-        <!-- DOCK SUPERIOR -->
+    
+    <!-- Aplicación Principal (oculta inicialmente) -->
+    <div id="appContainer" class="hidden">
+        <div class="background"></div>
+        
+        <!-- [HTML-001] DOCK SUPERIOR -->
         <div class="dock dock-doctor">
-            <span id="btnAgenda" title="Agenda"><i class="fas fa-calendar-alt"></i> Agenda</span>
+            <span id="btnHome"><i class="fas fa-home"></i> Inicio</span>
+            <span>|</span>
+            <span id="btnNewPatient"><i class="fas fa-user-plus"></i> Nuevo Paciente</span>
             <span>|</span>
             <span id="btnSearch" title="Buscar Paciente"><i class="fas fa-search"></i> Buscar</span>
             <span>|</span>
-            <span id="btnNewPatient" title="Nuevo Paciente"><i class="fas fa-user-plus"></i> Nuevo</span>
+            <span id="btnAgenda"><i class="fas fa-calendar-alt"></i> Agenda</span>
             <span>|</span>
-            <span id="btnInbox" title="Buzón de Pacientes"><i class="fas fa-inbox"></i> <span id="inboxBadge" class="badge hidden">0</span></span>
-            <span>|</span>
-            <span id="btnModels" title="Modelos de Consulta"><i class="fas fa-clipboard-list"></i> Modelos</span>
+            <span id="btnBuzon" title="Buzón de Pacientes"><i class="fas fa-inbox"></i> Buzón</span>
             <span>|</span>
             <span id="btnTheme" title="Cambiar Tema"><i class="fas fa-adjust"></i> Tema</span>
-            <span class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span id="userInfoDisplay">Cargando...</span>
-                <button id="btnLogout" class="logout-btn" title="Cerrar Sesión">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </span>
+            <span class="user-info" id="userInfoDisplay">Cargando...</span>
+            <span>|</span>
+            <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Salir</span>
         </div>
         
-        <!-- CONTENEDOR PRINCIPAL -->
+        <!-- [HTML-002] CONTENEDOR PRINCIPAL (Vacío inicialmente) -->
         <main class="doctor-container" id="mainContainer">
-            <!-- Agenda será la vista por defecto -->
-            <div id="agendaView" class="view-content"></div>
-            
-            <!-- Vista Paciente -->
-            <div id="patientView" class="view-content hidden">
-                <div class="collapsible-section" id="patientSection">
-                    <div class="section-header" onclick="window.app.toggleSection('patientSection')">
-                        <div class="section-title">
-                            <i class="fas fa-user-injured"></i>
-                            <span id="patientHeaderTitle">PACIENTE: ...</span>
-                        </div>
-                        <button class="section-toggle"><i class="fas fa-chevron-down"></i></button>
-                    </div>
-                    <div class="section-content expanded">
-                        <div class="section-content-inner">
-                            <div id="patientInfoContainer" class="patient-info-grid"></div>
-                            <div class="actions-row">
-                                <button class="action-btn" onclick="window.app.editCurrentPatient()">
-                                    <i class="fas fa-edit"></i> Editar Ficha
-                                </button>
-                                <button class="action-btn secondary" onclick="window.app.viewFullHistory()">
-                                    <i class="fas fa-file-medical-alt"></i> Historia Completa
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="collapsible-section" id="consultationsSection">
-                    <div class="section-header" onclick="window.app.toggleSection('consultationsSection')">
-                        <div class="section-title">
-                            <i class="fas fa-file-medical"></i>
-                            <span id="consultationsCount">CONSULTAS (0)</span>
-                        </div>
-                        <button class="section-toggle"><i class="fas fa-chevron-down"></i></button>
-                    </div>
-                    <div class="section-content expanded">
-                        <div class="section-content-inner">
-                            <div id="consultationListContainer" class="consultations-list"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="new-consultation" onclick="window.app.openNewConsultationUI()">
-                    <i class="fas fa-plus-circle"></i>
-                    <h3>Nueva Consulta</h3>
-                    <p>Iniciar nueva consulta médica con este paciente</p>
-                    <p style="margin-top:10px;">
-                        Modelo: 
-                        <select id="newConsultModelSelect" class="model-select">
-                            <!-- Lista cargada dinámicamente -->
-                        </select>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Vista Buzón -->
-            <div id="inboxView" class="view-content hidden">
-                <div class="inbox-header">
-                    <h2><i class="fas fa-inbox"></i> Buzón de Pacientes</h2>
-                    <p>Pacientes pendientes de importar a la base de datos</p>
-                </div>
-                <div id="inboxList" class="inbox-list"></div>
-            </div>
-
-            <!-- Vista Modelos -->
-            <div id="modelsView" class="view-content hidden">
-                <div class="models-header">
-                    <h2><i class="fas fa-clipboard-list"></i> Modelos de Consulta</h2>
-                    <p>Gestionar modelos de consulta disponibles</p>
-                </div>
-                <div id="modelsList" class="models-list"></div>
-                <button class="action-btn" onclick="window.app.addNewModel()" style="margin-top: 20px;">
-                    <i class="fas fa-plus"></i> Agregar Nuevo Modelo
-                </button>
-            </div>
+            <!-- Contenido se cargará dinámicamente -->
         </main>
 
-        <!-- MODALES -->
-        <div id="searchModal" class="modal-overlay">
-            <div class="modal-box" style="max-width: 800px;">
-                <div class="modal-header">
-                    <span class="modal-title">Buscar Paciente</span>
-                    <button class="close-modal" onclick="window.app.closeSearchModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" id="searchInput" placeholder="Nombre, cédula o teléfono..." 
-                           class="search-input" autocomplete="off">
-                    <div id="searchResults" class="search-results"></div>
-                </div>
-            </div>
-        </div>
-
+        <!-- [HTML-003] MODAL DE EDICIÓN DE CONSULTA -->
         <div id="editModal" class="modal-overlay">
             <div class="modal-box">
                 <div class="modal-header">
-                    <span class="modal-title" id="modalTitle">Editar</span>
+                    <span class="modal-title" id="modalTitle">Editar Consulta</span>
                     <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
                 </div>
                 <div class="modal-body" id="modalBody"></div>
                 <div class="modal-footer">
                     <button class="action-btn secondary" onclick="window.app.closeModal()">Cancelar</button>
-                    <button class="action-btn" id="btnSaveConsultation">Guardar</button>
+                    <button class="action-btn" id="btnSaveConsultation">Guardar Consulta</button>
                 </div>
             </div>
         </div>
 
-        <!-- Drawer de Log -->
+        <!-- [HTML-004] MODAL DE BÚSQUEDA -->
+        <div id="searchModal" class="modal-overlay">
+            <div class="modal-box" style="height:auto; max-height:80vh;">
+                <div class="modal-header">
+                    <span class="modal-title">Buscar Paciente</span>
+                    <button class="close-modal" onclick="document.getElementById('searchModal').classList.remove('active')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="searchInput" placeholder="Nombre o Cédula..." class="model-select" style="width:100%; padding:15px; font-size:1.1rem; margin-bottom:20px;">
+                    <div id="searchResults"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [HTML-005] MODAL DE BUZÓN -->
+        <div id="buzonModal" class="modal-overlay">
+            <div class="modal-box" style="height:auto; max-height:85vh; width:90%; max-width:1200px;">
+                <div class="modal-header">
+                    <span class="modal-title">Buzón de Pacientes Nuevos</span>
+                    <button class="close-modal" onclick="document.getElementById('buzonModal').classList.remove('active')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="buzonList" style="min-height: 300px;">
+                        <!-- Lista de pacientes pendientes -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [HTML-006] DRAWER DE LOG -->
         <div id="logDrawer" class="log-drawer">
             <div class="log-header">
-                <h3><i class="fas fa-terminal"></i> Consola del Sistema</h3>
+                <h3><i class="fas fa-terminal"></i> Log del Sistema</h3>
                 <button class="close-log" onclick="window.app.closeLogDrawer()">&times;</button>
             </div>
             <div class="log-body">
-                <div id="logContent" class="log-content"></div>
-            </div>
-            <div class="log-footer">
-                <input type="password" id="logPassword" placeholder="Contraseña para comandos..." 
-                       class="log-input">
-                <button onclick="window.app.executeLogCommand()" class="log-btn">
-                    <i class="fas fa-play"></i>
-                </button>
+                <div id="logContent" style="font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap;"></div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script type="module" src="modules/start.js"></script>
+    <!-- [HTML-007] SCRIPT PRINCIPAL -->
     <script type="module" src="modules/index.js"></script>
 </body>
 </html>
