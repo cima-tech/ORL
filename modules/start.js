@@ -1,11 +1,8 @@
-/* modules/start.js - Sistema de autenticación */
-
-export default class AuthService {
-    static CURRENT_USER_KEY = 'CIMA_CURRENT_USER_V1';
-    
+/* modules/start.js - Sistema de autenticación REAL usando los archivos JSON existentes */
+class AuthService {
     static async login(username, password) {
         try {
-            // Buscar usuario en la estructura de carpetas
+            // 1. Buscar usuario en la estructura existente
             const response = await fetch(`user/${username}/${username}.json`);
             if (!response.ok) {
                 throw new Error('Usuario no encontrado');
@@ -13,21 +10,20 @@ export default class AuthService {
             
             const userData = await response.json();
             
-            // Verificar credenciales
+            // 2. Verificar credenciales contra el JSON real
             if (userData.identity.accountPassword !== password) {
                 throw new Error('Contraseña incorrecta');
             }
             
-            // Cargar módulo UserProfile
-            const UserProfileModule = await import('./user-profile.js');
-            const UserProfile = UserProfileModule.default;
+            // 3. Importar dinámicamente UserProfile
+            const { default: UserProfile } = await import('./user-profile.js');
             const user = new UserProfile(null, userData);
             
-            // Guardar sesión
-            sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify({
+            // 4. Guardar sesión
+            sessionStorage.setItem('CIMA_CURRENT_USER', JSON.stringify({
                 id: userData.id,
-                timestamp: Date.now(),
-                data: userData
+                data: userData,
+                timestamp: Date.now()
             }));
             
             return user;
@@ -39,13 +35,12 @@ export default class AuthService {
     }
     
     static logout() {
-        sessionStorage.removeItem(this.CURRENT_USER_KEY);
-        localStorage.removeItem('CIMA_SESSION');
-        window.location.href = window.location.origin + window.location.pathname;
+        sessionStorage.removeItem('CIMA_CURRENT_USER');
+        window.location.reload();
     }
     
     static getCurrentUser() {
-        const stored = sessionStorage.getItem(this.CURRENT_USER_KEY);
+        const stored = sessionStorage.getItem('CIMA_CURRENT_USER');
         if (!stored) return null;
         
         try {
@@ -60,13 +55,13 @@ export default class AuthService {
         return !!this.getCurrentUser();
     }
     
-    static async autoLogin() {
-        // Intentar cargar usuario por defecto si hay solo uno
-        try {
-            // En una implementación real, aquí buscaríamos usuarios disponibles
-            return null;
-        } catch {
-            return null;
-        }
+    static async loadUserProfile() {
+        const userData = this.getCurrentUser();
+        if (!userData) return null;
+        
+        const { default: UserProfile } = await import('./user-profile.js');
+        return new UserProfile(null, userData);
     }
 }
+
+export default AuthService;
