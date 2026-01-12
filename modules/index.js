@@ -1,693 +1,645 @@
-/* modules/index.js - Versión Completa */
+/* modules/index.js - Actualizado */
 
-import AuthService from './start.js';
 import UserProfile from './user-profile.js';
 import PatientProfile from './patient-profile.js';
+import AuthService from './start.js';
+import CalendarSystem from './calendar.js';
 
-// [CONSTANTES]
-const PATIENT_FIELD_CONFIG = {
-    // ... (mantener toda la estructura existente, exactamente igual)
-    identificacion: {
-        label: "Identificación",
-        fields: [
-            { key: "documento_tipo", label: "Tipo Doc", type: "select", options: ["V","E","P","J","G"] },
-            { key: "documento_numero", label: "Número", type: "text", placeholder: "Ej: 12345678" },
-            { key: "estado_paciente", label: "Estado", type: "select", options: ["Activo","Inactivo","Fallecido"] },
-            { key: "codigo_interno_cima", label: "Cód. Interno", type: "text", placeholder: "HC-..." }
-        ]
-    },
-    // ... (todas las demás secciones exactamente igual)
-};
-
-// [SERVICIOS]
+// [JS-IND-001] SERVICIO DE ALMACENAMIENTO (Actualizado)
 class StorageService {
-    static BASE_KEY = 'CIMA_STORAGE_V4';
-    static INBOX_KEY = 'CIMA_INBOX_V1';
+  static BASE_KEY = 'CIMA_STORAGE_V4';
+  static BUZON_KEY = 'CIMA_BUZON_V1';
 
-    static savePatient(profile) {
-        const db = this._getDB();
-        const key = profile.identificacion.documento_numero;
-        if (!key) throw new Error("Documento requerido");
-        db.patients[key] = profile;
-        this._saveDB(db);
-    }
+  static savePatient(profile) {
+    const db = this._getDB();
+    const key = profile.identificacion.documento_numero;
+    if (!key) throw new Error("Documento requerido");
+    db.patients[key] = profile;
+    this._saveDB(db);
+  }
 
-    static getPatient(docId) {
-        return this._getDB().patients[docId] || null;
-    }
+  static getPatient(docId) {
+    return this._getDB().patients[docId] || null;
+  }
 
-    static saveConsultation(docId, consultationData) {
-        const db = this._getDB();
-        if (!db.consultations[docId]) db.consultations[docId] = [];
-        
-        const currentUser = window.currentUser || { id: 'Guest' };
+  static saveConsultation(docId, consultationData) {
+    const db = this._getDB();
+    if (!db.consultations[docId]) db.consultations[docId] = [];
+    
+    const currentUser = window.currentUser || { id: 'Guest' };
 
-        if (consultationData.id) {
-            const idx = db.consultations[docId].findIndex(c => c.id === consultationData.id);
-            if (idx !== -1) {
-                const existing = db.consultations[docId][idx];
-                db.consultations[docId][idx] = { 
-                    ...existing, 
-                    ...consultationData, 
-                    updatedAt: new Date().toISOString(), 
-                    createdBy: currentUser.id 
-                };
+    if (consultationData.id) {
+        const idx = db.consultations[docId].findIndex(c => c.id === consultationData.id);
+        if (idx !== -1) {
+            const existing = db.consultations[docId][idx];
+            // HERENCIA: Guardar configuración para futuras consultas
+            if (consultationData.config) {
+                db.patientConfigs = db.patientConfigs || {};
+                db.patientConfigs[docId] = consultationData.config;
             }
-        } else {
-            // Heredar datos de la última consulta si existe
-            if (consultationData.inheritPrevious && db.consultations[docId].length > 0) {
-                const lastConsult = db.consultations[docId][0];
-                consultationData = { ...lastConsult, ...consultationData, id: undefined };
-            }
-            
-            consultationData.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
-            consultationData.createdAt = new Date().toISOString();
-            consultationData.createdBy = currentUser.id;
-            db.consultations[docId].unshift(consultationData);
+            db.consultations[docId][idx] = { ...existing, ...consultationData, updatedAt: new Date().toISOString(), createdBy: currentUser.id };
         }
-        this._saveDB(db);
+    } else {
+        consultationData.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+        consultationData.createdAt = new Date().toISOString();
+        consultationData.createdBy = currentUser.id;
+        
+        // HERENCIA: Aplicar configuración previa si existe
+        const prevConfig = this.getPatientConfig(docId);
+        if (prevConfig && consultationData.modelo === prevConfig.modelo) {
+            consultationData = { ...prevConfig, ...consultationData };
+        }
+        
+        db.consultations[docId].push(consultationData);
     }
+    this._saveDB(db);
+  }
 
-    static getConsultations(docId) {
-        const db = this._getDB();
-        return (db.consultations[docId] || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
+  static getConsultations(docId) {
+    const db = this._getDB();
+    return (db.consultations[docId] || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
 
-    static search(query) {
-        const db = this._getDB();
-        const q = query.toLowerCase();
-        return Object.values(db.patients).filter(p => {
-            const name = `${p.nombres.primer_nombre} ${p.nombres.primer_apellido}`.toLowerCase();
-            const phone = p.contacto?.tel_principal?.toLowerCase() || '';
-            return name.includes(q) || 
-                   p.identificacion.documento_numero.includes(q) ||
-                   phone.includes(q);
-        });
-    }
+  static getPatientConfig(docId) {
+    const db = this._getDB();
+    return (db.patientConfigs || {})[docId] || null;
+  }
 
-    static addToInbox(patientData) {
-        const inbox = this._getInbox();
-        const id = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        patientData.tempId = id;
-        patientData.createdAt = new Date().toISOString();
-        inbox.push(patientData);
-        localStorage.setItem(this.INBOX_KEY, JSON.stringify(inbox));
-        return id;
-    }
+  static savePatientConfig(docId, config) {
+    const db = this._getDB();
+    if (!db.patientConfigs) db.patientConfigs = {};
+    db.patientConfigs[docId] = config;
+    this._saveDB(db);
+  }
 
-    static getInbox() {
-        return this._getInbox();
-    }
+  static search(query) {
+    const db = this._getDB();
+    const q = query.toLowerCase();
+    return Object.values(db.patients).filter(p => {
+        const name = `${p.nombres.primer_nombre} ${p.nombres.primer_apellido}`.toLowerCase();
+        return name.includes(q) || p.identificacion.documento_numero.includes(q);
+    });
+  }
 
-    static removeFromInbox(tempId) {
-        let inbox = this._getInbox();
-        inbox = inbox.filter(item => item.tempId !== tempId);
-        localStorage.setItem(this.INBOX_KEY, JSON.stringify(inbox));
-    }
+  // BUZÓN de pacientes nuevos
+  static addToBuzon(patientData) {
+    const buzon = this._getBuzon();
+    const id = 'buzon_' + Date.now();
+    patientData.id = id;
+    patientData.createdAt = new Date().toISOString();
+    patientData.status = 'pending';
+    buzon.push(patientData);
+    localStorage.setItem(this.BUZON_KEY, JSON.stringify(buzon));
+    return id;
+  }
 
-    static clearInbox() {
-        localStorage.removeItem(this.INBOX_KEY);
-    }
+  static getBuzon() {
+    return this._getBuzon();
+  }
 
-    static _getDB() {
-        const raw = localStorage.getItem(this.BASE_KEY);
-        return raw ? JSON.parse(raw) : { patients: {}, consultations: {} };
-    }
+  static removeFromBuzon(id) {
+    let buzon = this._getBuzon();
+    buzon = buzon.filter(p => p.id !== id);
+    localStorage.setItem(this.BUZON_KEY, JSON.stringify(buzon));
+  }
 
-    static _saveDB(db) {
-        localStorage.setItem(this.BASE_KEY, JSON.stringify(db));
-    }
+  static _getBuzon() {
+    const raw = localStorage.getItem(this.BUZON_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
 
-    static _getInbox() {
-        const raw = localStorage.getItem(this.INBOX_KEY);
-        return raw ? JSON.parse(raw) : [];
-    }
+  static _getDB() {
+    const raw = localStorage.getItem(this.BASE_KEY);
+    return raw ? JSON.parse(raw) : { patients: {}, consultations: {} };
+  }
+  
+  static _saveDB(db) { 
+    localStorage.setItem(this.BASE_KEY, JSON.stringify(db)); 
+  }
 }
 
-// [RENDERIZADORES]
-const Views = {
-    renderPatientInfo: (container, profile) => {
-        container.innerHTML = '';
-        const items = [
-            { l: "ID", v: `${profile.identificacion.documento_tipo}-${profile.identificacion.documento_numero}` },
-            { l: "Edad", v: `${profile.demografia.edad_auto} años` },
-            { l: "Contacto", v: profile.contacto.tel_principal || "N/A" },
-            { l: "Email", v: profile.contacto.email_principal || "N/A" },
-            { l: "Sangre", v: `${profile.datos_biologicos.grupo_sanguineo}${profile.datos_biologicos.factor_rh}` },
-            { l: "Alergias", v: profile.alertas_clinicas.alergias_detalle || "Ninguna" }
-        ];
-        
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'patient-info-item';
-            div.innerHTML = `<div class="info-label">${item.l}</div><div class="info-value">${item.v}</div>`;
-            container.appendChild(div);
-        });
-    },
-
-    renderConsultationList: (container, consultations) => {
-        container.innerHTML = '';
-        if (consultations.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--color-text-dim); padding:20px;">No hay consultas registradas.</p>';
-            return;
-        }
-
-        consultations.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'consultation-item';
-            
-            const date = new Date(c.createdAt).toLocaleString();
-            const modDate = c.updatedAt ? new Date(c.updatedAt) : null;
-            const modified = modDate ? `<span style="font-size:0.75rem; color:var(--color-warning);"> (Mod: ${modDate.toLocaleDateString()})</span>` : '';
-            const author = c.createdBy || 'Desconocido';
-            const summary = c.resumen || c.motivo || "Sin datos de motivo.";
-
-            card.innerHTML = `
-                <div class="consultation-header" onclick="window.app.toggleConsultationContent('${c.id}')">
-                    <div class="consultation-title">
-                        <i class="fas fa-calendar"></i>
-                        <span>${date}</span>
-                    </div>
-                    <div class="consultation-meta">
-                        <span>${c.modelo || 'Modelo Desconocido'}</span>
-                        <span>Por: ${author}</span>
-                        ${modified}
-                    </div>
-                </div>
-                <div class="consultation-content" id="content-${c.id}">
-                    <div class="consultation-content-inner">
-                        <div style="margin-bottom:15px;">
-                            <strong>Motivo:</strong> ${summary}
-                        </div>
-                        <div class="actions-row">
-                            <button class="action-btn" onclick="window.app.editConsultation('${c.id}', '${c.modelo}')">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="action-btn secondary">
-                                <i class="fas fa-file-pdf"></i> Documentos
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    },
-
-    renderAgenda: async (container) => {
-        const today = new Date();
-        const month = today.getMonth();
-        const year = today.getFullYear();
-        
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        
-        let html = `
-            <div class="agenda-controls">
-                <button onclick="window.app.prevMonth()"><i class="fas fa-chevron-left"></i></button>
-                <h2>${today.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</h2>
-                <button onclick="window.app.nextMonth()"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="calendar">
-                <div class="calendar-header">
-                    <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
-                </div>
-                <div class="calendar-grid">
-        `;
-        
-        // Días del mes
-        for (let i = 1; i <= lastDay.getDate(); i++) {
-            const date = new Date(year, month, i);
-            const dayOfWeek = date.getDay();
-            
-            if (i === 1) {
-                // Espacios vacíos al inicio
-                for (let j = 0; j < (firstDay.getDay() + 6) % 7; j++) {
-                    html += '<div class="calendar-day empty"></div>';
-                }
-            }
-            
-            const isToday = i === today.getDate() && month === today.getMonth();
-            html += `
-                <div class="calendar-day ${isToday ? 'today' : ''}">
-                    <div class="day-number">${i}</div>
-                    <div class="appointments">
-                        <!-- Aquí se cargarían las citas del día -->
-                    </div>
-                </div>
-            `;
-            
-            if (i === lastDay.getDate()) {
-                // Espacios vacíos al final
-                const remaining = (7 - (dayOfWeek + 6) % 7 - 1) % 7;
-                for (let j = 0; j < remaining; j++) {
-                    html += '<div class="calendar-day empty"></div>';
-                }
-            }
-        }
-        
-        html += `
-                </div>
-            </div>
-            <div class="agenda-actions">
-                <button class="action-btn" onclick="window.app.addAppointment()">
-                    <i class="fas fa-plus"></i> Agregar Cita
-                </button>
-            </div>
-        `;
-        
-        container.innerHTML = html;
-    },
-
-    renderInbox: (container) => {
-        const inbox = StorageService.getInbox();
-        
-        if (inbox.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: var(--color-text-dim);">
-                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                    <h3>Buzón vacío</h3>
-                    <p>No hay pacientes pendientes de importar</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '';
-        inbox.forEach((patient, index) => {
-            html += `
-                <div class="inbox-item">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <h3>${patient.nombres?.primer_nombre || ''} ${patient.nombres?.primer_apellido || ''}</h3>
-                            <p style="color: var(--color-text-dim); margin: 5px 0;">
-                                <strong>Documento:</strong> ${patient.identificacion?.documento_numero || 'No especificado'}
-                            </p>
-                            <p style="color: var(--color-text-dim); margin: 5px 0;">
-                                <strong>Teléfono:</strong> ${patient.contacto?.tel_principal || 'No especificado'}
-                            </p>
-                            <p style="color: var(--color-text-dim); margin: 5px 0;">
-                                <strong>Fecha:</strong> ${new Date(patient.createdAt).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="action-btn" onclick="window.app.importPatient('${patient.tempId}')">
-                                <i class="fas fa-file-import"></i> Importar
-                            </button>
-                            <button class="action-btn secondary" onclick="window.app.viewInboxPatient('${patient.tempId}')">
-                                <i class="fas fa-eye"></i> Ver
-                            </button>
-                            <button class="action-btn secondary" onclick="window.app.deleteInboxPatient('${patient.tempId}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-    },
-
-    renderModels: (container) => {
-        // Esta función cargaría los modelos desde consultmodels.json
-        // Por ahora mostramos un mensaje
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <h3>Gestión de Modelos de Consulta</h3>
-                <p style="color: var(--color-text-dim); margin: 20px 0;">
-                    Esta función permitirá agregar, editar y eliminar modelos de consulta.
-                </p>
-                <div class="action-btn" onclick="window.app.loadModels()">
-                    <i class="fas fa-sync"></i> Cargar Modelos
-                </div>
-            </div>
-        `;
-    }
+// [JS-IND-002] CONFIGURACIÓN DE PACIENTE (Mantener igual)
+const PATIENT_FIELD_CONFIG = {
+  // ... (mantener igual que antes)
 };
 
-// [APLICACIÓN PRINCIPAL]
-class App {
-    constructor() {
-        this.currentUser = null;
-        this.currentPatient = null;
-        this.currentView = 'agenda';
-        this.logEntries = [];
+// [JS-IND-003] RENDERIZADORES (Actualizado)
+const Views = {
+  renderPatientInfo: (container, profile) => {
+    container.innerHTML = '';
+    const items = [
+      { l: "ID", v: `${profile.identificacion.documento_tipo}-${profile.identificacion.documento_numero}` },
+      { l: "Edad", v: `${profile.demografia.edad_auto} años` },
+      { l: "Contacto", v: profile.contacto.tel_principal || "N/A" },
+      { l: "Email", v: profile.contacto.email_principal || "N/A" },
+      { l: "Sangre", v: `${profile.datos_biologicos.grupo_sanguineo}${profile.datos_biologicos.factor_rh}` },
+      { l: "Alergias", v: profile.alertas_clinicas.alergias_detalle || "Ninguna" }
+    ];
+    
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'patient-info-item';
+      div.innerHTML = `<div class="info-label">${item.l}</div><div class="info-value">${item.v}</div>`;
+      container.appendChild(div);
+    });
+  },
+
+  renderConsultationList: (container, consultations) => {
+    container.innerHTML = '';
+    if (consultations.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--color-text-dim); padding:20px;">No hay consultas registradas.</p>';
+        return;
     }
 
-    async init() {
-        // Verificar autenticación
-        const user = AuthService.getCurrentUser();
-        if (!user) {
-            this.showLogin();
-            return;
-        }
+    consultations.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'consultation-item';
+      
+      const date = new Date(c.createdAt).toLocaleString();
+      const modDate = c.updatedAt ? new Date(c.updatedAt) : null;
+      const modified = modDate ? `<span style="font-size:0.75rem; color:var(--color-warning);"> (Mod: ${modDate.toLocaleDateString()})</span>` : '';
+      const author = c.createdBy || 'Desconocido';
 
-        // Cargar perfil de usuario
-        this.currentUser = new UserProfile(null, user);
-        window.currentUser = this.currentUser;
-        
-        // Actualizar UI
-        document.getElementById('loginView').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('userInfoDisplay').textContent = 
-            `${this.currentUser.getDisplayTitle()} - ${this.currentUser.getDisplayRole()}`;
+      const summary = c.resumen || c.motivo || "Sin datos de motivo.";
 
-        // Cargar modelos disponibles
-        await this.loadAvailableModels();
-
-        // Setup event listeners
-        this.setupEventListeners();
-        
-        // Cargar vista por defecto (agenda)
-        this.showView('agenda');
-        
-        // Actualizar badge del buzón
-        this.updateInboxBadge();
-        
-        // Setup shortcuts
-        this.setupShortcuts();
-        
-        // Log
-        this.addLog('Sistema iniciado', 'system');
-    }
-
-    showLogin() {
-        document.getElementById('loginView').classList.remove('hidden');
-        document.getElementById('mainApp').classList.add('hidden');
-        
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            const result = await AuthService.login(username, password);
-            if (result.success) {
-                this.init();
-            } else {
-                alert(result.message || 'Error de autenticación');
-            }
-        };
-    }
-
-    setupEventListeners() {
-        // Navegación
-        document.getElementById('btnAgenda').onclick = () => this.showView('agenda');
-        document.getElementById('btnSearch').onclick = () => this.showSearchModal();
-        document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow(true); // true = para buzón
-        document.getElementById('btnInbox').onclick = () => this.showView('inbox');
-        document.getElementById('btnModels').onclick = () => this.showView('models');
-        document.getElementById('btnTheme').onclick = () => this.toggleTheme();
-        document.getElementById('btnLogout').onclick = () => AuthService.logout();
-        
-        // Click derecho deshabilitado
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
-    }
-
-    setupShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+L para abrir/cerrar log drawer
-            if (e.ctrlKey && e.key === 'l') {
-                e.preventDefault();
-                this.toggleLogDrawer();
-            }
-            
-            // Escape para cerrar modales
-            if (e.key === 'Escape') {
-                this.closeModal();
-                this.closeSearchModal();
-            }
-        });
-    }
-
-    showView(viewName) {
-        // Ocultar todas las vistas
-        document.querySelectorAll('.view-content').forEach(view => {
-            view.classList.add('hidden');
-        });
-        
-        // Mostrar la vista solicitada
-        this.currentView = viewName;
-        const viewElement = document.getElementById(`${viewName}View`);
-        
-        if (viewElement) {
-            viewElement.classList.remove('hidden');
-            
-            // Cargar contenido específico de la vista
-            switch(viewName) {
-                case 'agenda':
-                    Views.renderAgenda(viewElement);
-                    break;
-                case 'inbox':
-                    Views.renderInbox(document.getElementById('inboxList'));
-                    break;
-                case 'models':
-                    Views.renderModels(document.getElementById('modelsList'));
-                    break;
-            }
-        }
-    }
-
-    async loadAvailableModels() {
-        const select = document.getElementById('newConsultModelSelect');
-        if (!select) return;
-
-        select.innerHTML = '<option value="" disabled>Cargando modelos...</option>';
-
-        try {
-            const response = await fetch('modules/consultmodels.json');
-            if (response.ok) {
-                const models = await response.json();
-                select.innerHTML = '';
-                
-                models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model.id;
-                    option.textContent = model.name;
-                    select.appendChild(option);
-                });
-                
-                // Seleccionar modelo por defecto del usuario
-                if (this.currentUser.state.professional.defaultConsultationModel) {
-                    select.value = this.currentUser.state.professional.defaultConsultationModel;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading models:', error);
-            select.innerHTML = '<option value="" disabled>Error cargando modelos</option>';
-        }
-    }
-
-    async createNewPatientWorkflow(forInbox = false) {
-        const modal = document.getElementById('editModal');
-        const body = document.getElementById('modalBody');
-        const title = document.getElementById('modalTitle');
-        
-        title.textContent = forInbox ? 'Nuevo Paciente (Buzón)' : 'Nuevo Paciente';
-        
-        // Renderizar formulario
-        body.innerHTML = '';
-        this.renderPatientForm(body, {});
-        
-        modal.classList.add('active');
-        
-        // Configurar botón de guardar
-        const saveBtn = document.getElementById('btnSaveConsultation');
-        saveBtn.textContent = forInbox ? 'Enviar a Buzón' : 'Guardar Paciente';
-        
-        saveBtn.onclick = () => {
-            const formData = this.collectFormData(body);
-            try {
-                const patientData = this.sanitizePatientData(formData);
-                
-                if (forInbox) {
-                    // Guardar en buzón
-                    StorageService.addToInbox(patientData);
-                    this.closeModal();
-                    this.showView('inbox');
-                    this.updateInboxBadge();
-                    this.addLog(`Paciente ${patientData.nombres.primer_nombre} enviado al buzón`, 'patient');
-                } else {
-                    // Guardar directamente
-                    const patient = new PatientProfile(patientData);
-                    StorageService.savePatient(patient);
-                    this.closeModal();
-                    this.showPatientView(patient.identificacion.documento_numero);
-                    this.addLog(`Paciente ${patient.nombres.primer_nombre} creado`, 'patient');
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        };
-    }
-
-    importPatient(tempId) {
-        const inbox = StorageService.getInbox();
-        const patientData = inbox.find(p => p.tempId === tempId);
-        
-        if (patientData) {
-            // Eliminar tempId antes de crear perfil
-            delete patientData.tempId;
-            delete patientData.createdAt;
-            
-            const patient = new PatientProfile(patientData);
-            StorageService.savePatient(patient);
-            StorageService.removeFromInbox(tempId);
-            
-            this.updateInboxBadge();
-            this.showView('inbox');
-            this.addLog(`Paciente ${patient.nombres.primer_nombre} importado del buzón`, 'patient');
-            
-            alert('Paciente importado exitosamente');
-        }
-    }
-
-    updateInboxBadge() {
-        const inbox = StorageService.getInbox();
-        const badge = document.getElementById('inboxBadge');
-        
-        if (inbox.length > 0) {
-            badge.textContent = inbox.length;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
-        }
-    }
-
-    // ... (mantener todas las demás funciones existentes como showPatientView, editCurrentPatient, etc.)
-    // Solo se muestran las funciones modificadas o nuevas
-
-    showSearchModal() {
-        const modal = document.getElementById('searchModal');
-        modal.classList.add('active');
-        
-        const input = document.getElementById('searchInput');
-        input.value = '';
-        input.focus();
-        
-        input.oninput = () => {
-            const results = StorageService.search(input.value);
-            const container = document.getElementById('searchResults');
-            
-            if (results.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: var(--color-text-dim);">
-                        No se encontraron pacientes
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            results.forEach(patient => {
-                html += `
-                    <div class="search-result-item" 
-                         onclick="window.app.selectPatient('${patient.identificacion.documento_numero}')">
-                        <div>
-                            <strong>${patient.nombres.primer_nombre} ${patient.nombres.primer_apellido}</strong>
-                            <div style="color: var(--color-text-dim); font-size: 0.9rem;">
-                                ${patient.identificacion.documento_tipo}-${patient.identificacion.documento_numero}
-                                ${patient.contacto.tel_principal ? ' · ' + patient.contacto.tel_principal : ''}
-                            </div>
-                        </div>
-                        <div style="color: var(--color-accent);">
-                            <i class="fas fa-chevron-right"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        };
-    }
-
-    selectPatient(patientId) {
-        this.closeSearchModal();
-        this.showPatientView(patientId);
-        this.showView('patient');
-    }
-
-    closeSearchModal() {
-        document.getElementById('searchModal').classList.remove('active');
-    }
-
-    // Funciones del Log Drawer
-    toggleLogDrawer() {
-        const drawer = document.getElementById('logDrawer');
-        drawer.classList.toggle('open');
-    }
-
-    closeLogDrawer() {
-        document.getElementById('logDrawer').classList.remove('open');
-    }
-
-    addLog(message, type = 'info') {
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = {
-            time: timestamp,
-            message: message,
-            type: type
-        };
-        
-        this.logEntries.unshift(entry);
-        if (this.logEntries.length > 100) this.logEntries.pop();
-        
-        this.updateLogDisplay();
-    }
-
-    updateLogDisplay() {
-        const container = document.getElementById('logContent');
-        let html = '';
-        
-        this.logEntries.forEach(entry => {
-            html += `
-                <div class="log-entry">
-                    <span style="color: var(--color-text-dim);">[${entry.time}]</span>
-                    <span style="color: ${this.getLogColor(entry.type)}; margin-left: 10px;">
-                        ${entry.message}
-                    </span>
+      card.innerHTML = `
+        <div class="consultation-header" onclick="window.app.toggleConsultationContent('${c.id}')">
+            <div class="consultation-title">
+                <i class="fas fa-calendar"></i>
+                <span>${date}</span>
+            </div>
+            <div class="consultation-meta">
+                <span>${c.modelo || 'Modelo Desconocido'}</span>
+                <span>Por: ${author}</span>
+                ${modified}
+            </div>
+        </div>
+        <div class="consultation-content" id="content-${c.id}">
+            <div class="consultation-content-inner">
+                <div style="margin-bottom:15px;">
+                    <strong>Motivo:</strong> ${summary}
                 </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-    }
+                <div class="actions-row">
+                    <button class="action-btn" onclick="window.app.editConsultation('${c.id}', '${c.modelo}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-file-pdf"></i> Documentos
+                    </button>
+                </div>
+            </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  },
 
-    getLogColor(type) {
-        switch(type) {
-            case 'error': return 'var(--color-error)';
-            case 'warning': return 'var(--color-warning)';
-            case 'success': return 'var(--color-success)';
-            case 'system': return 'var(--color-accent)';
-            default: return 'var(--color-text)';
+  renderPatientForm: (container, data = {}) => {
+    // ... (mantener igual)
+  },
+
+  renderBuzon: (container) => {
+    const buzon = StorageService.getBuzon();
+    container.innerHTML = '';
+    
+    if (buzon.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--color-text-dim);">No hay pacientes pendientes en el buzón.</p>';
+      return;
+    }
+    
+    buzon.forEach(patient => {
+      const div = document.createElement('div');
+      div.className = 'buzon-item glass-panel';
+      div.style.padding = '20px';
+      div.style.marginBottom = '15px';
+      div.style.borderLeft = '4px solid var(--color-accent)';
+      
+      const name = `${patient.nombres?.primer_nombre || ''} ${patient.nombres?.primer_apellido || ''}`.trim() || 'Nombre no disponible';
+      const doc = patient.identificacion?.documento_numero || 'Sin documento';
+      const date = new Date(patient.createdAt).toLocaleString();
+      
+      div.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div>
+            <h4 style="margin: 0 0 10px 0; color: var(--color-text);">${name}</h4>
+            <div style="color: var(--color-text-dim); font-size: 0.9rem;">
+              <div>Documento: ${doc}</div>
+              <div>Fecha de registro: ${date}</div>
+            </div>
+          </div>
+          <div class="actions-row">
+            <button class="action-btn" onclick="window.app.importBuzonPatient('${patient.id}')">
+              <i class="fas fa-file-import"></i> Importar
+            </button>
+            <button class="action-btn secondary" onclick="window.app.deleteBuzonPatient('${patient.id}')">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      container.appendChild(div);
+    });
+  }
+};
+
+// [JS-IND-004] APLICACIÓN PRINCIPAL (Actualizada)
+class App {
+  constructor() {
+    this.currentUser = null;
+    this.currentPatient = null;
+    this.currentEditingConsultationId = null;
+    this.logEntries = [];
+    this.isLogDrawerOpen = false;
+  }
+
+  async init() {
+    // Verificar autenticación
+    if (!AuthService.isLoggedIn()) {
+      this.setupLogin();
+      return;
+    }
+    
+    // Cargar usuario
+    await this.loadUser();
+    
+    // Configurar interfaz
+    this.setupUI();
+    
+    // Configurar atajos de teclado
+    this.setupKeyboardShortcuts();
+    
+    // Desactivar click derecho
+    this.disableRightClick();
+    
+    // Mostrar vista limpia
+    this.showCleanView();
+    
+    // Cargar modelos
+    await this.loadAvailableModels();
+    
+    // Inicializar agenda
+    CalendarSystem.init(document.getElementById('mainContainer'));
+  }
+  
+  setupLogin() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+          const user = await AuthService.login(username, password);
+          window.location.reload();
+        } catch (error) {
+          document.getElementById('loginError').textContent = error.message;
         }
+      };
     }
-
-    executeLogCommand() {
-        const input = document.getElementById('logPassword');
-        const command = input.value.trim();
-        
-        if (command === 'astroyluna') {
-            this.addLog('Contraseña verificada. Modo administrador activado.', 'success');
-            // Aquí se podrían habilitar funciones de administración
-        } else if (command) {
-            this.addLog(`Comando no reconocido: ${command}`, 'error');
+  }
+  
+  async loadUser() {
+    try {
+      const userData = AuthService.getCurrentUser();
+      if (!userData) throw new Error("No hay usuario autenticado");
+      
+      this.currentUser = new UserProfile(null, userData);
+      window.currentUser = this.currentUser;
+      
+      const userInfoDisplay = document.getElementById('userInfoDisplay');
+      if(userInfoDisplay) {
+          userInfoDisplay.textContent = `${this.currentUser.getDisplayTitle()} (${this.currentUser.getDisplayRole()})`;
+      }
+      
+      this.log('Sistema', `Usuario ${this.currentUser.getDisplayName()} autenticado`);
+    } catch (e) {
+      console.error("Error cargando usuario:", e);
+      AuthService.logout();
+    }
+  }
+  
+  setupUI() {
+    // Listeners del dock
+    document.getElementById('btnHome').onclick = () => this.showCleanView();
+    document.getElementById('btnNewPatient').onclick = () => this.createNewPatientWorkflow();
+    document.getElementById('btnTheme').onclick = () => this.toggleTheme();
+    document.getElementById('btnSearch').onclick = () => this.showSearchModal();
+    document.getElementById('btnAgenda').onclick = () => this.showAgenda();
+    document.getElementById('btnBuzon').onclick = () => this.showBuzonModal();
+    document.getElementById('btnLogout').onclick = () => AuthService.logout();
+  }
+  
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+L para abrir/cerrar log drawer
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        if (!this.isLogDrawerOpen) {
+          this.openLogDrawer();
+        } else {
+          this.closeLogDrawer();
         }
-        
-        input.value = '';
+      }
+      
+      // Ctrl+S para buscar
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        this.showSearchModal();
+      }
+      
+      // Ctrl+N para nuevo paciente
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        this.createNewPatientWorkflow();
+      }
+    });
+  }
+  
+  disableRightClick() {
+    document.addEventListener('contextmenu', (e) => {
+      if (!this.isLogDrawerOpen) {
+        e.preventDefault();
+        this.log('Seguridad', 'Click derecho bloqueado');
+      }
+    }, { capture: true });
+  }
+  
+  log(source, message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const entry = `[${timestamp}] ${source}: ${message}`;
+    this.logEntries.push(entry);
+    
+    // Actualizar drawer si está abierto
+    if (this.isLogDrawerOpen) {
+      this.updateLogDrawer();
     }
+    
+    // Limitar log a 100 entradas
+    if (this.logEntries.length > 100) {
+      this.logEntries.shift();
+    }
+  }
+  
+  openLogDrawer() {
+    const drawer = document.getElementById('logDrawer');
+    if (!drawer) return;
+    
+    // Pedir contraseña
+    const password = prompt('Contraseña para acceder al log:');
+    if (password !== 'astroyluna') {
+      alert('Contraseña incorrecta');
+      return;
+    }
+    
+    drawer.classList.add('open');
+    this.isLogDrawerOpen = true;
+    this.updateLogDrawer();
+    this.log('Sistema', 'Drawer de log abierto');
+  }
+  
+  closeLogDrawer() {
+    const drawer = document.getElementById('logDrawer');
+    if (drawer) {
+      drawer.classList.remove('open');
+      this.isLogDrawerOpen = false;
+      this.log('Sistema', 'Drawer de log cerrado');
+    }
+  }
+  
+  updateLogDrawer() {
+    const logContent = document.getElementById('logContent');
+    if (logContent) {
+      logContent.textContent = this.logEntries.join('\n');
+      logContent.scrollTop = logContent.scrollHeight;
+    }
+  }
+  
+  showCleanView() {
+    const mainContainer = document.getElementById('mainContainer');
+    if (mainContainer) {
+      mainContainer.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; color: var(--color-text-dim);">
+          <i class="fas fa-stethoscope" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
+          <h2>Bienvenido a CIMA</h2>
+          <p>Seleccione una acción del menú superior para comenzar.</p>
+          <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; margin-left: auto; margin-right: auto;">
+            <div class="quick-action" onclick="window.app.showSearchModal()">
+              <i class="fas fa-search"></i>
+              <h4>Buscar Paciente</h4>
+            </div>
+            <div class="quick-action" onclick="window.app.createNewPatientWorkflow()">
+              <i class="fas fa-user-plus"></i>
+              <h4>Nuevo Paciente</h4>
+            </div>
+            <div class="quick-action" onclick="window.app.showAgenda()">
+              <i class="fas fa-calendar-alt"></i>
+              <h4>Agenda</h4>
+            </div>
+            <div class="quick-action" onclick="window.app.showBuzonModal()">
+              <i class="fas fa-inbox"></i>
+              <h4>Buzón</h4>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+  
+  showAgenda() {
+    const mainContainer = document.getElementById('mainContainer');
+    if (mainContainer) {
+      mainContainer.innerHTML = '<div id="calendarContainer"></div>';
+      CalendarSystem.init(document.getElementById('calendarContainer'));
+      this.log('Agenda', 'Vista de agenda cargada');
+    }
+  }
+  
+  showBuzonModal() {
+    const modal = document.getElementById('buzonModal');
+    if (modal) {
+      Views.renderBuzon(document.getElementById('buzonList'));
+      modal.classList.add('active');
+      this.log('Buzón', 'Modal de buzón abierto');
+    }
+  }
+  
+  importBuzonPatient(buzonId) {
+    const buzon = StorageService.getBuzon();
+    const patientData = buzon.find(p => p.id === buzonId);
+    
+    if (!patientData) {
+      alert('Paciente no encontrado en el buzón');
+      return;
+    }
+    
+    // Abrir modal para confirmar importación
+    const modal = document.getElementById('editModal');
+    const body = document.getElementById('modalBody');
+    const title = document.getElementById('modalTitle');
+    const btn = document.getElementById('btnSaveConsultation');
+    
+    if (title) title.textContent = "Importar Paciente del Buzón";
+    if (btn) btn.textContent = "Importar a Base de Datos";
+    
+    if (body) {
+      body.innerHTML = `
+        <div style="padding: 20px;">
+          <div style="background: var(--color-glass); padding: 20px; border-radius: var(--radius); margin-bottom: 20px;">
+            <h4 style="margin-top: 0;">Datos del paciente:</h4>
+            <pre style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; overflow: auto; max-height: 300px;">${JSON.stringify(patientData, null, 2)}</pre>
+          </div>
+          <p>¿Desea importar estos datos a la base de datos principal?</p>
+        </div>
+      `;
+      
+      modal.classList.add('active');
+      
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.onclick = () => {
+        try {
+          // Crear perfil de paciente
+          const patientProfile = new PatientProfile(patientData);
+          StorageService.savePatient(patientProfile);
+          StorageService.removeFromBuzon(buzonId);
+          
+          alert("Paciente importado exitosamente");
+          this.closeModal();
+          this.showPatientView(patientProfile.identificacion.documento_numero);
+          this.log('Buzón', `Paciente ${buzonId} importado a base de datos`);
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      };
+    }
+  }
+  
+  deleteBuzonPatient(buzonId) {
+    if (confirm('¿Está seguro de eliminar este paciente del buzón?')) {
+      StorageService.removeFromBuzon(buzonId);
+      Views.renderBuzon(document.getElementById('buzonList'));
+      this.log('Buzón', `Paciente ${buzonId} eliminado del buzón`);
+    }
+  }
 
-    // ... (todas las demás funciones del código original)
+  async loadAvailableModels() {
+      // ... (mantener similar pero optimizado)
+  }
+
+  // HERENCIA DE CONSULTAS: Modificar openConsultationModal para heredar configuración
+  async openConsultationModal(data, modelId) {
+      const modal = document.getElementById('editModal');
+      const body = document.getElementById('modalBody');
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('btnSaveConsultation');
+
+      if(title) title.textContent = data ? `Editar Consulta` : "Nueva Consulta";
+      if(btn) btn.textContent = "Guardar Consulta";
+      
+      if(body) {
+          body.innerHTML = '<div style="text-align:center; padding:50px; color:var(--accent-blue);">Cargando modelo...</div>';
+          modal.classList.add('active');
+      }
+
+      try {
+          const module = await import(`../consultmodels/${modelId}.js`);
+          
+          if (!module.MODEL_DEFINITION) {
+              throw new Error("Sin MODEL_DEFINITION");
+          }
+
+          if(body) body.innerHTML = '';
+
+          // HERENCIA: Si es nueva consulta y hay configuración previa, mezclar
+          let initialData = data || {};
+          if (!data && this.currentPatient) {
+              const prevConfig = StorageService.getPatientConfig(this.currentPatient.identificacion.documento_numero);
+              if (prevConfig && prevConfig.modelo === modelId) {
+                  initialData = { ...prevConfig, ...initialData };
+              }
+          }
+          
+          module.MODEL_DEFINITION.initUI(body, initialData);
+
+          const newBtn = btn.cloneNode(true);
+          if(btn) {
+              btn.parentNode.replaceChild(newBtn, btn);
+              newBtn.onclick = async () => {
+                  try {
+                      const consultData = module.MODEL_DEFINITION.getData(body);
+                      consultData.modelo = modelId;
+                      if(this.currentPatient) {
+                          consultData.pacienteId = this.currentPatient.identificacion.documento_numero;
+                          
+                          // HERENCIA: Guardar configuración para futuras consultas
+                          consultData.config = {
+                              ...consultData,
+                              id: undefined, // No guardar el ID en la configuración
+                              createdAt: undefined,
+                              updatedAt: undefined
+                          };
+                          StorageService.savePatientConfig(this.currentPatient.identificacion.documento_numero, consultData.config);
+                      }
+                      if (data) consultData.id = data.id;
+                      consultData.resumen = module.MODEL_DEFINITION.getSummary ? module.MODEL_DEFINITION.getSummary(consultData) : consultData.motivo;
+
+                      if(this.currentPatient) {
+                          StorageService.saveConsultation(this.currentPatient.identificacion.documento_numero, consultData);
+                          alert("Consulta guardada");
+                          this.closeModal();
+                          this.showPatientView(this.currentPatient.identificacion.documento_numero);
+                      }
+                  } catch(e) {
+                      console.error(e);
+                      alert("Error: " + e.message);
+                  }
+              };
+          }
+      } catch (err) {
+          console.error(err);
+          if(body) {
+              body.innerHTML = `
+                <div style="color:var(--color-error); text-align:center; padding:20px;">
+                      <h3>Error</h3>
+                      <p>No se pudo cargar el modelo ${modelId}.</p>
+                </div>`;
+          }
+          const btnSave = document.getElementById('btnSaveConsultation');
+          if(btnSave) btnSave.disabled = true;
+      }
+  }
+
+  // Mantener otras funciones existentes...
+  toggleTheme() { /* ... */ }
+  showPatientView(patientId) { /* ... */ }
+  editCurrentPatient() { /* ... */ }
+  createNewPatientWorkflow() { /* ... */ }
+  showSearchModal() { /* ... */ }
+  toggleSection(id) { /* ... */ }
+  toggleConsultationContent(id) { /* ... */ }
+  closeModal() { /* ... */ }
 }
 
-// Inicializar aplicación
+// Inicializar
 window.app = new App();
+window.StorageService = StorageService;
 
-// Iniciar cuando el DOM esté listo
-if (AuthService.isAuthenticated()) {
-    document.addEventListener('DOMContentLoaded', () => window.app.init());
+// Esperar a que el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Si ya está autenticado, ocultar login y mostrar app
+        if (AuthService.isLoggedIn()) {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            window.app.init();
+        }
+    });
 } else {
-    document.addEventListener('DOMContentLoaded', () => window.app.showLogin());
+    if (AuthService.isLoggedIn()) {
+        document.getElementById('loginContainer').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+        window.app.init();
+    }
 }
