@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,52 +7,83 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="modules/index.css">
     <style>
-        /* Estilos temporales para login */
-        .login-container {
+        /* Estilos para drawers */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .drawer-overlay.active {
+            display: block;
+        }
+        
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--color-bg);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border-left: 1px solid var(--color-glass-border);
+            z-index: 1001;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.2);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 100%);
+            flex-direction: column;
+            overflow: hidden;
         }
         
-        .login-box {
-            background: rgba(255, 255, 255, 0.08);
+        .drawer.open {
+            right: 0;
+        }
+        
+        .drawer-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--color-glass-border);
+            background: var(--color-glass);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .login-logo {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #3b82f6;
+        .drawer-body {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
         }
         
-        .login-logo i {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        /* Login form dentro del drawer */
+        .login-form {
+            max-width: 300px;
+            margin: 0 auto;
         }
         
         .login-input {
             width: 100%;
             padding: 12px 16px;
             margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--color-glass);
+            border: 1px solid var(--color-glass-border);
             border-radius: 8px;
-            color: white;
+            color: var(--color-text);
             font-size: 1rem;
         }
         
         .login-btn {
             width: 100%;
             padding: 14px;
-            background: #3b82f6;
+            background: var(--color-accent);
             color: white;
             border: none;
             border-radius: 8px;
@@ -64,50 +94,78 @@
         }
         
         .login-btn:hover {
-            background: #2563eb;
+            background: var(--color-accent-hover);
         }
         
-        .login-error {
-            color: #ef4444;
-            margin-top: 10px;
-            font-size: 0.9rem;
+        .auth-links {
+            margin-top: 20px;
             text-align: center;
         }
         
-        .hidden {
-            display: none !important;
+        .auth-link {
+            color: var(--color-accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        /* Vista pública para pacientes */
+        .public-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .drawer {
+                width: 100%;
+                right: -100%;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Contenedor de Login -->
-    <div id="loginContainer" class="login-container">
-        <div class="login-box">
-            <div class="login-logo">
-                <i class="fas fa-stethoscope"></i>
-                <h2>CIMA</h2>
-                <p>Sistema Clínico Modular</p>
-            </div>
-            
-            <form id="loginForm">
-                <input type="text" id="username" class="login-input" placeholder="Usuario" required>
-                <input type="password" id="password" class="login-input" placeholder="Contraseña" required>
-                <button type="submit" class="login-btn">Iniciar Sesión</button>
-            </form>
-            
-            <div id="loginError" class="login-error"></div>
-            
-            <div style="margin-top: 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.9rem;">
-                <p>Usuario de prueba: user-001</p>
+    <!-- Barra superior pública (visible cuando no hay sesión) -->
+    <div id="publicHeader" class="dock dock-doctor">
+        <span id="btnPatientAccess"><i class="fas fa-user-injured"></i> Área de Paciente</span>
+        <span>|</span>
+        <span id="btnDoctorLogin"><i class="fas fa-user-md"></i> Acceso Médico</span>
+        <span>|</span>
+        <span id="btnCreateAccount"><i class="fas fa-user-plus"></i> Crear Cuenta</span>
+    </div>
+    
+    <!-- Contenedor principal público -->
+    <main id="publicMain" class="doctor-container">
+        <div style="text-align: center; padding: 100px 20px;">
+            <i class="fas fa-stethoscope" style="font-size: 5rem; color: var(--color-accent); margin-bottom: 30px;"></i>
+            <h1 style="margin-bottom: 20px;">Sistema Clínico Modular CIMA</h1>
+            <p style="font-size: 1.2rem; color: var(--color-text-dim); max-width: 600px; margin: 0 auto 40px;">
+                Plataforma integral para la gestión médica y registro de pacientes
+            </p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div class="public-action" onclick="window.app.openPatientAccess()">
+                    <i class="fas fa-file-medical"></i>
+                    <h3>Solicitar Documentos</h3>
+                    <p>Historiales médicos, recetas, etc.</p>
+                </div>
+                <div class="public-action" onclick="window.app.openPatientAccess()">
+                    <i class="fas fa-user-edit"></i>
+                    <h3>Actualizar Datos</h3>
+                    <p>Mantenga su información actualizada</p>
+                </div>
+                <div class="public-action" onclick="window.app.openDoctorLogin()">
+                    <i class="fas fa-clinic-medical"></i>
+                    <h3>Acceso Profesional</h3>
+                    <p>Para médicos y personal autorizado</p>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
     
     <!-- Aplicación Principal (oculta inicialmente) -->
     <div id="appContainer" class="hidden">
         <div class="background"></div>
         
-        <!-- [HTML-001] DOCK SUPERIOR -->
+        <!-- DOCK SUPERIOR PRIVADO -->
         <div class="dock dock-doctor">
             <span id="btnHome"><i class="fas fa-home"></i> Inicio</span>
             <span>|</span>
@@ -125,68 +183,134 @@
             <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Salir</span>
         </div>
         
-        <!-- [HTML-002] CONTENEDOR PRINCIPAL (Vacío inicialmente) -->
+        <!-- CONTENEDOR PRINCIPAL PRIVADO -->
         <main class="doctor-container" id="mainContainer">
             <!-- Contenido se cargará dinámicamente -->
         </main>
 
-        <!-- [HTML-003] MODAL DE EDICIÓN DE CONSULTA -->
-        <div id="editModal" class="modal-overlay">
-            <div class="modal-box">
-                <div class="modal-header">
-                    <span class="modal-title" id="modalTitle">Editar Consulta</span>
-                    <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
+        <!-- MODALES (mantener igual) -->
+        <div id="editModal" class="modal-overlay"></div>
+        <div id="searchModal" class="modal-overlay"></div>
+        <div id="buzonModal" class="modal-overlay"></div>
+        
+        <!-- DRAWER DE LOG -->
+        <div id="logDrawer" class="log-drawer"></div>
+    </div>
+    
+    <!-- DRAWERS PÚBLICOS -->
+    <div id="drawerOverlay" class="drawer-overlay"></div>
+    
+    <!-- Drawer de Acceso Médico -->
+    <div id="doctorDrawer" class="drawer">
+        <div class="drawer-header">
+            <h3><i class="fas fa-user-md"></i> Acceso Médico</h3>
+            <button class="close-drawer" onclick="window.app.closeDrawer('doctorDrawer')">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="login-form">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <i class="fas fa-stethoscope" style="font-size: 3rem; color: var(--color-accent);"></i>
+                    <h3 style="margin: 15px 0 10px 0;">Iniciar Sesión</h3>
+                    <p style="color: var(--color-text-dim);">Acceso para profesionales de la salud</p>
                 </div>
-                <div class="modal-body" id="modalBody"></div>
-                <div class="modal-footer">
-                    <button class="action-btn secondary" onclick="window.app.closeModal()">Cancelar</button>
-                    <button class="action-btn" id="btnSaveConsultation">Guardar Consulta</button>
+                
+                <form id="doctorLoginForm">
+                    <input type="text" id="doctorUsername" class="login-input" placeholder="Usuario" value="tudraorl">
+                    <input type="password" id="doctorPassword" class="login-input" placeholder="Contraseña" value="astroyluna">
+                    <button type="submit" class="login-btn">Ingresar</button>
+                </form>
+                
+                <div id="doctorLoginError" style="color: var(--color-error); margin-top: 10px; text-align: center;"></div>
+                
+                <div class="auth-links">
+                    <p>¿No tiene cuenta? <span class="auth-link" onclick="window.app.openCreateAccount()">Crear cuenta</span></p>
                 </div>
             </div>
         </div>
-
-        <!-- [HTML-004] MODAL DE BÚSQUEDA -->
-        <div id="searchModal" class="modal-overlay">
-            <div class="modal-box" style="height:auto; max-height:80vh;">
-                <div class="modal-header">
-                    <span class="modal-title">Buscar Paciente</span>
-                    <button class="close-modal" onclick="document.getElementById('searchModal').classList.remove('active')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" id="searchInput" placeholder="Nombre o Cédula..." class="model-select" style="width:100%; padding:15px; font-size:1.1rem; margin-bottom:20px;">
-                    <div id="searchResults"></div>
+    </div>
+    
+    <!-- Drawer de Crear Cuenta -->
+    <div id="createAccountDrawer" class="drawer">
+        <div class="drawer-header">
+            <h3><i class="fas fa-user-plus"></i> Crear Cuenta</h3>
+            <button class="close-drawer" onclick="window.app.closeDrawer('createAccountDrawer')">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="login-form">
+                <form id="createAccountForm">
+                    <input type="text" id="newUsername" class="login-input" placeholder="Nombre de usuario">
+                    <input type="password" id="newPassword" class="login-input" placeholder="Contraseña">
+                    <input type="password" id="confirmPassword" class="login-input" placeholder="Confirmar contraseña">
+                    <select id="newUserRole" class="login-input">
+                        <option value="Assistant">Asistente</option>
+                        <option value="Nurse">Enfermero/a</option>
+                        <option value="Doctor">Médico</option>
+                    </select>
+                    <button type="submit" class="login-btn">Crear Cuenta</button>
+                </form>
+                
+                <div id="createAccountError" style="color: var(--color-error); margin-top: 10px; text-align: center;"></div>
+                
+                <div class="auth-links">
+                    <p>¿Ya tiene cuenta? <span class="auth-link" onclick="window.app.openDoctorLogin()">Iniciar sesión</span></p>
                 </div>
             </div>
         </div>
-
-        <!-- [HTML-005] MODAL DE BUZÓN -->
-        <div id="buzonModal" class="modal-overlay">
-            <div class="modal-box" style="height:auto; max-height:85vh; width:90%; max-width:1200px;">
-                <div class="modal-header">
-                    <span class="modal-title">Buzón de Pacientes Nuevos</span>
-                    <button class="close-modal" onclick="document.getElementById('buzonModal').classList.remove('active')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div id="buzonList" style="min-height: 300px;">
-                        <!-- Lista de pacientes pendientes -->
-                    </div>
-                </div>
-            </div>
+    </div>
+    
+    <!-- Drawer de Área de Paciente -->
+    <div id="patientDrawer" class="drawer">
+        <div class="drawer-header">
+            <h3><i class="fas fa-user-injured"></i> Área de Paciente</h3>
+            <button class="close-drawer" onclick="window.app.closeDrawer('patientDrawer')">&times;</button>
         </div>
-
-        <!-- [HTML-006] DRAWER DE LOG -->
-        <div id="logDrawer" class="log-drawer">
-            <div class="log-header">
-                <h3><i class="fas fa-terminal"></i> Log del Sistema</h3>
-                <button class="close-log" onclick="window.app.closeLogDrawer()">&times;</button>
-            </div>
-            <div class="log-body">
-                <div id="logContent" style="font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap;"></div>
+        <div class="drawer-body">
+            <div style="max-width: 500px; margin: 0 auto;">
+                <!-- Tabs para área de paciente -->
+                <div style="display: flex; border-bottom: 1px solid var(--color-glass-border); margin-bottom: 20px;">
+                    <div class="patient-tab active" data-tab="register">Registrarse</div>
+                    <div class="patient-tab" data-tab="login">Iniciar Sesión</div>
+                    <div class="patient-tab" data-tab="request">Solicitar Documentos</div>
+                </div>
+                
+                <!-- Contenido de tabs -->
+                <div id="patientRegisterTab" class="patient-tab-content active">
+                    <h4 style="margin-bottom: 20px;">Registro de Paciente</h4>
+                    <div id="patientPublicForm"></div>
+                </div>
+                
+                <div id="patientLoginTab" class="patient-tab-content">
+                    <h4 style="margin-bottom: 20px;">Acceso de Paciente</h4>
+                    <form id="patientLoginForm">
+                        <input type="text" class="login-input" placeholder="Documento de identidad">
+                        <input type="password" class="login-input" placeholder="Código de acceso">
+                        <button type="submit" class="login-btn">Ingresar</button>
+                    </form>
+                    <p style="margin-top: 15px; color: var(--color-text-dim); font-size: 0.9rem;">
+                        Si no tiene código de acceso, solicítelo en su última consulta.
+                    </p>
+                </div>
+                
+                <div id="patientRequestTab" class="patient-tab-content">
+                    <h4 style="margin-bottom: 20px;">Solicitar Documentos</h4>
+                    <form id="documentRequestForm">
+                        <input type="text" class="login-input" placeholder="Documento de identidad">
+                        <select class="login-input">
+                            <option value="">Tipo de documento</option>
+                            <option value="historial">Historial médico completo</option>
+                            <option value="receta">Receta médica</option>
+                            <option value="informe">Informe médico</option>
+                            <option value="constancia">Constancia de asistencia</option>
+                        </select>
+                        <textarea class="login-input" rows="4" placeholder="Observaciones o detalles adicionales"></textarea>
+                        <button type="submit" class="login-btn">Solicitar</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- [HTML-007] SCRIPT PRINCIPAL -->
+    <!-- SCRIPT PRINCIPAL -->
     <script type="module" src="modules/index.js"></script>
 </body>
 </html>
