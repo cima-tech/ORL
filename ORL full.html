@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CIMA — Sistema ORL</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+/* Variables CSS globales para mantener consistencia en colores y efectos */
+:root {
+  --primary: #4a6fa5;           /* Color primario azul para botones principales */
+  --primary-dark: #385d8a;      /* Versión más oscura para hover/estados activos */
+  --secondary: #6d7b8c;         /* Color secundario gris azulado */
+  --accent: #ff6b6b;            /* Color de acento rojo para elementos destacados */
+  --success: #28a745;           /* Verde para indicar éxito/confirmación */
+  --warning: #ffc107;           /* Amarillo para advertencias */
+  --danger: #dc3545;            /* Rojo para acciones peligrosas/eliminar */
+  --glass-bg: rgba(255, 255, 255, 0.1); /* Fondo translúcido para efecto vidrio */
+  --glass-border: rgba(255, 255, 255, 0.2); /* Borde translúcido */
+  --text-dark: #2c3e50;         /* Color de texto oscuro principal */
+  --text-light: #f8f9fa;        /* Color de texto claro para fondos oscuros */
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Sombra estándar para tarjetas */
+  --blur: blur(10px);           /* Efecto de desenfoque para efecto vidrio */
+}
+
+/* Reset básico para eliminar márgenes y paddings por defecto */
+* {
+  box-sizing: border-box;       /* Incluye padding y border en el tamaño total */
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilos generales del cuerpo de la página */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; /* Fuentes modernas */
+  font-size: 14px;               /* Tamaño base de fuente */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Fondo degradado morado/azul */
+  min-height: 100vh;             /* Altura mínima de toda la ventana */
+  color: var(--text-dark);       /* Color de texto principal */
+  line-height: 1.5;              /* Espaciado entre líneas */
+}
+
+/* Clase para efecto de vidrio (glassmorphism) */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);     /* Efecto de desenfoque en navegadores modernos */
+  -webkit-backdrop-filter: var(--blur); /* Compatibilidad con Safari */
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;               /* Bordes redondeados */
+  box-shadow: var(--shadow);         /* Sombra suave */
+}
+
+/* Contenedor de la barra de herramientas superior */
+.toolbar-wrapper {
+  background: rgba(11, 15, 40, 0.9); /* Fondo azul oscuro semi-transparente */
+  padding: 12px 0;
+  position: sticky;                  /* Se mantiene fijo al hacer scroll */
+  top: 0;
+  z-index: 1000;                     /* Por encima de otros elementos */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra para separación visual */
+}
+
+/* Contenedor flexible para los elementos de la barra de herramientas */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;    /* Espacio entre logo y botones */
+  max-width: 1400px;                 /* Ancho máximo para pantallas grandes */
+  margin: 0 auto;                    /* Centrado horizontal */
+  padding: 0 20px;                   /* Espaciado interno */
+}
+
+/* Estilos para el logo */
+.logo {
+  display: flex;
+  flex-direction: column;            /* Apila texto principal y subtítulo */
+  color: white;
+}
+
+.logo .main {
+  font-size: 28px;
+  font-weight: 900;                  /* Negrita muy gruesa */
+  color: #ff6b6b;                    /* Color de acento rojo */
+  letter-spacing: 2px;               /* Espaciado entre letras */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra de texto para contraste */
+}
+
+.logo .subtitle {
+  font-size: 11px;
+  opacity: 0.8;                      /* Texto semi-transparente */
+  margin-top: 2px;
+}
+
+/* Grupo de botones en la barra de herramientas */
+.toolbar-group {
+  display: flex;
+  gap: 15px;                         /* Espacio entre botones */
+  align-items: center;
+}
+
+/* Estilo base para botones de la barra de herramientas */
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;                          /* Espacio entre icono y texto */
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente blanco */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde semi-transparente */
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;              /* Transición suave para hover */
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* Efecto hover para botones de toolbar */
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.2); /* Fondo más visible al pasar ratón */
+  transform: translateY(-1px);       /* Efecto de levitación */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+}
+
+.toolbar-btn:active {
+  transform: translateY(0);          /* Vuelve a posición original al hacer clic */
+}
+
+.toolbar-btn i {
+  font-size: 16px;                   /* Tamaño de iconos Bootstrap */
+}
+
+/* Variantes de color para botones de toolbar */
+.toolbar-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+}
+
+.toolbar-btn.warning {
+  background: var(--warning);
+  border-color: #e0a800;
+  color: #212529;                    /* Texto oscuro para contraste con amarillo */
+}
+
+.toolbar-btn.danger {
+  background: var(--danger);
+  border-color: #bd2130;
+}
+
+/* Badge para mostrar estados (ej: plantillas cargadas) */
+.badge {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  border-radius: 20px;               /* Forma de píldora ovalada */
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Contenedor principal del contenido */
+.container {
+  max-width: 1400px;
+  margin: 20px auto;                 /* Centrado con margen superior */
+  padding: 0 20px;                   /* Espaciado lateral */
+}
+
+/* Tarjeta genérica para contener formularios y contenido */
+.card {
+  background: rgba(255, 255, 255, 0.95); /* Fondo blanco semi-transparente */
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;               /* Separación entre tarjetas */
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
+}
+
+/* Sistema de filas flexibles */
+.row {
+  display: flex;
+  gap: 16px;                         /* Espacio entre columnas */
+  margin-bottom: 16px;               /* Separación entre filas */
+  flex-wrap: wrap;                   /* Permite que las columnas se apilen en móviles */
+}
+
+/* Columnas flexibles dentro de filas */
+.col {
+  flex: 1;                           /* Ocupa espacio disponible equitativamente */
+  min-width: 200px;                  /* Ancho mínimo antes de apilarse */
+}
+
+/* Etiquetas para campos de formulario */
+.form-label {
+  display: block;
+  margin-bottom: 6px;                /* Separación con el campo */
+  font-weight: 600;                  /* Negrita para destacar */
+  color: var(--text-dark);
+  font-size: 13px;
+}
+
+/* Campos de entrada de formulario estandarizados */
+.form-input, .form-select, input[type="date"], input[type="datetime-local"] {
+  width: 100%;                       /* Ocupa todo el ancho disponible */
+  padding: 10px 12px;
+  border: 1px solid #ddd;            /* Borde gris claro */
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;              /* Transición suave para focus */
+  background: white;
+}
+
+/* Estado de foco para campos de formulario */
+.form-input:focus, .form-select:focus, input[type="date"]:focus, input[type="datetime-local"]:focus {
+  outline: none;                     /* Elimina contorno por defecto */
+  border-color: var(--primary);      /* Borde azul al enfocar */
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1); /* Sombra exterior sutil */
+}
+
+/* Contenedor para chips (etiquetas seleccionables) */
+.chips {
+  display: flex;
+  flex-wrap: wrap;                   /* Permite múltiples líneas */
+  gap: 8px;                          /* Espacio entre chips */
+  margin-top: 8px;
+}
+
+/* Estilo individual de chip (etiqueta seleccionable) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #f0f4ff;               /* Fondo azul muy claro */
+  border: 1px solid #d1d9ff;         /* Borde azul claro */
+  border-radius: 20px;               /* Forma ovalada */
+  color: var(--primary);             /* Texto azul */
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Efecto hover para chips */
+.chip:hover {
+  background: #e1e8ff;               /* Fondo azul más intenso */
+  transform: translateY(-1px);       /* Efecto de levitación */
+}
+
+/* Estado activo/encendido de chip */
+.chip.on {
+  background: var(--primary);        /* Fondo azul sólido */
+  color: white;                      /* Texto blanco para contraste */
+  border-color: var(--primary);
+}
+
+/* Chip deshabilitado */
+.chip.disabled {
+  opacity: 0.5;                      /* Semi-transparente */
+  cursor: not-allowed;               /* Cursor que indica no permitido */
+}
+
+/* Clase base para botones generales */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;                          /* Espacio entre icono y texto */
+}
+
+/* Variantes de color para botones */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+/* Botón "fantasma" con borde pero sin fondo */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #ddd;            /* Borde gris claro */
+  color: var(--text-dark);
+}
+
+.btn-ghost:hover {
+  background: #f8f9fa;               /* Fondo gris muy claro al pasar ratón */
+}
+
+/* Tamaño pequeño para botones */
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Contenedor para la vista previa del documento */
+.preview-shell {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  overflow: auto;                    /* Scroll si el contenido es muy grande */
+  max-height: 800px;                 /* Altura máxima antes de scroll */
+}
+
+/* Página de documento estilizada */
+.doc-page {
+  background: white;
+  color: var(--text-dark);
+  margin: 0 auto;                    /* Centrado horizontal */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Sombra para efecto de elevación */
+}
+
+/* Tamaño carta estándar (8.5" x 11") en píxeles */
+.doc-letter {
+  width: 816px;                      /* 8.5 pulgadas * 96 DPI = 816px */
+  min-height: 1056px;                /* 11 pulgadas * 96 DPI = 1056px */
+}
+
+/* Tamaño carta horizontal (landscape) */
+.doc-letter.land {
+  width: 1056px;
+  min-height: 816px;
+}
+
+/* Contenido interno del documento */
+.doc-wrap {
+  padding: 40px;                     /* Margen interno generoso */
+  font-size: 14px;
+  line-height: 1.6;                  /* Espaciado entre líneas para legibilidad */
+}
+
+/* Título principal del documento */
+.doc-title {
+  text-align: center;
+  font-weight: 800;                  /* Negrita extragruesa */
+  font-size: 20px;
+  margin: 20px 0;
+  color: var(--primary);
+}
+
+/* Fondo oscuro semi-transparente para modales */
+.modal-overlay {
+  position: fixed;                   /* Cubre toda la pantalla */
+  inset: 0;                          /* Equivalente a top, right, bottom, left: 0 */
+  background: rgba(0, 0, 0, 0.5);    /* Fondo negro semi-transparente */
+  backdrop-filter: blur(4px);        /* Efecto de desenfoque del fondo */
+  z-index: 2000;                     /* Por encima de todo */
+  display: none;                     /* Oculto por defecto */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Clase para mostrar modal */
+.modal-overlay.active {
+  display: flex;                     /* Activa flexbox para centrado */
+}
+
+/* Contenedor del modal */
+.modal-box {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;                        /* Ancho responsivo */
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); /* Sombra pronunciada para elevación */
+}
+
+/* Encabezado del modal */
+.modal-header {
+  font-size: 20px;
+  font-weight: 700;                  /* Negrita */
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+/* Pie del modal para botones de acción */
+.modal-footer {
+  display: flex;
+  gap: 12px;                         /* Espacio entre botones */
+  justify-content: flex-end;         /* Alineación a la derecha */
+  margin-top: 24px;
+}
+
+/* Tarjeta específica para visitas/consultas */
+.visit-card {
+  position: relative;
+}
+
+/* Encabezado de la tarjeta de visita */
+.visit-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;                         /* Espacio entre elementos */
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f4ff; /* Línea separadora azul muy claro */
+}
+
+/* Botón para expandir/colapsar detalles de la visita */
+.visit-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* Panel para estudios médicos */
+.study-panel {
+  background: #f8faff;               /* Fondo azul muy claro */
+  border-left: 4px solid var(--primary); /* Borde izquierdo azul como acento */
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 0 8px 8px 0;        /* Bordes redondeados solo lado derecho */
+}
+
+/* Grupo de elementos dentro de estudios */
+.study-group {
+  margin: 15px 0;
+}
+
+/* Título para grupos dentro de estudios */
+.g-title {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+/* Textarea con altura automática */
+.textarea-auto {
+  min-height: 100px;                 /* Altura mínima */
+  resize: vertical;                  /* Permite redimensionar solo verticalmente */
+  font-family: inherit;              /* Hereda fuente del documento */
+}
+
+/* Contenedor para mensajes de error/éxito flotantes */
+#err {
+  position: fixed;                   /* Fijo en la pantalla */
+  left: 50%;
+  top: 100px;
+  transform: translateX(-50%);       /* Centrado horizontal perfecto */
+  z-index: 1001;                     /* Por encima de toolbar */
+  background: var(--success);        /* Fondo verde por defecto (éxito) */
+  color: white;
+  padding: 15px 30px;
+  display: none;                     /* Oculto por defecto */
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  min-width: 300px;
+  text-align: center;
+}
+
+/* Variante para mensajes de error */
+#err.error {
+  background: var(--danger);         /* Fondo rojo para errores */
+}
+
+/* Clase utilitaria para ocultar elementos */
+.hidden {
+  display: none !important;          /* Fuerza la ocultación */
+}
+
+/* Media queries para diseño responsivo */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;          /* Apila elementos verticalmente */
+    gap: 15px;
+  }
+  
+  .toolbar-group {
+    width: 100%;
+    justify-content: center;         /* Centra botones en móviles */
+    flex-wrap: wrap;                 /* Permite múltiples líneas si es necesario */
+  }
+  
+  .container {
+    padding: 10px;                   /* Reduce padding en móviles */
+  }
+  
+  /* Documentos a ancho completo en móviles */
+  .doc-letter, .doc-letter.land {
+    width: 100%;
+    min-height: auto;                /* Altura automática */
+  }
+  
+  .doc-wrap {
+    padding: 20px;                   /* Reduce padding interno */
+  }
+}
+
+/* Animación de entrada para tarjetas */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); } /* Comienza abajo y transparente */
+  to { opacity: 1; transform: translateY(0); }      /* Termina en posición normal */
+}
+
+.card {
+  animation: fadeIn 0.3s ease-out;   /* Aplica animación de 0.3 segundos */
+}
+
+/* Personalización de la barra de scroll */
+::-webkit-scrollbar {
+  width: 8px;                        /* Ancho de la barra vertical */
+  height: 8px;                       /* Altura de la barra horizontal */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);        /* Color de la barra de scroll */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);   /* Color más oscuro al pasar ratón */
+}
+</style>
+</head>
+<body>
+
+<!-- Contenedor para mensajes flash de éxito/error -->
+<div id="err"></div>
+
+<!-- Barra de herramientas principal con efecto vidrio -->
+<div class="toolbar-wrapper glass">
+  <div class="toolbar">
+    <!-- Logo y nombre del sistema -->
+    <div class="logo">
+      <div class="main">C.I.M.A.</div>
+      <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
+    </div>
+    
+    <!-- Grupo izquierdo: gestión de historias clínicas -->
+    <div class="toolbar-group">
+      <button id="btnNew" class="toolbar-btn">
+        <i class="bi bi-file-earmark-plus"></i> Nueva HC
+      </button>
+      <button id="btnOpen" class="toolbar-btn">
+        <i class="bi bi-folder2-open"></i> Abrir HC
+      </button>
+      <button id="btnClose" class="toolbar-btn warning">
+        <i class="bi bi-x-circle"></i> Cerrar HC
+      </button>
+    </div>
+    
+    <!-- Grupo derecho: gestión de consultas -->
+    <div class="toolbar-group">
+      <button id="btnAddConsulta" class="toolbar-btn primary">
+        <i class="bi bi-plus-circle"></i> Agregar Consulta
+      </button>
+      <button id="btnDeleteLast" class="toolbar-btn danger">
+        <i class="bi bi-trash"></i> Eliminar Última
+      </button>
+      <span class="badge" id="tplStatus">✓ Plantillas Cargadas</span>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor principal del contenido -->
+<div class="container">
+  <!-- Formulario de datos del paciente (oculto inicialmente) -->
+  <div id="patientForm" class="card hidden">
+    <div class="row">
+      <!-- Campo: Identificación del paciente (requerido) -->
+      <div class="col">
+        <label class="form-label">ID (ej: V-12345) *</label>
+        <input id="patient_id" class="form-input" placeholder="X-123456" required>
+      </div>
+      <!-- Campo: Nombre completo del paciente (requerido) -->
+      <div class="col">
+        <label class="form-label">Nombre Completo *</label>
+        <input id="full_name" class="form-input" placeholder="Nombre y apellido" required>
+      </div>
+      <!-- Campo: Fecha de nacimiento -->
+      <div class="col">
+        <label class="form-label">Fecha de Nacimiento</label>
+        <input id="birthdate" type="date" class="form-input">
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Campo: Sexo (select con opciones) -->
+      <div class="col">
+        <label class="form-label">Sexo</label>
+        <select id="sex" class="form-select">
+          <option value="">Seleccionar</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+        </select>
+      </div>
+      <!-- Campo: Ocupación -->
+      <div class="col">
+        <label class="form-label">Ocupación</label>
+        <input id="ocupacion" class="form-input">
+      </div>
+      <!-- Campo: Teléfono -->
+      <div class="col">
+        <label class="form-label">Teléfono</label>
+        <input id="phone" class="form-input" placeholder="+58 424 1090979">
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Campo: Email -->
+      <div class="col">
+        <label class="form-label">Email</label>
+        <input id="email" type="email" class="form-input" placeholder="paciente@email.com">
+      </div>
+      <!-- Campo: Checkbox para seguro médico -->
+      <div class="col">
+        <label class="form-label">¿Tiene seguro médico?</label>
+        <div style="margin-top: 8px;">
+          <input type="checkbox" id="has_seguro"> 
+          <label for="has_seguro" style="margin-left: 8px;">Sí, tiene seguro</label>
+        </div>
+      </div>
+      <!-- Campo: Compañía de seguro (visible solo si checkbox está marcado) -->
+      <div class="col seguro-box hidden" id="seguro_box">
+        <label class="form-label">Compañía de seguro</label>
+        <input id="seguro_company" class="form-input">
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor dinámico para las visitas/consultas (se llena con JavaScript) -->
+  <div id="visitsContainer"></div>
+
+  <!-- Barra de controles para vista previa (oculta inicialmente) -->
+  <div id="previewBar" class="card hidden">
+    <div class="row" style="align-items: center;">
+      <!-- Control de zoom del documento -->
+      <div class="col" style="flex: 1;">
+        <label class="form-label">Zoom del documento</label>
+        <input type="range" id="zoomRange" min="40" max="120" step="5" value="60" class="form-input">
+        <span id="zoomVal" style="font-weight: 600; margin-left: 10px;">60%</span>
+      </div>
+      <!-- Botones de acción para vista previa -->
+      <div class="col" style="flex: 0 0 auto;">
+        <div style="display: flex; gap: 10px;">
+          <button id="btnSigToggle" class="btn btn-ghost">
+            <i class="bi bi-pen"></i> Firma
+          </button>
+          <button id="btnRefresh" class="btn btn-primary">
+            <i class="bi bi-arrow-clockwise"></i> Actualizar
+          </button>
+          <button id="btnExport" class="btn btn-success">
+            <i class="bi bi-download"></i> Exportar PNG
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenedor para mostrar la vista previa del documento -->
+  <div id="previewShell" class="preview-shell hidden">
+    <div id="docPreview"></div>
+  </div>
+</div>
+
+<!-- Modal para buscar historias clínicas almacenadas -->
+<div id="searchModal" class="modal-overlay">
+  <div class="modal-box glass">
+    <div class="modal-header">Buscar Historia Clínica</div>
+    <div class="modal-body">
+      <div class="row">
+        <!-- Selector de campo por el cual buscar -->
+        <div class="col">
+          <label class="form-label">Buscar por:</label>
+          <select id="searchType" class="form-select">
+            <option value="patient_id">Cédula / ID</option>
+            <option value="full_name">Nombre completo</option>
+            <option value="email">Email</option>
+            <option value="phone">Teléfono</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <!-- Campo de entrada para el valor a buscar -->
+        <div class="col">
+          <label class="form-label">Valor a buscar:</label>
+          <input id="searchValue" class="form-input" placeholder="Ingrese el valor...">
+        </div>
+      </div>
+      <!-- Contenedor para resultados de búsqueda (oculto inicialmente) -->
+      <div id="searchResults" class="hidden" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+        <div style="font-weight: 700; margin-bottom: 10px; color: var(--primary);">Resultados encontrados:</div>
+        <div id="searchResultsList"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btnCancelSearch" class="btn btn-ghost">Cancelar</button>
+      <button id="btnDoSearch" class="btn btn-primary">Buscar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación al exportar documento -->
+<div id="exportModal" class="modal-overlay">
+  <div class="modal-box glass">
+    <div class="modal-header">Documento Exportado</div>
+    <div class="modal-body">
+      <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+        <div style="font-size: 48px; color: var(--success); margin-bottom: 10px;">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div style="font-weight: 600; font-size: 16px; color: var(--success);">Archivo guardado en Descargas</div>
+        <!-- Nombre del archivo exportado se mostrará aquí -->
+        <div id="pngFilename" style="color: #666; margin-top: 5px;"></div>
+      </div>
+      <div style="text-align: center;">
+        <button onclick="$('#exportModal').classList.remove('active')" class="btn btn-primary">
+          <i class="bi bi-check"></i> Continuar trabajando
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para compartir documentos -->
+<div id="shareModal" class="modal-overlay">
+  <div class="modal-box glass">
+    <div class="modal-header">Compartir Documento</div>
+    <div class="modal-body">
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <!-- Opción: Copiar enlace al portapapeles -->
+        <button onclick="copyLinkFromShare()" class="btn btn-ghost" style="justify-content: flex-start;">
+          <i class="bi bi-link-45deg"></i> Copiar enlace al portapapeles
+        </button>
+        <!-- Opción: Compartir via WhatsApp -->
+        <button onclick="shareViaWhatsApp()" class="btn btn-ghost" style="justify-content: flex-start;">
+          <i class="bi bi-whatsapp" style="color: #25D366;"></i> Enviar por WhatsApp
+        </button>
+        <!-- Opción: Compartir via Email -->
+        <button onclick="shareViaEmail()" class="btn btn-ghost" style="justify-content: flex-start;">
+          <i class="bi bi-envelope"></i> Enviar por Email
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="$('#shareModal').classList.remove('active')" class="btn btn-ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Biblioteca para convertir HTML a Canvas (usada en exportación a PNG) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+// =========== DATOS DEL SISTEMA ===========
+/* Objeto que contiene todas las plantillas y datos predefinidos del sistema ORL */
+const CIMA_DATA = {
+  // Array de motivos de consulta comunes en ORL
+  MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
+  
+  // Array de antecedentes médicos relevantes
+  ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
+  
+  // Array de diagnósticos posibles en ORL
+  DX: ["Otocerumen Bilateral","Otocerumen Derecho","Otocerumen Izquierdo","Otitis Externa Bilateral","Otitis Externa Derecha","Otitis Externa Izquierda","Otitis Media Aguda Bilateral","Otitis Media Aguda Derecha","Otitis Media Aguda Izquierda","Otitis Media Crónica Perforada Bilateral","Otitis Media Crónica Perforada Derecha","Otitis Media Crónica Perforada Izquierda","Otitis Media Crónica Sucurativa","Otitis Media Crónica Colestetomatosa","Hipoacusia Neurosensorial Profunda Bilateral","Hipoacusia Neurosensorial Profunda Derecha","Hipoacusia Neurosensorial Profunda Izquierda","Hipoacusia Conductiva Leve Bilateral","Hipoacusia Conductiva Leve Derecha","Hipoacusia Conductiva Leve Izquierda","Presbiacusia","Otitis Media Serosa Bilateral","Otitis Media Serosa Derecha","Otitis Media Serosa Izquierda","Faringoamigdalitis Aguda","Tonsilitis Recurrente","Otitis Media Aguda Recurrente","Alto Riesgo Biológico Para Hipoacusia","Rinopatía Obstructiva","Rinitis Alérgica","Poliposis Nasal","Rinosinusitis Aguda Maxiloetmoidal","Rinosinusitis Aguda Maxilar","Rinosinusitis Maxilar Crónica","Rinosinusitis Crónica Con Poliposis Nasal","Lesión En Cuerda Vocal Derecha","Lesión En Cuerda Vocal Izquierda","Parálisis De Cuerda Vocal Bilateral","Parálisis De Cuerda Vocal Derecha","Parálisis De Cuerda Vocal Izquierda","Epistaxis Anterior","Epistaxis Anteroposterior","Epistaxis Posterior","Frenillo Lingual","Antecedente Quirúrgico"],
+  
+  // Objeto jerárquico de medicamentos organizados por categorías
+  RECIPE_MEDS: {
+    "Esteroides Nasales": ["Solución Fisiológica","Flinas / Nasonex / Elocon / Flixonase / Nimarin / Budenas (Spray Nasal)","Flinas - Spray Nasal","Nasonex - Spray Nasal","Elocon - Spray Nasal","Flixonase - Spray Nasal","Nimarin - Spray Nasal","Budenas - Spray Nasal","Momentasona o Fluticasona - Spray Nasal"],
+    "Antialérgicos": ["Desloratadina - Tabletas 5 mg","Desloratadina - Jarabe","Loratadina - Tabletas 10 mg","Loratadina - Jarabe","Cetirizina - Tabletas 10 mg","Cetirizina - Jarabe","Levocetirizina - Tabletas 5 mg","Levocetirizina - Jarabe","Rinolast - Tabletas","Rinolast - Jarabe","Fexofenadina - Tabletas 120 mg","Fexofenadina - Jarabe","Claricort - Tabletas","Lorecort - Jarabe","Montelukast - Tabletas 4 mg","Montelukast - Tabletas 5 mg","Montelukast - Tabletas 10 mg","Rinomax - Gotas Nasales","Bactroban, Bacitracina, Mupirocina, Muprovan - crema o ungüento"],
+    "Gotas óticas": ["Quinotic, Quinotic HC, (Gotas Óticas)","Otalex (Gotas Óticas)","Poliótico (Gotas Óticas)","Otirilin o Aceite de Bebé (Gotas)"],
+    "Protector Gástrico": ["Pantoprazol ó Esomeprazol - Tabletas de 20 mg","Pantoprazol - Tabletas 40 mg"],
+    "Antibióticos": ["Amoxicilina / Acido Clavulánico - Tabletas 875/125 mg","Amoxicilina / Acido Clavulánico - Suspensión 600 mg / 5 ml","Amoxicilina - Tabletas 500 mg","Amoxicilina - Jarabe","Sultamicilina - Tabletas 750 mg","Sultamicilina - Suspensión 250 mg / 5 ml","Levofloxacina- Tabletas 500 mg","Levofloxacina- Tabletas 750 mg","Moxifloxacina, Moxen, Avelox - Comprimidos 400 mg"],
+    "Otros": ["Pulmolix - Sobres","Betahistina - 8 mg","Betahistina - 16 mg","Betahistina - 24 mg","Viajesan - Comprimidos"]
+  },
+  
+  // Opciones de indicaciones organizadas por categoría de medicamento
+  INDICACIONES_OPTIONS: {
+    "Esteroides Nasales": ["Realizar lavados nasales cada 12 horas por 7 días.","Colocar dos aplicaciones en cada fosa nasal cada 12 horas por 1 mes.","Colocar una aplicación en cada fosa nasal cada 12 horas por 1 mes."],
+    "Antialérgicos": ["Tomar 1 tableta diaria por 1 mes.","Dar vía oral 1 cc una vez al día por 1 mes.","Dar vía oral 2 cc una vez al día por 1 mes.","Dar vía oral 3 cc una vez al día por 1 mes.","Dar vía oral 4 cc una vez al día por 1 mes.","Dar vía oral 5 cc una vez al día por 1 mes.","Tomar 1 tableta cada 12 horas por 7 días.","Dar vía oral 1 cc cada 12 horas por 7 días.","Dar vía oral 2 cc cada 12 horas por 7 días.","Dar vía oral 3 cc cada 12 horas por 7 días.","Dar vía oral 4 cc cada 12 horas por 7 días.","Dar vía oral 5 cc cada 12 horas por 7 días.","Colocar 3 Gotas en cada fosa nasal cada 8 horas por 5 días.","Colocar 1 aplicación en cada fosa nasal cada 12 horas por 7 días.","Tomar 1 tableta diaria por 3 meses."],
+    "Gotas óticas": ["Aplicar 3 Gotas en cada oído cada 12 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en cada oído cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído izquierdo cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído izquierdo cada 12 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído derecho cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído derecho cada 12 horas por 7 días. No mojar los oídos."],
+    "Protector Gástrico": ["Tomar 1 tableta diaria por 3 meses.","Tomar 1 tableta diaria antes del desayuno por 1 mes.","Tomar 1 tableta antes del desayuno y 1 Tableta antes la cena por 1 mes."],
+    "Antibióticos": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días.","Dar vía oral 1 cc cada 12 horas por 10 días.","Dar vía oral 2 cc cada 12 horas por 10 días.","Dar vía oral 3 cc cada 12 horas por 10 días.","Dar vía oral 4 cc cada 12 horas por 10 días.","Dar vía oral 5 cc cada 12 horas por 10 días.","Dar vía oral 6 cc cada 12 horas por 10 días."],
+    "Otros": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días."]
+  },
+
+  // Estructura de datos para estudios médicos con subcategorías
+  STUDIES: {
+    "Nasofibrolaringoscopia": {
+      "Fosas Nasales": ["Permeables","No Permeables"],
+      "Correderas Nasales": ["Sin Rinorrea","Rinorrea Blanca Escasa","Rinorrea Blanca Moderada","Rinorrea Blanca Abundante","Rinorrea Hialina Escasa","Rinorrea Hialina Moderada","Rinorrea Hialina Abundante","Rinorrea Amarilla Escasa","Rinorrea Amarilla Moderada","Rinorrea Amarilla Abundante","Rinorrea Verde Escasa","Rinorrea Verde Moderada","Rinorrea Verde Abundante"],
+      "Tabique": ["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"]
+    },
+    "Endoscopia Nasal": {
+      "Fosas Nasales": ["Permeables","No Permeables"],
+      "Tabique": ["Central","Septumdesviación Levoconvexa","Septumdesviación Dextroconvexa","Levoconvexa Con Espolón Oseo Derecho","Levoconvexa Con Espolón Oseo Izquierdo","Dextroconvexa Con Espolón Oseo Derecho","Dextroconvexa Con Espolón Oseo Izquierdo","Central Con Espolón Óseo Derecho","Central Con Espolón Óseo Izquierdo"]
+    }
+  },
+  
+  // Estructura de datos para examen físico organizado por áreas corporales
+  PHYSICAL_EXAM: {
+    "Cara": {
+      "Simetría": ["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"]
+    },
+    "Oído Derecho": {
+      "Oído Externo": ["Pabellón Auricular Indemne Normoimplantado","Microtia Grado 1","Microtia Grado 2","Microtia Grado 3","Anotia","Fístula"],
+      "Conducto Auditivo Externo": ["CAE Libre","CAE con Otocerumen","CAE estenótico","Atresia CAE","CAE con LOE","CAE con Otorrea Fétida","CAE Descamativo"]
+    }
+  }
+};
+
+// =========== VARIABLES GLOBALES ===========
+let visitIdCounter = 0;           // Contador para IDs únicos de visitas
+let currentPreviewDoc = null;     // Tipo de documento actual en vista previa ('INF' o 'RP')
+let currentPreviewCard = null;    // Tarjeta de visita asociada al preview actual
+let USE_SIG = true;              // Bandera para mostrar/ocultar firma en documentos
+let currentLinkCard = null;       // Referencia a tarjeta para compartir enlace
+let currentShareCard = null;      // Referencia a tarjeta para compartir documento
+
+// =========== FUNCIONES UTILITARIAS ===========
+/* Función shorthand para document.querySelector (selecciona primer elemento que coincida) */
+const $ = s => document.querySelector(s);
+
+/* Función shorthand para document.querySelectorAll (devuelve array de todos los elementos) */
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/**
+ * Muestra un mensaje flash temporal (éxito o error)
+ * @param {string} msg - Mensaje a mostrar
+ * @param {boolean} isError - Si es true, muestra como error (rojo), sino como éxito (verde)
+ */
+function flash(msg, isError = false) {
+  const e = $("#err");
+  e.textContent = msg;
+  e.className = isError ? 'error' : '';
+  e.style.display = 'block';
+  setTimeout(() => e.style.display = 'none', 3000); // Oculta automáticamente después de 3 segundos
+}
+
+/**
+ * Muestra un mensaje de error (wrapper sobre flash)
+ * @param {string} msg - Mensaje de error a mostrar
+ */
+function showErr(msg) { 
+  flash(msg, true); 
+  console.error(msg); 
+}
+
+/**
+ * Calcula la edad a partir de una fecha de nacimiento
+ * @param {string} dob - Fecha de nacimiento en formato ISO (YYYY-MM-DD)
+ * @returns {string|number} - Edad en años o string vacío si no hay fecha
+ */
+function calcAge(dob) {
+  if (!dob) return '';
+  const d = new Date(dob);
+  const n = new Date();
+  let a = n.getFullYear() - d.getFullYear();
+  const m = n.getMonth() - d.getMonth();
+  // Ajusta si el cumpleaños aún no ha ocurrido este año
+  if (m < 0 || (m === 0 && n.getDate() < d.getDate())) a--;
+  return a;
+}
+
+/**
+ * Formatea fecha ISO a formato DD-MM-YYYY
+ * @param {string} iso - Fecha en formato ISO
+ * @returns {string} - Fecha formateada o string vacío
+ */
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+}
+
+/**
+ * Formatea fecha y hora ISO a formato DD-MM-YYYY HH:MM
+ * @param {string} iso - Fecha-hora en formato ISO
+ * @returns {string} - Fecha y hora formateadas
+ */
+function fmtDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Obtiene la fecha y hora local actual en formato para input datetime-local
+ * @returns {string} - Fecha-hora en formato YYYY-MM-DDTHH:MM
+ */
+function getLocalDateTime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Ajusta por zona horaria
+  return now.toISOString().slice(0, 16); // Corta a YYYY-MM-DDTHH:MM
+}
+
+/**
+ * Valida el formato de ID de paciente (Letras-Números)
+ * @param {string} id - ID a validar
+ * @returns {boolean} - true si cumple el patrón
+ */
+function validatePatientId(id) {
+  return /^[A-Za-z]+-\d+$/.test(id); // Ej: V-12345, X-123456
+}
+
+// =========== ALMACENAMIENTO LOCAL ===========
+const LOCAL_STORAGE_KEY = 'CIMA_PACIENTES'; // Clave para almacenamiento en localStorage
+
+/**
+ * Guarda el estado actual de la historia clínica en localStorage
+ * @returns {boolean} - true si se guardó exitosamente
+ */
+function saveToLocal() {
+  const data = serializeCurrentState(); // Serializa datos actuales
+  if (!data.patient.patient_id || !data.patient.full_name) {
+    showErr('Complete ID y nombre del paciente');
+    return false;
+  }
+  
+  try {
+    let pacientes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {};
+    // Usa el ID del paciente como clave en el objeto
+    pacientes[data.patient.patient_id] = {
+      ...data,
+      lastUpdated: new Date().toISOString() // Marca de tiempo de última actualización
+    };
+    
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(pacientes));
+    flash('Historia guardada localmente');
+    return true;
+  } catch (err) {
+    showErr('Error guardando: ' + err.message);
+    return false;
+  }
+}
+
+/**
+ * Busca pacientes en localStorage por campo y valor
+ * @param {string} field - Campo por el cual buscar (patient_id, full_name, etc.)
+ * @param {string} value - Valor a buscar (puede ser parcial)
+ * @returns {Array} - Array de pacientes encontrados
+ */
+function searchPatientsLocal(field, value) {
+  try {
+    const pacientes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {};
+    const results = [];
+    
+    for (const [id, data] of Object.entries(pacientes)) {
+      const patient = data.patient;
+      if (patient[field] && patient[field].toLowerCase().includes(value.toLowerCase())) {
+        results.push({
+          id: id,
+          ...patient,
+          lastUpdated: data.lastUpdated
+        });
+      }
+    }
+    
+    return results;
+  } catch (err) {
+    showErr('Error en búsqueda: ' + err.message);
+    return [];
+  }
+}
+
+/**
+ * Carga un paciente desde localStorage por su ID
+ * @param {string} id - ID del paciente a cargar
+ */
+function loadPatientById(id) {
+  try {
+    const pacientes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {};
+    const data = pacientes[id];
+    
+    if (!data) {
+      showErr('Paciente no encontrado');
+      return;
+    }
+    
+    renderHCFromJSON(data); // Renderiza los datos en la interfaz
+    closeSearchModal();
+    flash('Historia cargada: ' + data.patient.full_name);
+  } catch (err) {
+    showErr('Error cargando: ' + err.message);
+  }
+}
+
+// =========== COMPONENTES UI ===========
+/**
+ * Crea un elemento chip (etiqueta seleccionable)
+ * @param {string} label - Texto del chip
+ * @param {boolean} active - Si el chip está activo inicialmente
+ * @param {Object} opts - Opciones adicionales
+ * @returns {HTMLElement} - Elemento chip creado
+ */
+function chip(label, active = false, opts = { toggle: true }) {
+  const s = document.createElement('span');
+  s.className = 'chip' + (active ? ' on' : '');
+  s.textContent = label;
+  s.dataset.active = active ? '1' : '0';
+  
+  if (opts.toggle) {
+    s.addEventListener('click', () => {
+      if (s.classList.contains('disabled')) return;
+      const on = s.dataset.active === '1';
+      s.dataset.active = on ? '0' : '1';
+      s.classList.toggle('on', !on);
+      s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true }));
+    });
+  }
+  
+  return s;
+}
+
+/**
+ * Agrega múltiples chips a un contenedor
+ * @param {HTMLElement} container - Elemento contenedor
+ * @param {Array} items - Array de textos para chips
+ */
+function addChips(container, items) {
+  items.forEach(l => container.appendChild(chip(l, false)));
+}
+
+// =========== GESTIÓN DE VISITAS ===========
+/**
+ * Crea y devuelve una tarjeta de visita/consulta médica
+ * @param {string} type - Tipo de visita ('Primera' o 'Sucesiva')
+ * @returns {HTMLElement} - Tarjeta de visita completa
+ */
+function visitCard(type = 'Primera') {
+  const cardId = 'visit-' + (++visitIdCounter); // ID único incremental
+  const wrap = document.createElement('div');
+  wrap.id = cardId;
+  wrap.className = 'card visit-card';
+  wrap.dataset.type = type;
+  
+  // Calcula edad automáticamente para texto de enfermedad actual
+  const edad = calcAge($("#birthdate")?.value);
+  const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
+  const sexo = $("#sex")?.value || '[sexo]';
+  const eaAuto = `Paciente ${sexo} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
+  
+  // Estructura HTML de la tarjeta de visita
+  wrap.innerHTML = `
+    <div class="visit-header">
+      <button type="button" class="visit-toggle-btn" onclick="toggleVisitBody('${cardId}')">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+      <span class="badge">${type}</span>
+      <span style="flex: 1;">Consulta ${type.toLowerCase()}</span>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-primary btn-small btn-inf">
+          <i class="bi bi-file-text"></i> Informe
+        </button>
+        <button type="button" class="btn btn-success btn-small btn-rp">
+          <i class="bi bi-prescription"></i> Receta
+        </button>
+      </div>
+    </div>
+    
+    <div class="visit-body">
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Fecha y Hora</label>
+          <input type="datetime-local" class="form-input visit-date" value="${getLocalDateTime()}">
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Enfermedad Actual</label>
+          <textarea class="form-input txt-ea" rows="3">${eaAuto}</textarea>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Motivo(s) de Consulta</label>
+          <input class="form-input txt-motivo" placeholder="(texto libre opcional)">
+          <div class="chips chips-motivo" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Diagnóstico</label>
+          <input class="form-input txt-dx" placeholder="(se llena con chips + libre)">
+          <div class="chips chips-dx" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Recipe</label>
+          <textarea class="form-input txt-recipe" rows="4" placeholder="(seleccione medicamentos)"></textarea>
+          <div class="recipe-chips-container" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Indicaciones</label>
+          <textarea class="form-input txt-indicaciones" rows="6" placeholder="(se generan automáticamente)"></textarea>
+          <div class="indicaciones-dropdowns" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Plan / Tratamiento</label>
+          <textarea class="form-input txt-plan" rows="8" placeholder="(se genera automáticamente)"></textarea>
+        </div>
+      </div>
+      
+      <div class="doc-status-area" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f4ff;"></div>
+    </div>
+  `;
+  
+  // Agregar chips predefinidos
+  addChips(wrap.querySelector('.chips-motivo'), CIMA_DATA.MOTIVOS);
+  addChips(wrap.querySelector('.chips-dx'), CIMA_DATA.DX);
+  
+  // Configurar chips de medicamentos agrupados por categoría
+  makeRecipeChipsGrouped(wrap.querySelector('.recipe-chips-container'), wrap);
+  
+  // Event listeners para botones de informe y receta
+  wrap.querySelector('.btn-inf').addEventListener('click', () => {
+    if (currentPreviewDoc === 'INF' && currentPreviewCard === wrap) closePreview();
+    else openDoc('INF', wrap);
+  });
+  
+  wrap.querySelector('.btn-rp').addEventListener('click', () => {
+    if (currentPreviewDoc === 'RP' && currentPreviewCard === wrap) closePreview();
+    else openDoc('RP', wrap);
+  });
+  
+  // Marcar textareas que han sido editadas manualmente
+  wrap.querySelector('.txt-recipe')?.addEventListener('input', function() {
+    this.dataset.userEdited = '1';
+  });
+  
+  wrap.querySelector('.txt-indicaciones')?.addEventListener('input', function() {
+    this.dataset.userEdited = '1';
+  });
+  
+  wrap.querySelector('.txt-plan')?.addEventListener('input', function() {
+    this.dataset.userEdited = '1';
+  });
+  
+  return wrap;
+}
+
+// =========== RECETA Y MEDICAMENTOS ===========
+/**
+ * Crea grupos de chips de medicamentos organizados por categoría
+ * @param {HTMLElement} container - Contenedor donde se agregarán los chips
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function makeRecipeChipsGrouped(container, card) {
+  Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([groupName, meds]) => {
+    const groupDiv = document.createElement('div');
+    groupDiv.style.marginBottom = '12px';
+    groupDiv.innerHTML = `
+      <div style="font-weight: 600; color: var(--primary); margin: 8px 0;">${groupName}</div>
+      <div class="chips recipe-chips-group" data-group="${groupName}"></div>
+    `;
+    
+    const chipsBox = groupDiv.querySelector('.chips');
+    meds.forEach(med => {
+      const c = chip(med, false);
+      c.addEventListener('click', () => {
+        updateRecipeTextbox(card);
+        updateIndicacionesSection(card);
+      });
+      chipsBox.appendChild(c);
+    });
+    
+    container.appendChild(groupDiv);
+  });
+}
+
+/**
+ * Actualiza el textarea de receta con los medicamentos seleccionados
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function updateRecipeTextbox(card) {
+  const selected = [...card.querySelectorAll('.recipe-chips-group .chip.on')].map(c => c.textContent);
+  const txtRecipe = card.querySelector('.txt-recipe');
+  if (txtRecipe && !txtRecipe.dataset.userEdited) {
+    txtRecipe.value = selected.join('\n'); // Une con saltos de línea
+  }
+}
+
+/**
+ * Actualiza la sección de indicaciones basada en medicamentos seleccionados
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function updateIndicacionesSection(card) {
+  const dropdownsContainer = card.querySelector('.indicaciones-dropdowns');
+  const selectedByGroup = {};
+  
+  // Agrupa medicamentos seleccionados por categoría
+  card.querySelectorAll('.recipe-chips-group').forEach(groupChips => {
+    const groupName = groupChips.dataset.group;
+    const selected = [...groupChips.querySelectorAll('.chip.on')].map(c => c.textContent);
+    if (selected.length > 0) selectedByGroup[groupName] = selected;
+  });
+  
+  dropdownsContainer.innerHTML = '';
+  
+  // Inicializa objeto para almacenar indicaciones si no existe
+  if (!card.indicacionesData) card.indicacionesData = {};
+  
+  // Crea un dropdown por cada medicamento seleccionado
+  Object.entries(selectedByGroup).forEach(([groupName, meds]) => {
+    meds.forEach(medName => {
+      const medDiv = document.createElement('div');
+      medDiv.style.marginBottom = '10px';
+      medDiv.innerHTML = `
+        <div style="font-size: 13px; color: #666; margin-bottom: 4px;">${medName}</div>
+        <select class="form-select indicacion-select" data-med="${medName}" data-group="${groupName}">
+          <option value="">-- Seleccione indicación --</option>
+        </select>
+      `;
+      
+      const select = medDiv.querySelector('select');
+      const options = CIMA_DATA.INDICACIONES_OPTIONS[groupName] || CIMA_DATA.INDICACIONES_OPTIONS["Otros"];
+      
+      // Llena el dropdown con opciones predefinidas
+      options.forEach(ind => {
+        const opt = document.createElement('option');
+        opt.value = ind;
+        opt.textContent = ind;
+        select.appendChild(opt);
+      });
+      
+      // Restaura indicación previamente seleccionada si existe
+      if (card.indicacionesData[medName]) {
+        select.value = card.indicacionesData[medName];
+      } else if (options.length > 0) {
+        select.selectedIndex = 1; // Selecciona primera opción no vacía
+        card.indicacionesData[medName] = select.value;
+      }
+      
+      // Actualiza cuando cambia la selección
+      select.addEventListener('change', () => {
+        card.indicacionesData[medName] = select.value;
+        updateIndicacionesTextbox(card);
+      });
+      
+      dropdownsContainer.appendChild(medDiv);
+    });
+  });
+  
+  updateIndicacionesTextbox(card);
+}
+
+/**
+ * Actualiza el textarea de indicaciones con las selecciones de los dropdowns
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function updateIndicacionesTextbox(card) {
+  const txtIndicaciones = card.querySelector('.txt-indicaciones');
+  if (!txtIndicaciones || txtIndicaciones.dataset.userEdited === '1') return;
+  
+  const lines = [];
+  card.querySelectorAll('.indicacion-select').forEach(sel => {
+    if (sel.value) lines.push(`${sel.dataset.med}: ${sel.value}`);
+  });
+  
+  txtIndicaciones.value = lines.join('\n\n'); // Separa con doble salto de línea
+  updatePlanTratamiento(card);
+}
+
+/**
+ * Actualiza el textarea de plan/tratamiento con indicaciones y contacto
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function updatePlanTratamiento(card) {
+  const txtPlan = card.querySelector('.txt-plan');
+  const txtIndicaciones = card.querySelector('.txt-indicaciones');
+  
+  if (!txtPlan || txtPlan.dataset.userEdited === '1') return;
+  
+  const indicaciones = txtIndicaciones?.value || '';
+  const contacto = "\n\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas al 0212-5086321 / 0424-1090979 o acudir a la Emergencia.";
+  
+  txtPlan.value = indicaciones + contacto; // Concatena indicaciones con contacto
+}
+
+// =========== PREVIEW Y EXPORT ===========
+/**
+ * Cierra la vista previa del documento
+ */
+function closePreview() {
+  $("#previewBar")?.classList.add('hidden');
+  $("#previewShell")?.classList.add('hidden');
+  $$('.btn-inf, .btn-rp').forEach(btn => btn.classList.remove('active'));
+  currentPreviewDoc = null;
+  currentPreviewCard = null;
+}
+
+/**
+ * Actualiza el estado visual de los botones de informe/receta
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ * @param {string} activeType - Tipo activo ('INF' o 'RP')
+ */
+function updateDocButtons(card, activeType) {
+  $$('.btn-inf, .btn-rp').forEach(btn => btn.classList.remove('active'));
+  if (activeType === 'INF') card.querySelector('.btn-inf')?.classList.add('active');
+  if (activeType === 'RP') card.querySelector('.btn-rp')?.classList.add('active');
+}
+
+/**
+ * Abre un documento (informe o receta) en vista previa
+ * @param {string} kind - Tipo de documento ('INF' para informe, 'RP' para receta)
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ */
+function openDoc(kind, card) {
+  $("#previewBar")?.classList.remove('hidden');
+  $("#previewShell")?.classList.remove('hidden');
+  
+  const pv = $("#docPreview");
+  if (!pv) return;
+  
+  const html = (kind === 'INF') ? buildReportHTML(card) : buildRecipeHTML(card);
+  pv.innerHTML = html;
+  applyZoom();
+  
+  currentPreviewDoc = kind;
+  currentPreviewCard = card;
+  updateDocButtons(card, kind);
+  flash('Documento generado');
+}
+
+/**
+ * Construye el HTML para un informe médico
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ * @returns {string} - HTML del informe
+ */
+function buildReportHTML(card) {
+  const date = card.querySelector('.visit-date').value;
+  const ea = (card.querySelector('.txt-ea')?.value || '').trim();
+  const motivo = (card.querySelector('.txt-motivo')?.value || '').trim();
+  const dx = (card.querySelector('.txt-dx')?.value || '').trim();
+  const plan = (card.querySelector('.txt-plan')?.value || '').trim();
+  
+  const patientInfo = `
+    <div style="font-weight: 600; margin-bottom: 10px;">
+      Nombre: ${$("#full_name")?.value || '—'} · 
+      ID: ${$("#patient_id")?.value || '—'} · 
+      Sexo: ${$("#sex")?.value || '—'} · 
+      Edad: ${calcAge($("#birthdate")?.value) || '—'} años
+    </div>
+  `;
+  
+  return `
+    <div class="doc-page doc-letter">
+      <div class="doc-wrap">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: var(--primary); margin-bottom: 10px;">INFORME MÉDICO</h1>
+          <div style="color: #666;">Otorrinolaringología</div>
+        </div>
+        
+        ${patientInfo}
+        
+        <div style="margin-bottom: 20px;">
+          <strong>Fecha:</strong> ${fmtDateTime(date)}
+        </div>
+        
+        ${ea ? `<div style="margin-bottom: 20px;"><strong>Enfermedad Actual:</strong> ${ea}</div>` : ''}
+        
+        ${motivo ? `<div style="margin-bottom: 20px;"><strong>Motivo de Consulta:</strong> ${motivo}</div>` : ''}
+        
+        ${dx ? `<div style="margin-bottom: 20px;"><strong>Diagnóstico:</strong> ${dx}</div>` : ''}
+        
+        ${plan ? `<div style="margin-bottom: 20px;"><strong>Plan / Tratamiento:</strong><br>${plan.replace(/\n/g, '<br>')}</div>` : ''}
+        
+        <div style="margin-top: 80px; text-align: center;">
+          <div style="border-top: 1px solid #000; width: 200px; margin: 40px auto 10px;"></div>
+          <div>Dra. Valentina González Yanez</div>
+          <div style="font-size: 12px; color: #666;">ORL - Hospital de Clínicas Caracas</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Construye el HTML para una receta médica
+ * @param {HTMLElement} card - Tarjeta de visita asociada
+ * @returns {string} - HTML de la receta
+ */
+function buildRecipeHTML(card) {
+  const name = $("#full_name")?.value || '—';
+  const doc = $("#patient_id")?.value || '—';
+  const dateISO = card.querySelector('.visit-date').value;
+  const date = fmtDate(dateISO);
+  const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
+  const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
+  
+  return `
+    <div class="doc-page doc-letter land">
+      <div class="doc-wrap">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: var(--primary); margin-bottom: 10px;">RECETA MÉDICA</h1>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <strong>Paciente:</strong> ${name}<br>
+          <strong>ID:</strong> ${doc}<br>
+          <strong>Fecha:</strong> ${date}
+        </div>
+        
+        <div style="display: flex; gap: 40px; margin-bottom: 40px;">
+          <div style="flex: 1;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">MEDICAMENTOS</h3>
+            <div style="white-space: pre-line;">${recipe}</div>
+          </div>
+          
+          <div style="flex: 1;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">INDICACIONES</h3>
+            <div style="white-space: pre-line;">${indicaciones}</div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 60px; text-align: center;">
+          <div style="border-top: 1px solid #000; width: 200px; margin: 40px auto 10px;"></div>
+          <div>Dra. Valentina González Yanez</div>
+          <div style="font-size: 12px; color: #666;">ORL - Hospital de Clínicas Caracas</div>
+          <div style="font-size: 11px; color: #666; margin-top: 5px;">Tel: (0212) 5086321 - (0424) 1090979</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Aplica el nivel de zoom al documento en vista previa
+ */
+function applyZoom() {
+  const z = $("#zoomRange").value;
+  $("#zoomVal").textContent = z + '%';
+  const pv = $("#docPreview");
+  if (pv) {
+    pv.style.transform = 'scale(' + (z / 100) + ')';
+    pv.style.transformOrigin = 'top center';
+  }
+}
+
+// =========== SERIALIZACIÓN ===========
+/**
+ * Serializa el estado actual del formulario y visitas a objeto JSON
+ * @returns {Object} - Objeto con datos del paciente y visitas
+ */
+function serializeCurrentState() {
+  const patient = {
+    patient_id: $('#patient_id')?.value || '',
+    full_name: $('#full_name')?.value || '',
+    birthdate: $('#birthdate')?.value || '',
+    sex: $('#sex')?.value || '',
+    ocupacion: $('#ocupacion')?.value || '',
+    has_seguro: $('#has_seguro')?.checked || false,
+    seguro_company: $('#seguro_company')?.value || '',
+    email: $('#email')?.value || '',
+    phone: $('#phone')?.value || ''
+  };
+  
+  const visits = [];
+  $$('.visit-card').forEach((card, i) => {
+    const vdata = {
+      type: card.dataset.type || (i === 0 ? 'Primera' : 'Sucesiva'),
+      date: card.querySelector('.visit-date')?.value || '',
+      ea: card.querySelector('.txt-ea')?.value || '',
+      motivo_libre: card.querySelector('.txt-motivo')?.value || '',
+      motivos: [...card.querySelectorAll('.chips-motivo .chip.on')].map(c => c.textContent),
+      dx_text: card.querySelector('.txt-dx')?.value || '',
+      dx_chips: [...card.querySelectorAll('.chips-dx .chip.on')].map(c => c.textContent),
+      recipe_text: card.querySelector('.txt-recipe')?.value || '',
+      recipe_chips: [...card.querySelectorAll('.recipe-chips-group .chip.on')].map(c => c.textContent),
+      indicaciones_text: card.querySelector('.txt-indicaciones')?.value || '',
+      indicaciones_data: card.indicacionesData || {},
+      plan_text: card.querySelector('.txt-plan')?.value || '',
+      documento_emitido: card.dataset.documentoEmitido === 'true',
+      fecha_emision_documento: card.dataset.fechaEmisionDocumento || null
+    };
+    visits.push(vdata);
+  });
+  
+  return { patient, visits, timestamp: new Date().toISOString() };
+}
+
+// =========== INTERFAZ DE BÚSQUEDA ===========
+/**
+ * Abre el modal de búsqueda de historias clínicas
+ */
+function openSearchModal() {
+  const modal = $('#searchModal');
+  modal.classList.add('active');
+  $('#searchValue').value = '';
+  $('#searchResults').classList.add('hidden');
+  $('#searchType').value = 'patient_id';
+  $('#searchValue').focus();
+}
+
+/**
+ * Cierra el modal de búsqueda
+ */
+function closeSearchModal() { 
+  $('#searchModal')?.classList.remove('active'); 
+}
+
+/**
+ * Muestra los resultados de búsqueda en el modal
+ * @param {Array} patients - Array de pacientes encontrados
+ */
+function displaySearchResults(patients) {
+  const resultsList = $('#searchResultsList');
+  const resultsContainer = $('#searchResults');
+  
+  if (patients.length === 0) {
+    resultsList.innerHTML = '<div style="color: #999; padding: 20px; text-align: center;">No se encontraron resultados</div>';
+    resultsContainer.classList.remove('hidden');
+    return;
+  }
+  
+  resultsList.innerHTML = patients.map(p => `
+    <div class="card" style="margin: 10px 0; cursor: pointer; border: 2px solid #ddd; transition: all 0.2s;"
+         onclick="loadPatientById('${p.id}')"
+         onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.borderColor='#ddd'; this.style.transform='translateY(0)'">
+      <div style="font-weight: 700; color: var(--primary);">${p.full_name || 'Sin nombre'}</div>
+      <div style="font-size: 13px; color: #666; margin-top: 5px;">
+        <div><strong>ID:</strong> ${p.id || 'N/A'}</div>
+        <div><strong>Tel:</strong> ${p.phone || 'N/A'}</div>
+        <div><strong>Última actualización:</strong> ${fmtDate(p.lastUpdated) || 'N/A'}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  resultsContainer.classList.remove('hidden');
+}
+
+// =========== COMPARTIR DOCUMENTOS ===========
+/**
+ * Copia información del documento al portapapeles (simulada)
+ */
+async function copyLinkFromShare() {
+  if (!currentShareCard) return;
+  
+  try {
+    // En una implementación real, aquí se generaría un link único
+    const nombre = $("#full_name")?.value || 'Paciente';
+    const fecha = fmtDate(currentShareCard?.querySelector('.visit-date')?.value);
+    const mensaje = `Documento médico de ${nombre} - Consulta del ${fecha}\n\nGenerado con CIMA Sistema ORL`;
+    
+    await navigator.clipboard.writeText(mensaje);
+    flash('Información copiada al portapapeles');
+  } catch (err) {
+    showErr('No se pudo copiar. Selecciona el texto manualmente.');
+  }
+  $('#shareModal').classList.remove('active');
+  currentShareCard = null;
+}
+
+/**
+ * Comparte documento via WhatsApp (abre ventana con mensaje predefinido)
+ */
+function shareViaWhatsApp() {
+  if (!currentShareCard) return;
+  
+  const phone = $("#phone")?.value || '';
+  const nombre = $("#full_name")?.value || 'Paciente';
+  const fecha = fmtDate(currentShareCard?.querySelector('.visit-date')?.value);
+  
+  const mensaje = `Hola ${nombre},\n\nAdjunto documento de su consulta del ${fecha}.\n\nDra. Valentina González Yanez\nORL - Hospital de Clínicas Caracas\nTel: 0212-5086321 / 0424-1090979`;
+  
+  const phoneClean = phone.replace(/[^0-9]/g, '');
+  if (phoneClean) {
+    const whatsappUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(mensaje)}`;
+    window.open(whatsappUrl, '_blank');
+    flash('WhatsApp abierto');
+  } else {
+    showErr('No hay número de teléfono registrado');
+  }
+  
+  $('#shareModal').classList.remove('active');
+  currentShareCard = null;
+}
+
+/**
+ * Comparte documento via Email (abre cliente de email con datos prellenados)
+ */
+function shareViaEmail() {
+  if (!currentShareCard) return;
+  
+  const email = $("#email")?.value || '';
+  const nombre = $("#full_name")?.value || 'Paciente';
+  const fecha = fmtDate(currentShareCard?.querySelector('.visit-date')?.value);
+  
+  const asunto = `Documentos médicos - Consulta del ${fecha}`;
+  const mensaje = `Estimado/a ${nombre},\n\nAdjunto los documentos de su consulta del día ${fecha}.\n\nDra. Valentina González Yanez\nOtorrinolaringología\nHospital de Clínicas Caracas\nTel: (0212) 5086321 - (0424) 1090979`;
+  
+  if (email) {
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(mensaje)}`;
+    window.open(mailtoLink, '_blank');
+    flash('Email preparado');
+  } else {
+    showErr('No hay email registrado');
+  }
+  
+  $('#shareModal').classList.remove('active');
+  currentShareCard = null;
+}
+
+// =========== FUNCIONES UI ===========
+/**
+ * Alterna (expande/contrae) el cuerpo de una tarjeta de visita
+ * @param {string} cardId - ID de la tarjeta a alternar
+ */
+window.toggleVisitBody = function(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const body = card.querySelector('.visit-body');
+  const btn = card.querySelector('.visit-toggle-btn i');
+  if (!body || !btn) return;
+  body.classList.toggle('hidden');
+  btn.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+};
+
+// =========== EVENT LISTENERS ===========
+/**
+ * Configura todos los event listeners cuando el DOM está completamente cargado
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Mostrar formulario de paciente
+  $("#patientForm")?.classList.remove('hidden');
+  
+  // Configurar checkbox de seguro para mostrar/ocultar campo de compañía
+  $("#has_seguro")?.addEventListener('change', (e) => {
+    $("#seguro_box")?.classList.toggle('hidden', !e.target.checked);
+  });
+  
+  // Botón: Nueva historia clínica
+  $("#btnNew")?.addEventListener('click', () => {
+    if (!confirm('¿Crear nueva historia médica? Se perderán los datos no guardados.')) return;
+    $("#visitsContainer").innerHTML = '';
+    $("#patientForm")?.classList.remove('hidden');
+    $('#patient_id').value = '';
+    $('#full_name').value = '';
+    $('#birthdate').value = '';
+    $('#sex').value = '';
+    $('#ocupacion').value = '';
+    $('#has_seguro').checked = false;
+    $('#seguro_company').value = '';
+    $('#seguro_box')?.classList.add('hidden');
+    $('#email').value = '';
+    $('#phone').value = '';
+    closePreview();
+    visitIdCounter = 0;
+    flash('Nueva historia médica iniciada');
+  });
+  
+  // Botón: Agregar consulta
+  $("#btnAddConsulta")?.addEventListener('click', () => {
+    const pid = $("#patient_id")?.value.trim();
+    const name = $("#full_name")?.value.trim();
+    
+    if (!pid || !name) {
+      showErr('Complete al menos ID y nombre del paciente');
+      return;
+    }
+    
+    if (!validatePatientId(pid)) {
+      showErr('ID debe tener formato: Letra(s)-Número (ej: V-12345)');
+      return;
+    }
+    
+    const existingCards = $$('.visit-card');
+    if (existingCards.length === 0) {
+      const v = visitCard('Primera');
+      $("#visitsContainer").appendChild(v);
+      flash('Primera consulta creada');
+    } else {
+      const first = existingCards[0];
+      const v = visitCard('Sucesiva');
+      
+      // Copiar datos de la primera consulta
+      const copyVal = sel => first.querySelector(sel)?.value || '';
+      const set = (sel, val) => {
+        const el = v.querySelector(sel);
+        if (el) {
+          el.value = val;
+          el.dataset.freeText = val;
+        }
+      };
+      
+      set('.txt-ea', copyVal('.txt-ea'));
+      set('.txt-dx', copyVal('.txt-dx'));
+      set('.txt-recipe', copyVal('.txt-recipe'));
+      set('.txt-indicaciones', copyVal('.txt-indicaciones'));
+      set('.txt-plan', copyVal('.txt-plan'));
+      
+      // Copiar chips seleccionados
+      const copyChips = (from, to) => {
+        const labels = [...first.querySelectorAll(from + ' .chip.on')].map(c => c.textContent);
+        v.querySelectorAll(to + ' .chip').forEach(ch => {
+          const on = labels.includes(ch.textContent);
+          ch.dataset.active = on ? '1' : '0';
+          ch.classList.toggle('on', on);
+        });
+      };
+      
+      copyChips('.chips-motivo', '.chips-motivo');
+      copyChips('.chips-dx', '.chips-dx');
+      copyChips('.recipe-chips-group', '.recipe-chips-group');
+      
+      if (first.indicacionesData) {
+        v.indicacionesData = { ...first.indicacionesData };
+        updateIndicacionesSection(v);
+      }
+      
+      $("#visitsContainer").appendChild(v);
+      flash('Consulta sucesiva agregada con datos heredados');
+    }
+  });
+  
+  // Botón: Eliminar última consulta
+  $("#btnDeleteLast")?.addEventListener('click', () => {
+    const cards = $$('.visit-card');
+    if (cards.length === 0) {
+      showErr('No hay consultas para eliminar');
+      return;
+    }
+    if (cards.length === 1) {
+      showErr('No se puede eliminar la única consulta');
+      return;
+    }
+    const lastCard = cards[cards.length - 1];
+    if (confirm('¿Eliminar última consulta?')) {
+      if (currentPreviewCard === lastCard) closePreview();
+      lastCard.remove();
+      flash('Última consulta eliminada');
+    }
+  });
+  
+  // Botón: Cerrar historia clínica
+  $("#btnClose")?.addEventListener('click', () => {
+    const data = serializeCurrentState();
+    const hasData = data.patient.patient_id || data.patient.full_name;
+    
+    if (hasData) {
+      if (!confirm('¿Guardar y cerrar historia?')) return;
+      if (saveToLocal()) {
+        $("#visitsContainer").innerHTML = '';
+        $("#patientForm")?.classList.add('hidden');
+        closePreview();
+        flash('Historia cerrada y guardada');
+      }
+    } else {
+      $("#visitsContainer").innerHTML = '';
+      $("#patientForm")?.classList.add('hidden');
+      closePreview();
+      flash('Historia cerrada');
+    }
+  });
+  
+  // Botón: Abrir historia clínica (buscar)
+  $("#btnOpen")?.addEventListener('click', () => openSearchModal());
+  
+  // Configurar búsqueda
+  $("#btnCancelSearch")?.addEventListener('click', closeSearchModal);
+  $("#btnDoSearch")?.addEventListener('click', () => {
+    const field = $('#searchType').value;
+    const value = $('#searchValue').value.trim();
+    if (!value) {
+      showErr('Ingrese un valor para buscar');
+      return;
+    }
+    const patients = searchPatientsLocal(field, value);
+    displaySearchResults(patients);
+  });
+  
+  // Permitir búsqueda con tecla Enter
+  $("#searchValue")?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') $('#btnDoSearch').click();
+  });
+  
+  // Preview controls
+  $("#btnSigToggle")?.addEventListener('click', () => {
+    USE_SIG = !USE_SIG;
+    flash(USE_SIG ? 'Firma activada' : 'Firma desactivada');
+  });
+  
+  // Control de zoom en tiempo real
+  $("#zoomRange")?.addEventListener('input', applyZoom);
+  
+  // Botón: Actualizar vista previa
+  $("#btnRefresh")?.addEventListener('click', () => {
+    if (currentPreviewCard && currentPreviewDoc) {
+      openDoc(currentPreviewDoc, currentPreviewCard);
+      flash('Preview actualizado');
+    }
+  });
+  
+  // Exportar PNG usando html2canvas
+  $("#btnExport")?.addEventListener('click', async () => {
+    if (!currentPreviewDoc || !currentPreviewCard) {
+      showErr('Primero genera un preview');
+      return;
+    }
+    
+    try {
+      const html = currentPreviewDoc === 'INF' ? buildReportHTML(currentPreviewCard) : buildRecipeHTML(currentPreviewCard);
+      
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      document.body.appendChild(tempDiv);
+      
+      const docPage = tempDiv.querySelector('.doc-page');
+      
+      const canvas = await html2canvas(docPage, {
+        scale: 2, // Render a mayor resolución
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+      
+      document.body.removeChild(tempDiv);
+      
+      const patientId = $("#patient_id")?.value || 'SinID';
+      const dateObj = new Date(currentPreviewCard.querySelector('.visit-date').value);
+      const ddmmyy = `${String(dateObj.getDate()).padStart(2, '0')}${String(dateObj.getMonth() + 1).padStart(2, '0')}${String(dateObj.getFullYear()).slice(-2)}`;
+      const docType = currentPreviewDoc === 'INF' ? 'inf' : 'rp';
+      const filename = `${patientId}-${docType}-${ddmmyy}.png`;
+      
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        currentPreviewCard.dataset.documentoEmitido = 'true';
+        currentPreviewCard.dataset.fechaEmisionDocumento = new Date().toISOString();
+        
+        $("#pngFilename").textContent = filename;
+        $("#exportModal").classList.add('active');
+        flash('PNG descargado: ' + filename);
+      }, 'image/png');
+      
+    } catch (err) {
+      showErr('Error exportando: ' + err.message);
+      console.error(err);
+    }
+  });
+  
+  // Cerrar modales al hacer clic fuera del contenido
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('active');
+    });
+  });
+  
+  // Tecla Escape para cerrar modales
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+        modal.classList.remove('active');
+      });
+    }
+  });
+  
+  flash('✅ Sistema CIMA listo - Almacenamiento local activo');
+});
+</script>
+</body>
+</html>
