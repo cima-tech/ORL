@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- index.html - VERSIÓN CORREGIDA Y FUNCIONAL -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,204 +8,358 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="modules/index.css">
     <style>
-        /* Estilos para el efecto glass mejorado */
-        body::before {
-            content: '';
+        /* Estilos adicionales para login y drawers */
+        .login-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
-                linear-gradient(135deg, rgba(10, 14, 23, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
-            z-index: -2;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
         }
         
-        .glass-layer {
+        .login-box {
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px) saturate(200%);
-            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         
-        .glass-layer-heavy {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(40px) saturate(250%);
-            -webkit-backdrop-filter: blur(40px) saturate(250%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h2 {
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #2563eb;
+        }
+        
+        .login-error {
+            color: #ef4444;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Drawer de registro paciente */
+        .patient-register-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 800px;
+            height: 100vh;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(30px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 2000;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .patient-register-drawer.open {
+            transform: translateX(0);
+        }
+        
+        .drawer-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .drawer-header h3 {
+            color: #3b82f6;
+        }
+        
+        .close-drawer {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .drawer-body {
+            padding: 20px;
+        }
+        
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1999;
+            display: none;
+        }
+        
+        .drawer-overlay.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <!-- Overlay para fondos -->
-    <div class="background-overlay"></div>
-    
-    <!-- Barra superior minimalista -->
-    <div class="main-dock glass-layer-heavy">
-        <div class="dock-left">
-            <span class="logo" id="btnHome">
-                <i class="fas fa-stethoscope"></i>
-                <span>CIMA</span>
-            </span>
-        </div>
-        
-        <div class="dock-center" id="mainNav">
-            <!-- Se llenará dinámicamente según autenticación -->
-        </div>
-        
-        <div class="dock-right">
-            <span id="btnTheme" title="Cambiar tema">
-                <i class="fas fa-adjust"></i>
-            </span>
-        </div>
-    </div>
-    
-    <!-- Contenido principal (siempre vacío inicialmente) -->
-    <main id="mainContent" class="main-content">
-        <!-- Se llenará dinámicamente según acciones -->
-    </main>
-    
-    <!-- Drawer de Login (slide desde derecha) -->
-    <div id="loginDrawer" class="drawer right-drawer">
-        <div class="drawer-header glass-layer">
-            <h3><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h3>
-            <button class="close-drawer" onclick="CIMA.closeDrawer('loginDrawer')">&times;</button>
-        </div>
-        <div class="drawer-body">
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Usuario</label>
-                    <input type="text" id="username" placeholder="tudraorl" autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Contraseña</label>
-                    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-                </div>
-                <button type="submit" class="auth-btn">
-                    <i class="fas fa-sign-in-alt"></i> Ingresar
-                </button>
-                <div class="auth-links">
-                    <a href="#" onclick="CIMA.switchDrawer('loginDrawer', 'patientAccessDrawer')">
-                        <i class="fas fa-user-injured"></i> Acceso Paciente
-                    </a>
-                </div>
+    <!-- Overlay de Login (visible solo si no hay sesión) -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <div class="login-header">
+                <h2><i class="fas fa-stethoscope"></i> CIMA</h2>
+                <p>Sistema Clínico Modular</p>
+            </div>
+            <form id="loginForm">
+                <input type="text" id="username" class="login-input" placeholder="Usuario" value="tudraorl">
+                <input type="password" id="password" class="login-input" placeholder="Contraseña" value="astroyluna">
+                <button type="submit" class="login-btn">Iniciar Sesión</button>
             </form>
-        </div>
-    </div>
-    
-    <!-- Drawer de Acceso Paciente -->
-    <div id="patientAccessDrawer" class="drawer right-drawer">
-        <div class="drawer-header glass-layer">
-            <h3><i class="fas fa-user-injured"></i> Área del Paciente</h3>
-            <button class="close-drawer" onclick="CIMA.closeDrawer('patientAccessDrawer')">&times;</button>
-        </div>
-        <div class="drawer-body">
-            <div class="patient-options">
-                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientLoginDrawer')">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Iniciar Sesión</span>
-                    <small>Pacientes registrados</small>
-                </button>
-                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientRegisterDrawer')">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Nuevo Registro</span>
-                    <small>Completar ficha completa</small>
-                </button>
-                <button class="option-btn" onclick="CIMA.switchDrawer('patientAccessDrawer', 'patientRequestDrawer')">
-                    <i class="fas fa-file-medical"></i>
-                    <span>Solicitar Documentos</span>
-                    <small>Informes, certificados</small>
-                </button>
-            </div>
-            <div class="auth-links">
-                <a href="#" onclick="CIMA.switchDrawer('patientAccessDrawer', 'loginDrawer')">
-                    <i class="fas fa-user-md"></i> Acceso Médico
-                </a>
+            <div id="loginError" class="login-error"></div>
+            <div style="margin-top: 20px; text-align: center;">
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">
+                    <a href="#" style="color: #3b82f6;" onclick="openPatientRegister()">Registro de Pacientes</a>
+                </p>
             </div>
         </div>
     </div>
     
-    <!-- Drawer de Registro Paciente (con formulario completo) -->
-    <div id="patientRegisterDrawer" class="drawer right-drawer wide-drawer">
-        <div class="drawer-header glass-layer">
-            <h3><i class="fas fa-user-plus"></i> Registro Completo de Paciente</h3>
-            <button class="close-drawer" onclick="CIMA.closeDrawer('patientRegisterDrawer')">&times;</button>
+    <!-- Drawer de Registro de Paciente -->
+    <div id="patientRegisterDrawer" class="patient-register-drawer">
+        <div class="drawer-header">
+            <h3><i class="fas fa-user-plus"></i> Registro de Paciente</h3>
+            <button class="close-drawer" onclick="closePatientRegister()">&times;</button>
         </div>
         <div class="drawer-body">
             <div id="patientFormContainer"></div>
         </div>
     </div>
+    <div id="drawerOverlay" class="drawer-overlay" onclick="closePatientRegister()"></div>
     
-    <!-- Drawer de Log del Sistema -->
-    <div id="logDrawer" class="drawer right-drawer">
-        <div class="drawer-header glass-layer">
-            <h3><i class="fas fa-terminal"></i> Log del Sistema</h3>
-            <button class="close-drawer" onclick="CIMA.closeDrawer('logDrawer')">&times;</button>
+    <!-- APLICACIÓN PRINCIPAL (oculta inicialmente) -->
+    <div id="appContainer" class="hidden">
+        <div class="background"></div>
+        
+        <!-- BARRA SUPERIOR (DOCK) -->
+        <div class="dock dock-doctor">
+            <span id="btnHome"><i class="fas fa-home"></i> Inicio</span>
+            <span>|</span>
+            <span id="btnNewPatient"><i class="fas fa-user-plus"></i> Nuevo Paciente</span>
+            <span>|</span>
+            <span id="btnSearch" title="Buscar Paciente"><i class="fas fa-search"></i> Buscar</span>
+            <span>|</span>
+            <span id="btnAgenda"><i class="fas fa-calendar-alt"></i> Agenda</span>
+            <span>|</span>
+            <span id="btnTheme" title="Cambiar Tema"><i class="fas fa-adjust"></i> Tema</span>
+            <span class="user-info" id="userInfoDisplay">Usuario...</span>
+            <span>|</span>
+            <span id="btnLogout" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Salir</span>
         </div>
-        <div class="drawer-body">
-            <div class="log-content" id="logContent">
-                <!-- Log entries aparecerán aquí -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Overlay para cerrar drawers -->
-    <div id="drawerOverlay" class="drawer-overlay" onclick="CIMA.closeAllDrawers()"></div>
-    
-    <!-- Modales existentes (mantenidos para compatibilidad) -->
-    <div id="searchModal" class="modal-overlay">
-        <!-- Mantener igual -->
-    </div>
-    
-    <div id="editModal" class="modal-overlay">
-        <!-- Mantener igual -->
-    </div>
-    
-    <!-- Nuevo Modal para Documentos -->
-    <div id="documentModal" class="modal-overlay">
-        <div class="modal-box document-preview">
-            <div class="modal-header glass-layer">
-                <span class="modal-title" id="documentTitle">Documento</span>
-                <div class="document-actions">
-                    <select id="documentType" class="doc-type-select">
-                        <option value="informe">Informe Médico</option>
-                        <option value="recipe">Recipe e Indicaciones</option>
-                        <option value="laboratorio">Orden de Laboratorio</option>
-                        <option value="quirurgica">Orden Quirúrgica</option>
-                        <option value="referencia">Referencia/Interconsulta</option>
-                        <option value="constancia">Constancia Médica</option>
-                    </select>
-                    <button class="action-btn" onclick="CIMA.addSignature()">
-                        <i class="fas fa-signature"></i> Firma
-                    </button>
-                    <button class="action-btn" onclick="CIMA.addStamp()">
-                        <i class="fas fa-stamp"></i> Sello
-                    </button>
-                    <button class="close-modal" onclick="CIMA.closeModal('documentModal')">&times;</button>
+        
+        <!-- CONTENIDO PRINCIPAL (VACÍO INICIALMENTE) -->
+        <main class="doctor-container" id="mainContainer">
+            <!-- Se llenará dinámicamente -->
+        </main>
+
+        <!-- MODALES EXISTENTES -->
+        <div id="searchModal" class="modal-overlay">
+            <div class="modal-box" style="height:auto; max-height:80vh;">
+                <div class="modal-header">
+                    <span class="modal-title">Buscar Paciente</span>
+                    <button class="close-modal" onclick="document.getElementById('searchModal').classList.remove('active')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="searchInput" placeholder="Nombre o Cédula..." class="model-select" style="width:100%; padding:15px; font-size:1.1rem; margin-bottom:20px;">
+                    <div id="searchResults"></div>
                 </div>
             </div>
-            <div class="modal-body" id="documentBody">
-                <!-- Vista previa del documento -->
-                <div class="document-paper" id="documentPaper">
-                    <!-- Contenido del documento -->
+        </div>
+
+        <div id="editModal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <span class="modal-title" id="modalTitle">Editar Consulta</span>
+                    <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <button class="action-btn secondary" onclick="window.app.closeModal()">Cancelar</button>
+                    <button class="action-btn" id="btnSaveConsultation">Guardar Consulta</button>
                 </div>
             </div>
-            <div class="modal-footer glass-layer">
-                <button class="action-btn secondary" onclick="CIMA.closeModal('documentModal')">Cancelar</button>
-                <button class="action-btn" onclick="CIMA.generatePDF()">
-                    <i class="fas fa-file-pdf"></i> Generar PDF
-                </button>
-                <button class="action-btn" onclick="CIMA.printDocument()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
+        </div>
+        
+        <!-- Drawer de Log (oculto por defecto) -->
+        <div id="logDrawer" class="patient-register-drawer" style="width: 500px;">
+            <div class="drawer-header">
+                <h3><i class="fas fa-terminal"></i> Log del Sistema</h3>
+                <button class="close-drawer" onclick="closeLogDrawer()">&times;</button>
+            </div>
+            <div class="drawer-body">
+                <div id="logContent" style="font-family: monospace; font-size: 12px; white-space: pre-wrap;"></div>
             </div>
         </div>
     </div>
-    
-    <!-- Scripts -->
-    <script type="module" src="modules/start.js"></script>
-    <script type="module" src="modules/index.js"></script>
+
+    <!-- SCRIPT DE INICIALIZACIÓN -->
+    <script>
+        // Funciones globales para drawers
+        function openPatientRegister() {
+            document.getElementById('patientRegisterDrawer').classList.add('open');
+            document.getElementById('drawerOverlay').classList.add('active');
+            loadPatientForm();
+        }
+        
+        function closePatientRegister() {
+            document.getElementById('patientRegisterDrawer').classList.remove('open');
+            document.getElementById('drawerOverlay').classList.remove('active');
+        }
+        
+        function openLogDrawer() {
+            document.getElementById('logDrawer').classList.add('open');
+            document.getElementById('drawerOverlay').classList.add('active');
+        }
+        
+        function closeLogDrawer() {
+            document.getElementById('logDrawer').classList.remove('open');
+            document.getElementById('drawerOverlay').classList.remove('active');
+        }
+        
+        // Cargar formulario de paciente
+        async function loadPatientForm() {
+            const container = document.getElementById('patientFormContainer');
+            if (!container) return;
+            
+            try {
+                // Importar módulos dinámicamente
+                const module = await import('./modules/views.js');
+                module.default.renderPatientForm(container, {}, (data) => {
+                    // Guardar en localStorage como paciente pendiente
+                    const buzon = JSON.parse(localStorage.getItem('CIMA_BUZON') || '[]');
+                    data.id = 'buzon_' + Date.now();
+                    data.createdAt = new Date().toISOString();
+                    buzon.push(data);
+                    localStorage.setItem('CIMA_BUZON', JSON.stringify(buzon));
+                    
+                    alert('Registro enviado al buzón del médico');
+                    closePatientRegister();
+                });
+            } catch (error) {
+                console.error('Error cargando formulario:', error);
+                container.innerHTML = '<p style="color: #ef4444;">Error cargando formulario</p>';
+            }
+        }
+        
+        // Login
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`user/${username}/${username}.json`);
+                if (!response.ok) throw new Error('Usuario no encontrado');
+                
+                const userData = await response.json();
+                
+                if (userData.identity.accountPassword !== password) {
+                    throw new Error('Contraseña incorrecta');
+                }
+                
+                // Guardar sesión
+                sessionStorage.setItem('CIMA_CURRENT_USER', JSON.stringify(userData));
+                
+                // Ocultar login, mostrar app
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                
+                // Inicializar aplicación
+                initializeApp(userData);
+                
+            } catch (error) {
+                document.getElementById('loginError').textContent = error.message;
+            }
+        };
+        
+        function initializeApp(userData) {
+            // Mostrar info de usuario
+            document.getElementById('userInfoDisplay').textContent = 
+                `${userData.identity.names} (${userData.role})`;
+            
+            // Configurar shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+                    e.preventDefault();
+                    const password = prompt('Contraseña para log:');
+                    if (password === 'astroyluna') {
+                        openLogDrawer();
+                        loadLogContent();
+                    }
+                }
+            });
+            
+            // Cargar módulo principal
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'modules/index.js';
+            document.body.appendChild(script);
+        }
+        
+        function loadLogContent() {
+            const logs = JSON.parse(localStorage.getItem('CIMA_SYSTEM_LOG') || '[]');
+            document.getElementById('logContent').textContent = logs.join('\n');
+        }
+        
+        // Cargar usuario si ya está logueado
+        window.addEventListener('load', () => {
+            const userData = sessionStorage.getItem('CIMA_CURRENT_USER');
+            if (userData) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                initializeApp(JSON.parse(userData));
+            }
+        });
+    </script>
 </body>
 </html>
