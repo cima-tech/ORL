@@ -1,0 +1,20 @@
+/* ARCHIVO: styles/orl-styles.css */
+/* Contiene todos los estilos CSS del sistema ORL */
+/* Variables CSS globales */
+:root {
+    --primary: #4a6fa5;
+    --primary-dark: #385d8a;
+    --secondary: #6d7b8c;
+    --accent: #ff6b6b;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-dark: #2c3e50;
+    --text-light: #f8f9fa;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --blur: blur(10px);
+}
+
+/* ... (Todos los estilos CSS del archivo original van aquí) ... */

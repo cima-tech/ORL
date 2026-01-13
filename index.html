@@ -1,0 +1,232 @@
+<!-- ARCHIVO: index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CIMA — Sistema ORL</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<!-- Archivo de estilos separado -->
+<link rel="stylesheet" href="styles/orl-styles.css">
+</head>
+<body>
+
+<!-- Contenedor para mensajes flash -->
+<div id="err"></div>
+
+<!-- Barra de herramientas principal con efecto vidrio -->
+<div class="toolbar-wrapper glass">
+  <div class="toolbar">
+    <!-- Logo y nombre del sistema -->
+    <div class="logo">
+      <div class="main">C.I.M.A.</div>
+      <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
+    </div>
+    
+    <!-- Grupo izquierdo: gestión de historias clínicas -->
+    <div class="toolbar-group">
+      <button id="btnNew" class="toolbar-btn">
+        <i class="bi bi-file-earmark-plus"></i> Nueva HC
+      </button>
+      <button id="btnOpen" class="toolbar-btn">
+        <i class="bi bi-folder2-open"></i> Abrir HC
+      </button>
+      <button id="btnClose" class="toolbar-btn warning">
+        <i class="bi bi-x-circle"></i> Cerrar HC
+      </button>
+    </div>
+    
+    <!-- Grupo derecho: gestión de consultas -->
+    <div class="toolbar-group">
+      <button id="btnAddConsulta" class="toolbar-btn primary">
+        <i class="bi bi-plus-circle"></i> Agregar Consulta
+      </button>
+      <button id="btnDeleteLast" class="toolbar-btn danger">
+        <i class="bi bi-trash"></i> Eliminar Última
+      </button>
+      <span class="badge" id="tplStatus">✓ Plantillas Cargadas</span>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor principal del contenido -->
+<div class="container">
+  <!-- Formulario de datos del paciente (oculto inicialmente) -->
+  <div id="patientForm" class="card hidden">
+    <div class="row">
+      <!-- Campo: Identificación del paciente (requerido) -->
+      <div class="col">
+        <label class="form-label">ID (ej: V-12345) *</label>
+        <input id="patient_id" class="form-input" placeholder="X-123456" required>
+      </div>
+      <!-- Campo: Nombre completo del paciente (requerido) -->
+      <div class="col">
+        <label class="form-label">Nombre Completo *</label>
+        <input id="full_name" class="form-input" placeholder="Nombre y apellido" required>
+      </div>
+      <!-- Campo: Fecha de nacimiento -->
+      <div class="col">
+        <label class="form-label">Fecha de Nacimiento</label>
+        <input id="birthdate" type="date" class="form-input">
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Campo: Sexo (select con opciones) -->
+      <div class="col">
+        <label class="form-label">Sexo</label>
+        <select id="sex" class="form-select">
+          <option value="">Seleccionar</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+        </select>
+      </div>
+      <!-- Campo: Ocupación -->
+      <div class="col">
+        <label class="form-label">Ocupación</label>
+        <input id="ocupacion" class="form-input">
+      </div>
+      <!-- Campo: Teléfono -->
+      <div class="col">
+        <label class="form-label">Teléfono</label>
+        <input id="phone" class="form-input" placeholder="+58 424 1090979">
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Campo: Email -->
+      <div class="col">
+        <label class="form-label">Email</label>
+        <input id="email" type="email" class="form-input" placeholder="paciente@email.com">
+      </div>
+      <!-- Campo: Checkbox para seguro médico -->
+      <div class="col">
+        <label class="form-label">¿Tiene seguro médico?</label>
+        <div style="margin-top: 8px;">
+          <input type="checkbox" id="has_seguro"> 
+          <label for="has_seguro" style="margin-left: 8px;">Sí, tiene seguro</label>
+        </div>
+      </div>
+      <!-- Campo: Compañía de seguro (visible solo si checkbox está marcado) -->
+      <div class="col seguro-box hidden" id="seguro_box">
+        <label class="form-label">Compañía de seguro</label>
+        <input id="seguro_company" class="form-input">
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor para React (Aquí se montará el componente de consulta ORL001) -->
+  <div id="orl-consult-container"></div>
+
+  <!-- Barra de controles para vista previa (oculta inicialmente) -->
+  <div id="previewBar" class="card hidden">
+    <div class="row" style="align-items: center;">
+      <!-- Control de zoom del documento -->
+      <div class="col" style="flex: 1;">
+        <label class="form-label">Zoom del documento</label>
+        <input type="range" id="zoomRange" min="40" max="120" step="5" value="60" class="form-input">
+        <span id="zoomVal" style="font-weight: 600; margin-left: 10px;">60%</span>
+      </div>
+      <!-- Botones de acción para vista previa -->
+      <div class="col" style="flex: 0 0 auto;">
+        <div style="display: flex; gap: 10px;">
+          <button id="btnSigToggle" class="btn btn-ghost">
+            <i class="bi bi-pen"></i> Firma
+          </button>
+          <button id="btnRefresh" class="btn btn-primary">
+            <i class="bi bi-arrow-clockwise"></i> Actualizar
+          </button>
+          <button id="btnExport" class="btn btn-success">
+            <i class="bi bi-download"></i> Exportar PNG
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenedor para mostrar la vista previa del documento -->
+  <div id="previewShell" class="preview-shell hidden">
+    <div id="docPreview"></div>
+  </div>
+</div>
+
+<!-- Modales (se mantienen igual) -->
+<div id="searchModal" class="modal-overlay">
+  <!-- ... contenido del modal de búsqueda ... -->
+</div>
+
+<div id="exportModal" class="modal-overlay">
+  <!-- ... contenido del modal de exportación ... -->
+</div>
+
+<div id="shareModal" class="modal-overlay">
+  <!-- ... contenido del modal de compartir ... -->
+</div>
+
+<!-- Biblioteca para convertir HTML a Canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- Biblioteca React y ReactDOM para montar componentes -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<!-- Babel para JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Archivo JavaScript principal que maneja la barra de herramientas y eventos -->
+<script type="module">
+// Importamos funciones del sistema desde archivo separado
+import { initializeORLSystem, saveToLocal, searchPatientsLocal, loadPatientById } from './js/orl-system-core.js';
+
+// Evento para inicializar el sistema cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar el sistema ORL
+    initializeORLSystem();
+    
+    // Cargar componente React de consulta
+    loadReactConsultComponent();
+});
+
+// Función para cargar el componente React de consulta ORL
+function loadReactConsultComponent() {
+    // Script para cargar el componente ORL001
+    const script = document.createElement('script');
+    script.type = 'text/babel';
+    script.src = './service/consult/ORL-001.jsx';
+    script.onload = () => {
+        // Montar el componente React en el contenedor
+        const container = document.getElementById('orl-consult-container');
+        if (container) {
+            // Usamos Babel para procesar JSX
+            const root = ReactDOM.createRoot(container);
+            root.render(
+                React.createElement(window.ORL001, {
+                    // Props que necesita el componente
+                    onDataChange: handleConsultDataChange,
+                    initialData: null,
+                    // Eventos desde la barra de herramientas
+                    onAddConsulta: () => {
+                        // Este evento se dispara desde el botón "Agregar Consulta" de la barra
+                        window.dispatchEvent(new CustomEvent('addConsulta'));
+                    },
+                    onDeleteLast: () => {
+                        // Este evento se dispara desde el botón "Eliminar Última" de la barra
+                        window.dispatchEvent(new CustomEvent('deleteLast'));
+                    }
+                })
+            );
+        }
+    };
+    document.head.appendChild(script);
+}
+
+// Manejador para cambios en los datos de consulta desde React
+function handleConsultDataChange(consultData) {
+    console.log('Datos de consulta actualizados:', consultData);
+    // Aquí podrías sincronizar con localStorage u otras funciones
+}
+</script>
+
+<!-- Archivo con funciones utilitarias y de almacenamiento -->
+<script type="module" src="./js/orl-utilities.js"></script>
+
+</body>
+</html>

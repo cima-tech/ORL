@@ -1,0 +1,9 @@
+📁 CIMA-ORL-Repo/
+├── 📄 index.html                    # Estructura principal con barra de herramientas
+├── 📁 styles/
+│   └── 📄 orl-styles.css           # Todos los estilos CSS
+├── 📁 js/
+│   ├── 📄 orl-system-core.js       # Funciones principales del sistema
+│   └── 📄 orl-utilities.js         # Funciones utilitarias
+└── 📁 service/consult/
+    └── 📄 ORL-001.jsx              # Componente React de consulta ORL
