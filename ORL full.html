@@ -8,19 +8,19 @@
 <style>
 /* Variables CSS globales para mantener consistencia en colores y efectos */
 :root {
-  --primary: #4a6fa5;           /* Color primario azul para botones principales */
-  --primary-dark: #385d8a;      /* Versión más oscura para hover/estados activos */
-  --secondary: #6d7b8c;         /* Color secundario gris azulado */
-  --accent: #ff6b6b;            /* Color de acento rojo para elementos destacados */
-  --success: #28a745;           /* Verde para indicar éxito/confirmación */
-  --warning: #ffc107;           /* Amarillo para advertencias */
-  --danger: #dc3545;            /* Rojo para acciones peligrosas/eliminar */
-  --glass-bg: rgba(255, 255, 255, 0.1); /* Fondo translúcido para efecto vidrio */
-  --glass-border: rgba(255, 255, 255, 0.2); /* Borde translúcido */
-  --text-dark: #2c3e50;         /* Color de texto oscuro principal */
-  --text-light: #f8f9fa;        /* Color de texto claro para fondos oscuros */
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Sombra estándar para tarjetas */
-  --blur: blur(10px);           /* Efecto de desenfoque para efecto vidrio */
+  --primary: #3498db;           /* Azul principal más moderno */
+  --primary-dark: #2980b9;      /* Azul oscuro para hover */
+  --secondary: #5d6d7e;         /* Gris azulado secundario */
+  --accent: #3498db;            /* Mismo azul que primary para consistencia */
+  --success: #2ecc71;           /* Verde suave */
+  --warning: #f39c12;           /* Naranja/ámbar */
+  --danger: #e74c3c;            /* Rojo suave */
+  --glass-bg: rgba(30, 30, 46, 0.85); /* Fondo oscuro translúcido */
+  --glass-border: rgba(52, 152, 219, 0.3); /* Borde azul translúcido */
+  --text-dark: #ecf0f1;         /* Texto claro principal */
+  --text-light: #ffffff;        /* Texto blanco puro */
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+  --blur: blur(15px);           /* Más desenfoque para efecto glass */
 }
 
 /* Reset básico para eliminar márgenes y paddings por defecto */
@@ -32,14 +32,13 @@
 
 /* Estilos generales del cuerpo de la página */
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; /* Fuentes modernas */
-  font-size: 14px;               /* Tamaño base de fuente */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Fondo degradado morado/azul */
-  min-height: 100vh;             /* Altura mínima de toda la ventana */
-  color: var(--text-dark);       /* Color de texto principal */
-  line-height: 1.5;              /* Espaciado entre líneas */
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* Gradiente azul oscuro */
+  min-height: 100vh;
+  color: var(--text-dark);
+  line-height: 1.5;
 }
-
 /* Clase para efecto de vidrio (glassmorphism) */
 .glass {
   background: var(--glass-bg);
@@ -52,14 +51,15 @@ body {
 
 /* Contenedor de la barra de herramientas superior */
 .toolbar-wrapper {
-  background: rgba(11, 15, 40, 0.9); /* Fondo azul oscuro semi-transparente */
+  background: rgba(15, 23, 42, 0.9); /* Azul oscuro semi-transparente */
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   padding: 12px 0;
-  position: sticky;                  /* Se mantiene fijo al hacer scroll */
+  position: sticky;
   top: 0;
-  z-index: 1000;                     /* Por encima de otros elementos */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra para separación visual */
+  z-index: 1000;
+  border-bottom: 1px solid var(--glass-border);
 }
-
 /* Contenedor flexible para los elementos de la barra de herramientas */
 .toolbar {
   display: flex;
@@ -102,14 +102,14 @@ body {
 .toolbar-btn {
   display: flex;
   align-items: center;
-  gap: 8px;                          /* Espacio entre icono y texto */
+  gap: 8px;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente blanco */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde semi-transparente */
+  background: rgba(52, 152, 219, 0.2); /* Fondo azul translúcido */
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
-  color: white;
+  color: var(--text-light);
   cursor: pointer;
-  transition: all 0.2s;              /* Transición suave para hover */
+  transition: all 0.2s;
   font-weight: 500;
   font-size: 13px;
 }
@@ -136,14 +136,15 @@ body {
 }
 
 .toolbar-btn.warning {
-  background: var(--warning);
-  border-color: #e0a800;
-  color: #212529;                    /* Texto oscuro para contraste con amarillo */
+  background: rgba(243, 156, 18, 0.2); /* Naranja translúcido */
+  border-color: rgba(243, 156, 18, 0.3);
+  color: var(--text-light); /* Mantén texto claro */
 }
 
 .toolbar-btn.danger {
-  background: var(--danger);
-  border-color: #bd2130;
+  background: rgba(231, 76, 60, 0.2); /* Rojo translúcido */
+  border-color: rgba(231, 76, 60, 0.3);
+  color: var(--text-light); /* Mantén texto claro */
 }
 
 /* Badge para mostrar estados (ej: plantillas cargadas) */
@@ -166,12 +167,14 @@ body {
 
 /* Tarjeta genérica para contener formularios y contenido */
 .card {
-  background: rgba(255, 255, 255, 0.95); /* Fondo blanco semi-transparente */
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 20px;               /* Separación entre tarjetas */
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
+  margin-bottom: 20px;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dark);
 }
 
 /* Sistema de filas flexibles */
@@ -199,20 +202,20 @@ body {
 
 /* Campos de entrada de formulario estandarizados */
 .form-input, .form-select, input[type="date"], input[type="datetime-local"] {
-  width: 100%;                       /* Ocupa todo el ancho disponible */
+  width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ddd;            /* Borde gris claro */
+  border: 1px solid rgba(52, 152, 219, 0.3);
   border-radius: 8px;
   font-size: 14px;
-  transition: all 0.2s;              /* Transición suave para focus */
-  background: white;
+  transition: all 0.2s;
+  background: rgba(15, 23, 42, 0.6); /* Fondo oscuro */
+  color: var(--text-dark);
 }
-
 /* Estado de foco para campos de formulario */
 .form-input:focus, .form-select:focus, input[type="date"]:focus, input[type="datetime-local"]:focus {
-  outline: none;                     /* Elimina contorno por defecto */
-  border-color: var(--primary);      /* Borde azul al enfocar */
-  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1); /* Sombra exterior sutil */
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
 /* Contenedor para chips (etiquetas seleccionables) */
@@ -228,10 +231,10 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 6px 12px;
-  background: #f0f4ff;               /* Fondo azul muy claro */
-  border: 1px solid #d1d9ff;         /* Borde azul claro */
-  border-radius: 20px;               /* Forma ovalada */
-  color: var(--primary);             /* Texto azul */
+  background: rgba(52, 152, 219, 0.15); /* Azul muy translúcido */
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: 20px;
+  color: var(--text-dark);
   cursor: pointer;
   transition: all 0.2s;
   font-size: 13px;
@@ -246,11 +249,11 @@ body {
 
 /* Estado activo/encendido de chip */
 .chip.on {
-  background: var(--primary);        /* Fondo azul sólido */
-  color: white;                      /* Texto blanco para contraste */
+  background: var(--primary);
+  color: white;
   border-color: var(--primary);
 }
-
+  
 /* Chip deshabilitado */
 .chip.disabled {
   opacity: 0.5;                      /* Semi-transparente */
@@ -275,6 +278,7 @@ body {
 .btn-primary {
   background: var(--primary);
   color: white;
+  border: 1px solid var(--primary-dark);
 }
 
 .btn-primary:hover {
@@ -300,14 +304,13 @@ body {
 /* Botón "fantasma" con borde pero sin fondo */
 .btn-ghost {
   background: transparent;
-  border: 1px solid #ddd;            /* Borde gris claro */
+  border: 1px solid var(--glass-border);
   color: var(--text-dark);
 }
 
 .btn-ghost:hover {
-  background: #f8f9fa;               /* Fondo gris muy claro al pasar ratón */
+  background: rgba(52, 152, 219, 0.1);
 }
-
 /* Tamaño pequeño para botones */
 .btn-small {
   padding: 6px 12px;
@@ -316,20 +319,23 @@ body {
 
 /* Contenedor para la vista previa del documento */
 .preview-shell {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
-  overflow: auto;                    /* Scroll si el contenido es muy grande */
-  max-height: 800px;                 /* Altura máxima antes de scroll */
+  overflow: auto;
+  max-height: 800px;
+  border: 1px solid var(--glass-border);
 }
-
+  
 /* Página de documento estilizada */
 .doc-page {
-  background: white;
+  background: rgba(15, 23, 42, 0.9); /* Fondo azul oscuro */
   color: var(--text-dark);
-  margin: 0 auto;                    /* Centrado horizontal */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Sombra para efecto de elevación */
+  margin: 0 auto;
+  border: 1px solid var(--glass-border);
 }
 
 /* Tamaño carta estándar (8.5" x 11") en píxeles */
@@ -379,12 +385,15 @@ body {
 
 /* Contenedor del modal */
 .modal-box {
-  background: white;
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
   border-radius: 12px;
   padding: 30px;
   max-width: 500px;
-  width: 90%;                        /* Ancho responsivo */
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3); /* Sombra pronunciada para elevación */
+  width: 90%;
+  border: 1px solid var(--glass-border);
+  color: var(--text-dark);
 }
 
 /* Encabezado del modal */
@@ -429,13 +438,13 @@ body {
 
 /* Panel para estudios médicos */
 .study-panel {
-  background: #f8faff;               /* Fondo azul muy claro */
-  border-left: 4px solid var(--primary); /* Borde izquierdo azul como acento */
+  background: rgba(52, 152, 219, 0.1); /* Azul muy translúcido */
+  border-left: 4px solid var(--primary);
   padding: 15px;
   margin: 15px 0;
-  border-radius: 0 8px 8px 0;        /* Bordes redondeados solo lado derecho */
+  border-radius: 0 8px 8px 0;
 }
-
+  
 /* Grupo de elementos dentro de estudios */
 .study-group {
   margin: 15px 0;
@@ -528,15 +537,13 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1); /* Fondo semi-transparente */
-  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.3); /* Oscuro */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--primary);        /* Color de la barra de scroll */
-  border-radius: 4px;
+  background: var(--primary); /* Azul */
 }
-
+  
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-dark);   /* Color más oscuro al pasar ratón */
 }
