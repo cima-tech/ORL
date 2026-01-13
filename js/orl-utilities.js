@@ -1,7 +1,7 @@
 // ARCHIVO: js/orl-utilities.js
+
 // Funciones utilitarias para el sistema ORL
 
-// Funciones de formato de fecha
 export function fmtDate(iso) {
     if (!iso) return '';
     const d = new Date(iso);
@@ -14,7 +14,6 @@ export function fmtDateTime(iso) {
     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-// Cálculo de edad
 export function calcAge(dob) {
     if (!dob) return '';
     const d = new Date(dob);
@@ -25,12 +24,6 @@ export function calcAge(dob) {
     return a;
 }
 
-// Validación de ID de paciente
-export function validatePatientId(id) {
-    return /^[A-Za-z]+-\d+$/.test(id);
-}
-
-// Función para obtener fecha/hora local
 export function getLocalDateTime() {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
