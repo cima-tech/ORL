@@ -1,4 +1,4 @@
-import { $, flash, showErr, fmtDate } from '../../../../../logic/brain.js';
+import { $, flash, showErr, fmtDate } from '../../../../logic/brain.js';
 // Importamos los generadores de HTML para reconstruir el documento al momento de exportar
 import { buildReportHTML } from './informe.js';
 import { buildRecipeHTML } from './recipe-indicaciones.js';
@@ -124,4 +124,5 @@ export function shareViaWhatsApp() {
     } else {
         showErr('Error: El paciente no tiene un número celular válido registrado en la ficha.');
     }
+
 }
