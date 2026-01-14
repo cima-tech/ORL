@@ -843,6 +843,11 @@ let USE_SIG = true;              // Bandera para mostrar/ocultar firma en docume
 let currentLinkCard = null;       // Referencia a tarjeta para compartir enlace
 let currentShareCard = null;      // Referencia a tarjeta para compartir documento
 
+// =========== CONFIGURACIÓN GOOGLE DRIVE ===========
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw-Htb5Rb97-YhQYPFGrsuMWmnyFRLu1qSh9ohcq_pWBpUBJp5zAFpQnzZ6fmheZryr/exec';
+let currentPatientId = null;
+let allPatientsCache = {};
+
 // =========== FUNCIONES UTILITARIAS ===========
 /* Función shorthand para document.querySelector (selecciona primer elemento que coincida) */
 const $ = s => document.querySelector(s);
