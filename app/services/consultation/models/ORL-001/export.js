@@ -3,7 +3,7 @@ import { $, flash, showErr, fmtDate } from '../../../../logic/brain.js';
 import { buildReportHTML } from './informe.js';
 import { buildRecipeHTML } from './recipe-indicaciones.js';
 // Importamos el estado global para saber qué documento se está previsualizando
-import { STATE } from '../../../../../logic/brain.js';
+import { STATE } from '../../../../logic/brain.js';
 
 // --- EXPORTACIÓN A IMAGEN (PNG) ---
 export async function exportToPNG() {
@@ -126,3 +126,4 @@ export function shareViaWhatsApp() {
     }
 
 }
+
