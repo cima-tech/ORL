@@ -1,4 +1,4 @@
-import { $, $$, flash, showErr, calcAge, fmtDateTime, STATE } from '../../../../../logic/brain.js';
+import { $, $$, flash, showErr, calcAge, fmtDateTime, STATE } from '../../../../logic/brain.js';
 
 // --- GENERADORES DE ID ---
 export function generateUUID() {
@@ -343,4 +343,5 @@ export function loadPatientDataToDOM(data) {
     toggleConditionalFields();
     calcularCampos();
     updatePatientHeader();
+
 }
