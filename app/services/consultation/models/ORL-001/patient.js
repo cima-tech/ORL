@@ -229,4 +229,120 @@ export function getPatientData() {
         
         // F. Redes
         instagram: $('#instagram')?.value,
-        x_twitter: $('#x_twitter')?.value
+        x_twitter: $('#x_twitter')?.value,
+        linkedin: $('#linkedin')?.value,
+        facebook: $('#facebook')?.value,
+        
+        // G. Emergencia
+        emergencia_nombre: $('#emergencia_nombre')?.value,
+        emergencia_parentesco: $('#emergencia_parentesco')?.value,
+        emergencia_telefono: $('#emergencia_telefono')?.value,
+        emergencia_email: $('#emergencia_email')?.value,
+        
+        // H. Administrativos
+        aseguradora: $('#aseguradora')?.value,
+        numero_poliza: $('#numero_poliza')?.value,
+        referido_por: $('#referido_por')?.value,
+        fecha_admision: $('#fecha_admision')?.value,
+        fecha_alta: $('#fecha_alta')?.value,
+        
+        // I. Alertas Clínicas
+        alergias_check: $('#alergias_check')?.checked,
+        alergias_detalle: $('#alergias_detalle')?.value,
+        cronicas_check: $('#cronicas_check')?.checked,
+        cronicas_detalle: $('#cronicas_detalle')?.value,
+        medicamentos_check: $('#medicamentos_check')?.checked,
+        medicamentos_detalle: $('#medicamentos_detalle')?.value,
+        
+        // J. Seguridad
+        riesgo_caidas: $('#riesgo_caidas')?.value,
+        voluntad_anticipada: $('#voluntad_anticipada')?.value,
+        
+        // K. Antecedentes Personales
+        hipertension_check: $('#hipertension_check')?.checked,
+        diabetes_check: $('#diabetes_check')?.checked,
+        asma_check: $('#asma_check')?.checked,
+        cardiopatias_check: $('#cardiopatias_check')?.checked,
+        epilepsia_check: $('#epilepsia_check')?.checked,
+        tiroideos_check: $('#tiroideos_check')?.checked,
+        otros_antecedentes: $('#otros_antecedentes')?.value,
+        
+        // L. Quirúrgico
+        tiene_cirugias: $('#tiene_cirugias')?.checked,
+        cirugia_descripcion: $('#cirugia_descripcion')?.value,
+        cirugia_anio: $('#cirugia_anio')?.value,
+        cirugia_complicaciones: $('#cirugia_complicaciones')?.value,
+        
+        // M. Hospitalizaciones
+        ha_sido_hospitalizado: $('#ha_sido_hospitalizado')?.checked,
+        hospitalizacion_motivo: $('#hospitalizacion_motivo')?.value,
+        hospitalizacion_anio: $('#hospitalizacion_anio')?.value,
+        transfusiones_check: $('#transfusiones_check')?.checked,
+        
+        // N. Lesiones
+        lesion_desc: $('#lesion_desc')?.value,
+        lesion_tipo: $('#lesion_tipo')?.value,
+        fractura_bool: $('#fractura_bool')?.checked,
+        fractura_hueso: $('#fractura_hueso')?.value,
+        
+        // O. Familiares
+        familia_hipertension: $('#familia_hipertension')?.checked,
+        familia_diabetes: $('#familia_diabetes')?.checked,
+        familia_cancer: $('#familia_cancer')?.checked,
+        familia_cardiopatias: $('#familia_cardiopatias')?.checked,
+        familia_geneticas: $('#familia_geneticas')?.value,
+        
+        // P. Hábitos
+        tabaquismo: $('#tabaquismo')?.value,
+        alcohol: $('#alcohol')?.value,
+        sustancias: $('#sustancias')?.value,
+        actividad_fisica: $('#actividad_fisica')?.value,
+        alimentacion: $('#alimentacion')?.value,
+        
+        // Q. Contexto Social
+        ocupacion: $('#ocupacion')?.value,
+        educacion: $('#educacion')?.value,
+        vivienda: $('#vivienda')?.value,
+        cuidador_check: $('#cuidador_check')?.checked,
+        barreras_comunicacion: $('#barreras_comunicacion')?.value,
+        contacto_digital: $('#contacto_digital')?.value,
+        
+        // R. Consentimientos y Metadatos
+        tratamiento_datos: $('#tratamiento_datos')?.checked,
+        fecha_firma: $('#fecha_firma')?.value,
+        
+        created: STATE.patientCreatedTime,
+        modified: new Date().toISOString(),
+        creator: STATE.currentUser?.profile?.id,
+        modifier: STATE.currentUser?.profile?.id
+    };
+}
+
+// --- CARGADOR DE DATOS (Mapeo Inverso JSON -> DOM) ---
+export function loadPatientDataToDOM(data) {
+    if (!data) return;
+
+    // Iteramos sobre las claves del objeto data y buscamos su elemento en el DOM
+    // Esto funciona porque los IDs del HTML coinciden con las claves del JSON
+    Object.keys(data).forEach(key => {
+        const el = $(`#${key}`);
+        if (el) {
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                el.checked = data[key];
+            } else {
+                el.value = data[key] || '';
+            }
+        }
+    });
+
+    // Restaurar estado global
+    STATE.patientCreatedTime = data.created;
+    STATE.patientModifiedTime = data.modified;
+    if(data.uuid) STATE.patientUUID = Math.max(STATE.patientUUID, parseInt(data.uuid) + 1);
+
+    // Refrescar UI dependiente de datos
+    toggleConditionalFields();
+    calcularCampos();
+    updatePatientHeader();
+} 
+// ¡Asegúrate de que esta llave de cierre esté presente!
