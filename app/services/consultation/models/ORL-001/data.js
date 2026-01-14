@@ -1,5 +1,5 @@
-import { $, $$, getLocalDateTime, STATE } from '../../../../logic/brain.js';
-import { updateRecipeTextbox, updateIndicacionesSection } from './recipe-indicaciones.js';
+import { $, $$, getLocalDateTime, STATE } from 'brain';
+import { updateRecipeTextbox, updateIndicacionesSection } from 'recipe';
 
 // =========== BASE DE CONOCIMIENTO MÉDICO (DATA FULL) ===========
 export const CIMA_DATA = {
@@ -538,3 +538,4 @@ export function createVisitCard(type = 'Primera') {
   return wrap;
 
 }
+
