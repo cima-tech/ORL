@@ -894,3 +894,45 @@ input[type="number"]:focus {
     background: rgba(59, 130, 246, 0.05);
     cursor: text;
 }
+
+/* --- LAYOUT COMPACTO (DENSIDAD ALTA) --- */
+.form-grid {
+    display: grid;
+    /* Forzamos 4 columnas iguales */
+    grid-template-columns: repeat(4, 1fr); 
+    /* Reducimos el espacio entre campos a 8px (antes era mucho más) */
+    gap: 8px 12px; 
+    align-items: end;
+}
+
+.form-section {
+    padding: 10px 15px; /* Menos padding vertical */
+    margin-bottom: 10px; /* Secciones más pegadas */
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.form-label {
+    font-size: 0.75rem; /* Letra un poco más pequeña para el título del campo */
+    margin-bottom: 2px;
+}
+
+.form-input, .form-select {
+    padding: 4px 8px; /* Inputs más delgados (menos altura) */
+    font-size: 0.9rem;
+    height: 32px; /* Altura fija compacta */
+}
+
+/* Clases utilitarias para controlar el ancho */
+.span-1 { grid-column: span 1; } /* 1/4 de ancho */
+.span-2 { grid-column: span 2; } /* 1/2 ancho */
+.span-3 { grid-column: span 3; } /* 3/4 ancho */
+.span-4 { grid-column: span 4; } /* Ancho completo */
+
+/* Ajuste para pantallas muy pequeñas (Móvil vertical) */
+@media (max-width: 768px) {
+    .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .span-1 { grid-column: span 1; }
+    .span-2 { grid-column: span 2; } /* Full en móvil */
+    .span-4 { grid-column: span 2; }
+}
+
