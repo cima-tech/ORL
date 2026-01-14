@@ -1,9 +1,10 @@
-import { $, $$, flash, showErr, STATE, fmtDate } from './brain.js';
-import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from '../services/consultation/models/ORL-001/patient.js';
-import { createVisitCard } from '../services/consultation/models/ORL-001/data.js';
-import { exportToPNG, shareViaWhatsApp } from '../services/consultation/models/ORL-001/export.js';
-import { buildReportHTML } from '../services/consultation/models/ORL-001/informe.js';
-import { buildRecipeHTML } from '../services/consultation/models/ORL-001/recipe-indicaciones.js';
+// CORRECCIÓN: Usamos los nombres del Import Map definidos en index.html
+import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
+import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
+import { createVisitCard } from 'data';
+import { exportToPNG, shareViaWhatsApp } from 'export';
+import { buildReportHTML } from 'informe';
+import { buildRecipeHTML } from 'recipe';
 
 // Clave para LocalStorage (Base de datos simulada)
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
@@ -61,9 +62,6 @@ export function initToolbarEvents() {
     // Estos eventos suelen estar en el HTML estático, pero los manejamos aquí para centralizar lógica
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
     $("#btnExport")?.addEventListener('click', exportToPNG);
-    // Botones de compartir
-    // Nota: Agregaremos listener dinámico para compartir cuando el modal share esté activo si fuese necesario,
-    // o botones directos en la UI si decides implementarlos.
 }
 
 // --- LÓGICA DE AGREGAR CONSULTA ---
@@ -146,9 +144,6 @@ function saveCurrentHistory() {
             // Metadatos
             doc_emitido: card.dataset.documentoEmitido || 'false'
         };
-        // Nota: Para una versión V3, idealmente guardaríamos los arrays de chips seleccionados
-        // para restaurarlos visualmente como chips 'on', no solo el texto. 
-        // Por ahora, guardamos el texto resultante que es lo legalmente importante.
     });
 
     // 3. Estructura del Registro
@@ -186,15 +181,6 @@ function loadHistory(docId) {
 
     // 2. Cargar Visitas
     $("#visitsContainer").innerHTML = '';
-    // Invertimos el array para procesarlo en orden (si prepend) o iteramos normal si append.
-    // Como handleAddConsulta hace prepend, y el array se guardó desde el DOM (orden visual),
-    // debemos tener cuidado.
-    // Estrategia: Iterar desde el último elemento del array (el más viejo) hasta el primero (el más nuevo)
-    // y hacer prepend.
-    
-    // Si guardamos leyendo $$('.visit-card'), el índice 0 es el más reciente (arriba).
-    // Para restaurar: Leemos de fin a inicio y prepend, O leemos de inicio a fin y append.
-    // Usemos append directo para simplificar la restauración visual.
     
     (record.visits || []).forEach(vData => {
         const card = createVisitCard(vData.type || 'Sucesiva');
@@ -219,7 +205,7 @@ function loadHistory(docId) {
         card.querySelector('.txt-indicaciones').value = vData.indicaciones || '';
         card.querySelector('.txt-plan').value = vData.plan || '';
         
-        // Agregar al contenedor (Append mantiene el orden si el array estaba ordenado visualmente)
+        // Agregar al contenedor
         $("#visitsContainer").appendChild(card);
     });
 
@@ -261,7 +247,7 @@ function executeSearch() {
 
     matches.forEach(match => {
         const div = document.createElement('div');
-        div.className = 'search-result-item'; // Necesita CSS básico
+        div.className = 'search-result-item';
         div.style.padding = "10px";
         div.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
         div.style.cursor = "pointer";
@@ -294,8 +280,7 @@ function refreshPreview() {
     }
 }
 
-// Hacemos global la función openDoc para que el HTML de data.js pueda llamarla
-// (Aunque idealmente usaríamos eventos, por simplicidad del refactor mantenemos la llamada onclick)
+// Función global openDoc
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
@@ -310,7 +295,6 @@ window.openDocGlobal = function(kind, cardId) {
     $("#previewShell").classList.remove('hidden');
     $("#docPreview").innerHTML = html;
     
-    // Zoom inicial
     const zoom = STATE.currentUser?.preferences?.default_zoom || 60;
     $("#docPreview").style.transform = `scale(${zoom / 100})`;
     $("#zoomRange").value = zoom;
