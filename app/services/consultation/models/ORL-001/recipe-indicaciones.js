@@ -1,4 +1,4 @@
-import { $, STATE, fmtDate } from '../../../../../logic/brain.js';
+import { $, STATE, fmtDate } from '../../../../logic/brain.js';
 import { CIMA_DATA } from './data.js';
 
 // --- GENERADOR HTML DEL RÉCIPE (LANDSCAPE) ---
@@ -124,4 +124,5 @@ function updatePlanTratamiento(card, indicacionesText) {
     const contacto = "\n\nNOTA DE SEGURIDAD:\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas a los teléfonos de contacto o acudir a la Emergencia.";
     
     txtPlan.value = indicacionesText + contacto;
+
 }
