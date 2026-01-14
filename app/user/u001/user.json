@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "id": "u001",
+    "name": "Dra. Valentina González Yanez",
+    "title_line_1": "Otorrinolaringología",
+    "title_line_2": "Hospital de Clínicas Caracas",
+    "phones": ["(0212) 5086321", "(0424) 1090979"],
+    "email": "tudraorl@gmail.com",
+    "instagram": "@tudraorl",
+    "location": "Caracas, Venezuela"
+  },
+  "preferences": {
+    "theme": "dark",
+    "default_zoom": 60,
+    "primary_color": "#3b82f6",
+    "use_digital_signature_default": true
+  },
+  "assets": {
+    "header_path": "./app/user/u001/layout/header.png",
+    "footer_path": "./app/user/u001/layout/footer.png",
+    "signature_path": "./app/user/u001/layout/signature.png",
+    "stamp_path": "./app/user/u001/layout/stamp.png"
+  }
+}
