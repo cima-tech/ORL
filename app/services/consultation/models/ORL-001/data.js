@@ -1,5 +1,4 @@
-// CORRECCIÓN: Imports limpios usando el mapa
-import { $, $$, getLocalDateTime, STATE } from 'brain';
+import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
 import { updateRecipeTextbox, updateIndicacionesSection } from 'recipe';
 
 // =========== BASE DE CONOCIMIENTO MÉDICO (CIMA_DATA) ===========
@@ -146,7 +145,7 @@ export const CIMA_DATA = {
 // =========== COMPONENTES DE UI (CHIPS) ===========
 function createChip(label, type = 'normal') {
     const s = document.createElement('span');
-    s.className = 'chip' + (type === 'study' ? ' study-chip' : '');
+    s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
     s.textContent = label;
     s.dataset.active = '0';
     
@@ -154,7 +153,7 @@ function createChip(label, type = 'normal') {
         const isActive = s.dataset.active === '1';
         s.dataset.active = isActive ? '0' : '1';
         s.classList.toggle('on', !isActive);
-        // Disparar evento personalizado para que otros escuchen cambios
+        // Disparar evento personalizado
         s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true, detail: { label, active: !isActive } }));
     });
     return s;
@@ -174,10 +173,16 @@ export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
     
+    // Metadata de la consulta
+    const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
+    const createdTime = new Date().toISOString();
+
     const wrap = document.createElement('div');
     wrap.id = cardId;
     wrap.className = 'card visit-card';
     wrap.dataset.type = type;
+    wrap.dataset.createdBy = createdBy;
+    wrap.dataset.createdAt = createdTime;
 
     // Datos para EA autogenerada
     const edad = $("#edad_auto")?.value || '';
@@ -190,15 +195,21 @@ export function createVisitCard(type = 'Primera') {
       <button type="button" class="visit-toggle-btn">
         <i class="bi bi-chevron-down"></i>
       </button>
-      <span class="badge">${type}</span>
-      <span style="flex: 1; margin-left: 10px;">Consulta ${type.toLowerCase()}</span>
+      
+      <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+             <span class="badge">${type}</span>
+             <span style="font-weight:600;">Consulta ORL</span>
+          </div>
+          <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+             Creado: ${fmtDateTime(createdTime)} por ${createdBy}
+          </div>
+      </div>
+
       <div style="display: flex; gap: 10px;">
-        <button type="button" class="btn btn-primary btn-small btn-inf">
-          <i class="bi bi-file-text"></i> Informe
-        </button>
-        <button type="button" class="btn btn-success btn-small btn-rp">
-          <i class="bi bi-prescription"></i> Receta
-        </button>
+        <button type="button" class="btn btn-primary btn-small btn-inf"><i class="bi bi-file-text"></i> Informe</button>
+        <button type="button" class="btn btn-success btn-small btn-rp"><i class="bi bi-prescription"></i> Receta</button>
+        <button type="button" class="btn btn-ghost btn-small text-danger btn-del-visit"><i class="bi bi-x-lg"></i></button>
       </div>
     </div>
     
@@ -290,19 +301,11 @@ export function createVisitCard(type = 'Primera') {
       
       <div class="form-section">
         <div class="form-section-title">3. Estudios</div>
-        
         <div class="row">
           <div class="col">
-            <label class="form-label">Seleccionar Estudios</label>
+            <label class="form-label">Seleccionar Estudios Realizados</label>
             <div class="chips chips-studies" style="margin-top: 8px;"></div>
             <div id="studies-content-${cardId}" style="margin-top: 16px;"></div>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Estudios Adicionales (sin chips, solo texto)</label>
-            <div class="additional-studies-container" style="margin-top: 8px;"></div>
           </div>
         </div>
       </div>
@@ -344,197 +347,207 @@ export function createVisitCard(type = 'Primera') {
       
       <div class="doc-status-area" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(96, 165, 250, 0.1);"></div>
     </div>
-  `;
-
-  // --- INYECCIÓN DE CHIPS ---
-  // Utilizamos las utilidades definidas arriba (createChip y createChipGroup)
-  
-  // 1. Motivos
-  const motivoContainer = wrap.querySelector('.chips-motivo');
-  CIMA_DATA.MOTIVOS.forEach(m => motivoContainer.appendChild(createChip(m)));
-  
-  // 2. Antecedentes
-  const antPersContainer = wrap.querySelector('.chips-antecedentes-personales');
-  const antFamContainer = wrap.querySelector('.chips-antecedentes-familiares');
-  CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
-  CIMA_DATA.ANTECEDENTES.forEach(a => antFamContainer.appendChild(createChip(a)));
-  
-  // 3. Examen Físico: Cara y Cuello (Listas planas)
-  const caraContainer = wrap.querySelector('.chips-exam-cara');
-  CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
-  
-  const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
-  CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
-
-  // 4. Examen Físico: Oídos, Nariz, Orofaringe (Listas agrupadas)
-  // Oído Derecho
-  const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
-  Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
-      createChipGroup(group, items, odContainer);
-  });
-  // Oído Izquierdo
-  const oiContainer = wrap.querySelector('.chips-exam-oido-izquierdo');
-  Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => {
-      createChipGroup(group, items, oiContainer);
-  });
-  // Nariz
-  const narizContainer = wrap.querySelector('.chips-exam-nariz');
-  Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => {
-      createChipGroup(group, items, narizContainer);
-  });
-  // Orofaringe
-  const oroContainer = wrap.querySelector('.chips-exam-orofaringe');
-  Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => {
-      createChipGroup(group, items, oroContainer);
-  });
-
-  // 5. Estudios (Chips dinámicos)
-  const studiesContainer = wrap.querySelector('.chips-studies');
-  Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
-      studiesContainer.appendChild(createChip(studyName, 'study'));
-  });
-
-  // 6. Estudios Adicionales (Textareas)
-  const addStudiesContainer = wrap.querySelector('.additional-studies-container');
-  CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
-    const studyDiv = document.createElement('div');
-    studyDiv.style.marginBottom = '12px';
-    studyDiv.innerHTML = `
-      <div style="font-weight: 600; color: #94a3b8; margin-bottom: 4px;">${studyName}</div>
-      <textarea class="form-input txt-study-${studyName.toLowerCase().replace(/ /g, '-')}" rows="2" placeholder="Conclusión ${studyName}..."></textarea>
     `;
-    addStudiesContainer.appendChild(studyDiv);
-  });
 
-  // 7. Diagnósticos (DX)
-  const dxContainer = wrap.querySelector('.chips-dx');
-  CIMA_DATA.DX.forEach(d => dxContainer.appendChild(createChip(d)));
+    // --- INYECCIÓN DE CHIPS ---
+    
+    // 1. Motivos
+    const motivoContainer = wrap.querySelector('.chips-motivo');
+    CIMA_DATA.MOTIVOS.forEach(m => motivoContainer.appendChild(createChip(m)));
+    
+    // 2. Antecedentes
+    const antPersContainer = wrap.querySelector('.chips-antecedentes-personales');
+    const antFamContainer = wrap.querySelector('.chips-antecedentes-familiares');
+    CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
+    CIMA_DATA.ANTECEDENTES.forEach(a => antFamContainer.appendChild(createChip(a)));
+    
+    // 3. Examen Físico: Cara y Cuello (Listas planas)
+    const caraContainer = wrap.querySelector('.chips-exam-cara');
+    CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
+    
+    const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
+    CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
 
-  // 8. Recipe (Agrupado)
-  const recipeContainer = wrap.querySelector('.recipe-chips-container');
-  Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
-    // Usamos la clase recipe-chips-group para identificarla en recipe-indicaciones.js
-    const groupDiv = document.createElement('div');
-    groupDiv.style.marginBottom = '12px';
-    groupDiv.innerHTML = `
-      <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
-      <div class="chips recipe-chips-group" data-group="${group}"></div>
-    `;
-    const chipsBox = groupDiv.querySelector('.chips');
-    meds.forEach(med => chipsBox.appendChild(createChip(med)));
-    recipeContainer.appendChild(groupDiv);
-  });
-
-  // --- EVENT LISTENERS ESPECÍFICOS DE LA TARJETA ---
-
-  // Toggle de colapso de tarjeta
-  wrap.querySelector('.visit-toggle-btn').addEventListener('click', () => {
-    const body = wrap.querySelector('.visit-body');
-    const icon = wrap.querySelector('.visit-toggle-btn i');
-    body.classList.toggle('hidden');
-    icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
-  });
-
-  // Toggle de contenido de Estudios
-  wrap.querySelectorAll('.chips-studies .chip').forEach(chipEl => {
-    chipEl.addEventListener('click', function() {
-      const studyName = this.textContent;
-      const studiesContent = wrap.querySelector(`#studies-content-${cardId}`);
-      const studyId = `study-${studyName.toLowerCase().replace(/ /g, '-')}-${cardId}`;
-      
-      // La clase 'on' ya se toggles en el helper createChip, aquí solo reaccionamos
-      // Nota: Como el evento click dispara antes que nuestro custom event, verificamos estado del DOM
-      // Sin embargo, usaremos el custom event global para mayor seguridad o lógica directa aquí
-      
-      // Lógica de toggle visual del área de estudio
-      // Pequeño timeout para permitir que la clase 'on' se actualice primero visualmente
-      setTimeout(() => {
-        const isOn = this.classList.contains('on');
-        
-        if (isOn) {
-           if (!document.getElementById(studyId)) {
-               const studyDiv = document.createElement('div');
-               studyDiv.id = studyId;
-               studyDiv.className = 'study-content';
-               studyDiv.innerHTML = `
-                 <div style="font-weight: 700; color: #60a5fa; margin-bottom: 12px;">${studyName}</div>
-                 <label class="form-label">Conclusión ${studyName}</label>
-                 <textarea class="form-input txt-study-${studyName.toLowerCase().replace(/ /g, '-')}" rows="3" placeholder="Conclusión..."></textarea>
-                 <div class="study-chips-container" style="margin-top: 12px;"></div>
-               `;
-               const subChipsContainer = studyDiv.querySelector('.study-chips-container');
-               Object.entries(CIMA_DATA.STUDIES[studyName]).forEach(([groupName, items]) => {
-                  createChipGroup(groupName, items, subChipsContainer);
-               });
-               studiesContent.appendChild(studyDiv);
-           }
-        } else {
-           const studyDiv = document.getElementById(studyId);
-           if (studyDiv) studyDiv.remove();
-        }
-      }, 0);
+    // 4. Examen Físico: Oídos, Nariz, Orofaringe (Listas agrupadas)
+    const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
+        createChipGroup(group, items, odContainer);
     });
-  });
+    
+    const oiContainer = wrap.querySelector('.chips-exam-oido-izquierdo');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => {
+        createChipGroup(group, items, oiContainer);
+    });
+    
+    const narizContainer = wrap.querySelector('.chips-exam-nariz');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => {
+        createChipGroup(group, items, narizContainer);
+    });
+    
+    const oroContainer = wrap.querySelector('.chips-exam-orofaringe');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => {
+        createChipGroup(group, items, oroContainer);
+    });
 
-  // Listeners de actualización de texto al tocar chips (Motivos, DX, Antecedentes, Examen Físico)
-  // Helper para actualizar inputs desde chips
-  const updateInputFromChips = (inputSel, chipContainerSel) => {
-    const input = wrap.querySelector(inputSel);
-    if (!input || input.dataset.userEdited === '1') return; // Respetar edición manual
-    
-    // Obtener chips 'on'
-    const chips = Array.from(wrap.querySelectorAll(`${chipContainerSel} .chip.on`));
-    
-    // Si es examen físico agrupado, el formato es "Grupo: item, item"
-    // Verificamos si los chips están dentro de grupos
-    const isGrouped = wrap.querySelector(chipContainerSel).querySelector('.chip-group');
-    
-    if (isGrouped) {
-        const groupedText = {};
-        chips.forEach(c => {
-            const gTitle = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
-            if(!groupedText[gTitle]) groupedText[gTitle] = [];
-            groupedText[gTitle].push(c.textContent);
+    // 5. ESTUDIOS (Unificación)
+    const studiesContainer = wrap.querySelector('.chips-studies');
+    // A. Complejos
+    Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
+        studiesContainer.appendChild(createChip(studyName, 'study-complex'));
+    });
+    // B. Simples
+    CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
+        studiesContainer.appendChild(createChip(studyName, 'study-simple'));
+    });
+
+    // 6. Diagnósticos (DX)
+    const dxContainer = wrap.querySelector('.chips-dx');
+    CIMA_DATA.DX.forEach(d => dxContainer.appendChild(createChip(d)));
+
+    // 7. Recipe (Agrupado)
+    const recipeContainer = wrap.querySelector('.recipe-chips-container');
+    Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.style.marginBottom = '12px';
+        groupDiv.innerHTML = `
+          <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
+          <div class="chips recipe-chips-group" data-group="${group}"></div>
+        `;
+        const chipsBox = groupDiv.querySelector('.chips');
+        meds.forEach(med => chipsBox.appendChild(createChip(med)));
+        recipeContainer.appendChild(groupDiv);
+    });
+
+    // --- EVENT LISTENERS ESPECÍFICOS DE LA TARJETA ---
+
+    // 1. Toggle de colapso (con stopPropagation para evitar burbujeo)
+    wrap.querySelector('.visit-toggle-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const body = wrap.querySelector('.visit-body');
+        const icon = wrap.querySelector('.visit-toggle-btn i');
+        body.classList.toggle('hidden');
+        icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+    });
+
+    // 2. Eliminar visita
+    wrap.querySelector('.btn-del-visit')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(confirm('¿Eliminar esta consulta?')) wrap.remove();
+    });
+
+    // 3. Listener Global para Chips y Estudios
+    wrap.addEventListener('chip-toggle', (e) => {
+        const { label, active } = e.detail;
+        const target = e.target;
+
+        // A. Lógica de Estudios (Crear área de resultados)
+        if (target.closest('.chips-studies')) {
+            const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
+            const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
+            
+            if (active) {
+                const studyDiv = document.createElement('div');
+                studyDiv.id = uniqueId;
+                studyDiv.className = 'study-content';
+                studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6;";
+
+                let innerHTML = `<div style="font-weight:700; margin-bottom:5px;">${label}</div>`;
+                innerHTML += `<textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
+                
+                if (CIMA_DATA.STUDIES[label]) {
+                    innerHTML += `<div class="study-sub-chips" style="margin-top:10px;"></div>`;
+                }
+                
+                studyDiv.innerHTML = innerHTML;
+                contentArea.appendChild(studyDiv);
+
+                if (CIMA_DATA.STUDIES[label]) {
+                    const subContainer = studyDiv.querySelector('.study-sub-chips');
+                    Object.entries(CIMA_DATA.STUDIES[label]).forEach(([groupTitle, items]) => {
+                        createChipGroup(groupTitle, items, subContainer);
+                    });
+                }
+            } else {
+                const el = document.getElementById(uniqueId);
+                if (el) el.remove();
+            }
+        }
+
+        // B. Sub-Chips de Estudios (Actualizar textbox)
+        if (target.closest('.study-sub-chips')) {
+            const studyDiv = target.closest('.study-content');
+            const textarea = studyDiv.querySelector('textarea');
+            const activeSubChips = Array.from(studyDiv.querySelectorAll('.chip.on'));
+            
+            const grouped = {};
+            activeSubChips.forEach(c => {
+                const group = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
+                if(!grouped[group]) grouped[group] = [];
+                grouped[group].push(c.textContent);
+            });
+
+            let text = "";
+            Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
+            textarea.value = text;
+        }
+
+        // C. Inputs Normales (Motivo, Dx, Examen Físico)
+        const simpleInputs = [
+            { cont: '.chips-motivo', input: '.txt-motivo' },
+            { cont: '.chips-dx', input: '.txt-dx' },
+            { cont: '.chips-antecedentes-personales', input: '.txt-antecedentes-personales' },
+            { cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' },
+            { cont: '.chips-exam-cara', input: '.txt-exam-cara' },
+            { cont: '.chips-exam-cuello', input: '.txt-exam-cuello' }
+        ];
+        
+        simpleInputs.forEach(item => {
+            if (target.closest(item.cont)) {
+                const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
+                const input = wrap.querySelector(item.input);
+                if (input && !input.dataset.userEdited) {
+                    input.value = chips.map(c => c.textContent).join(', ');
+                }
+            }
         });
-        let text = "";
-        Object.entries(groupedText).forEach(([g, items]) => {
-            text += `${g}: ${items.join(', ')}\n`;
+
+        // D. Examen Físico Agrupado (Oídos, Nariz...)
+        const groupedExamInputs = [
+            { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
+            { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
+            { cont: '.chips-exam-nariz', input: '.txt-exam-nariz' },
+            { cont: '.chips-exam-orofaringe', input: '.txt-exam-orofaringe' }
+        ];
+
+        groupedExamInputs.forEach(item => {
+            if (target.closest(item.cont)) {
+                const input = wrap.querySelector(item.input);
+                if (input && !input.dataset.userEdited) {
+                    const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
+                    const grouped = {};
+                    chips.forEach(c => {
+                        const g = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
+                        if(!grouped[g]) grouped[g] = [];
+                        grouped[g].push(c.textContent);
+                    });
+                    let text = "";
+                    Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
+                    input.value = text.trim();
+                }
+            }
         });
-        input.value = text.trim();
-    } else {
-        // Lista plana separada por comas
-        input.value = chips.map(c => c.textContent).join(', ');
-    }
-  };
 
-  // Asignar listeners globales a la tarjeta para delegación
-  wrap.addEventListener('chip-toggle', (e) => {
-      const target = e.target;
-      
-      if (target.closest('.chips-motivo')) updateInputFromChips('.txt-motivo', '.chips-motivo');
-      if (target.closest('.chips-dx')) updateInputFromChips('.txt-dx', '.chips-dx');
-      if (target.closest('.chips-antecedentes-personales')) updateInputFromChips('.txt-antecedentes-personales', '.chips-antecedentes-personales');
-      if (target.closest('.chips-antecedentes-familiares')) updateInputFromChips('.txt-antecedentes-familiares', '.chips-antecedentes-familiares');
-      
-      // Examen Físico
-      if (target.closest('.chips-exam-cara')) updateInputFromChips('.txt-exam-cara', '.chips-exam-cara');
-      if (target.closest('.chips-exam-oido-derecho')) updateInputFromChips('.txt-exam-oido-derecho', '.chips-exam-oido-derecho');
-      if (target.closest('.chips-exam-oido-izquierdo')) updateInputFromChips('.txt-exam-oido-izquierdo', '.chips-exam-oido-izquierdo');
-      if (target.closest('.chips-exam-nariz')) updateInputFromChips('.txt-exam-nariz', '.chips-exam-nariz');
-      if (target.closest('.chips-exam-orofaringe')) updateInputFromChips('.txt-exam-orofaringe', '.chips-exam-orofaringe');
-      if (target.closest('.chips-exam-cuello')) updateInputFromChips('.txt-exam-cuello', '.chips-exam-cuello');
+        // E. Recipe
+        if (target.closest('.recipe-chips-container')) {
+            updateRecipeTextbox(wrap);
+            updateIndicacionesSection(wrap);
+        }
+    });
 
-      // Recipe e Indicaciones (Importado de otro módulo)
-      if (target.closest('.recipe-chips-container')) {
-          updateRecipeTextbox(wrap);
-          updateIndicacionesSection(wrap);
-      }
-  });
+    // Marcar edición manual para no sobrescribir
+    wrap.querySelectorAll('textarea, input[type="text"]').forEach(input => {
+        input.addEventListener('input', () => input.dataset.userEdited = '1');
+    });
 
-  // Marcar inputs como editados manualmente para no sobrescribir
-  wrap.querySelectorAll('textarea, input[type="text"]').forEach(input => {
-      input.addEventListener('input', () => input.dataset.userEdited = '1');
-  });
-
-  return wrap;
+    return wrap;
 }
