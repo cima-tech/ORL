@@ -1,4 +1,4 @@
-import { $, STATE, fmtDateTime } from '../../../../../logic/brain.js';
+import { $, STATE, fmtDateTime } from '../../../../logic/brain.js';
 import { CIMA_DATA } from './data.js';
 
 export function buildReportHTML(card) {
@@ -145,4 +145,5 @@ export function buildReportHTML(card) {
         </div>
         </div>
     `;
+
 }
