@@ -1,4 +1,4 @@
-import { $, $$, getLocalDateTime, STATE } from '../../../../../logic/brain.js';
+import { $, $$, getLocalDateTime, STATE } from '../../../../logic/brain.js';
 import { updateRecipeTextbox, updateIndicacionesSection } from './recipe-indicaciones.js';
 
 // =========== BASE DE CONOCIMIENTO MÉDICO (DATA FULL) ===========
@@ -536,4 +536,5 @@ export function createVisitCard(type = 'Primera') {
   });
 
   return wrap;
+
 }
