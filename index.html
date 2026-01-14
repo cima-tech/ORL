@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     
     <style>
-        /* CSS Mínimo en línea para el Modal de Búsqueda (ya que no tenemos main.css a mano, aseguramos que funcione) */
+        /* CSS Mínimo en línea para el Modal de Búsqueda */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
         .modal-box { background: #1e293b; border: 1px solid #3b82f6; padding: 20px; border-radius: 12px; width: 400px; max-width: 90%; color: white; }
@@ -299,7 +299,9 @@
     <div id="docPreview"></div>
   </div>
 
-</div> <div id="searchModal" class="modal-overlay">
+</div> 
+
+<div id="searchModal" class="modal-overlay">
   <div class="modal-box glass">
     <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #60a5fa;">Buscar Paciente</div>
     <input id="searchValue" class="form-input" placeholder="Nombre o Cédula..." style="margin-bottom: 15px;">
@@ -311,49 +313,52 @@
   </div>
 </div>
 
+<script type="importmap">
+{
+  "imports": {
+    "brain": "./app/logic/brain.js",
+    "toolbar": "./app/logic/toolbar.js",
+    "patient": "./app/services/consultation/models/ORL-001/patient.js",
+    "data": "./app/services/consultation/models/ORL-001/data.js",
+    "informe": "./app/services/consultation/models/ORL-001/informe.js",
+    "recipe": "./app/services/consultation/models/ORL-001/recipe-indicaciones.js",
+    "export": "./app/services/consultation/models/ORL-001/export.js"
+  }
+}
+</script>
+
 <script type="module">
-    import { $ } from './app/logic/brain.js';
-    import { initToolbarEvents } from './app/logic/toolbar.js';
-    import { loadUserConfig } from './app/logic/brain.js';
-    import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from './app/services/consultation/models/ORL-001/patient.js';
-    import { createVisitCard } from './app/services/consultation/models/ORL-001/data.js';
+    // Nota cómo ahora los imports son limpios y cortos:
+    import { $, loadUserConfig } from 'brain';
+    import { initToolbarEvents } from 'toolbar';
+    import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
+    import { createVisitCard } from 'data';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.0 - Inicializando...");
+        console.log("CIMA ORL v2.0 - Inicializando con Import Maps...");
         
-        // 1. Cargar Configuración del Usuario
         await loadUserConfig();
-        
-        // 2. Iniciar Eventos de la Barra
         initToolbarEvents();
-        
-        // 3. Iniciar Estado por defecto
         initializeNewPatient();
 
-        // 4. Exponer funciones al scope global para onclicks del HTML (Legacy support)
+        // Exponer globales para el HTML legacy
         window.togglePatientDetailsGlobal = togglePatientDetails;
-        window.updatePatientHeaderGlobal = updatePatientHeader; // Si usas onchange="window.update..."
-        window.$ = $; // Útil para debugging en consola
+        window.updatePatientHeaderGlobal = updatePatientHeader;
+        window.$ = $;
         
-        // Bindear eventos change globales para el formulario de paciente
-        // (Esto reemplaza los onclick="toggleAlerta()" inline del HTML original)
         const form = document.getElementById('patientForm');
         form.addEventListener('change', (e) => {
-            // Actualizar header si cambian nombres/docs
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) {
                 updatePatientHeader();
             }
-            // Recalcular edad/IMC
             if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) {
                 calcularCampos();
             }
-            // Mostrar/Ocultar campos condicionales (Checks)
             if(e.target.type === 'checkbox') {
                 toggleConditionalFields();
             }
         });
         
-        // Bindear evento para abrir/cerrar detalles de visita (delegación)
         document.getElementById('visitsContainer').addEventListener('click', (e) => {
             const btn = e.target.closest('.visit-toggle-btn');
             if(btn) {
@@ -362,7 +367,6 @@
                 btn.querySelector('i').classList.toggle('bi-chevron-right');
                 btn.querySelector('i').classList.toggle('bi-chevron-down');
             }
-            // Botones de Informe y Recipe dentro de la tarjeta
             if(e.target.closest('.btn-inf')) {
                 const card = e.target.closest('.visit-card');
                 window.openDocGlobal('INF', card.id);
@@ -373,7 +377,6 @@
             }
         });
         
-        // Inicializar estado visual de campos
         toggleConditionalFields();
     });
 </script>
