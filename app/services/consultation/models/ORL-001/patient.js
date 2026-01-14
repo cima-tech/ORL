@@ -1,4 +1,3 @@
-// CORRECCIÓN: Import limpio desde 'brain'
 import { $, $$, flash, showErr, calcAge, fmtDateTime, STATE } from 'brain';
 
 // --- GENERADORES DE ID ---
@@ -11,6 +10,26 @@ export function generatePatientInternalId() {
     return `p${String(id).padStart(7, '0')}u001`; 
 }
 
+// --- VALIDACIÓN DE FORMULARIO (NUEVO) ---
+export function validatePatientForm() {
+    let isValid = true;
+    // Campos obligatorios básicos
+    const required = ['documento_numero', 'primer_nombre', 'primer_apellido', 'fecha_nacimiento'];
+    
+    required.forEach(id => {
+        const el = $(`#${id}`);
+        if (el && !el.value.trim()) {
+            el.classList.add('input-error');
+            // Remover el efecto después de 500ms para poder activarlo de nuevo si se vuelve a intentar
+            setTimeout(() => el.classList.remove('input-error'), 500);
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) showErr("Faltan datos obligatorios del paciente (marcados en rojo)");
+    return isValid;
+}
+
 // --- LÓGICA UI DEL HEADER Y PESTAÑA PACIENTE ---
 export function togglePatientDetails() {
     const details = $(".patient-details");
@@ -21,7 +40,7 @@ export function togglePatientDetails() {
         toggleBtn.className = 'bi bi-chevron-right';
     } else {
         toggleBtn.className = 'bi bi-chevron-down';
-        // Generar IDs si están vacíos
+        // Generar IDs si están vacíos al abrir
         if (!$("#patient-internal-id").textContent || $("#patient-internal-id").textContent === 'p0000001u001') {
             const newId = generatePatientInternalId();
             $("#patient-internal-id").textContent = newId;
@@ -34,7 +53,18 @@ export function togglePatientDetails() {
 }
 
 export function updatePatientHeader() {
-    // Construcción robusta del nombre completo
+    // 1. Auto-corrección de Cédula (V-)
+    const docInput = $("#documento_numero");
+    const docType = $("#documento_tipo");
+    
+    // Si el tipo es C.I. o está vacío, y el usuario metió solo números, agregamos V-
+    if (docInput && /^\d+$/.test(docInput.value)) { 
+        if (!docType.value || docType.value === 'C.I.') {
+            docInput.value = "V-" + docInput.value;
+        }
+    }
+
+    // 2. Construcción robusta del nombre completo
     const nombreCompleto = [
         $("#primer_nombre")?.value, 
         $("#segundo_nombre")?.value, 
@@ -56,21 +86,22 @@ export function updatePatientHeader() {
     $("#patient-age-display").textContent = edadDisplay;
     
     updatePatientTimestamps();
-    updateAlertsBadge(); // Función para refrescar las etiquetas de alerta en el header
+    updateAlertsBadge(); 
 }
 
-// Actualiza los timestamps visibles
+// Actualiza los timestamps visibles con lógica de creador/modificador
 function updatePatientTimestamps() {
     if (!STATE.patientCreatedTime) STATE.patientCreatedTime = new Date().toISOString();
-    STATE.patientModifiedTime = new Date().toISOString();
     
-    const user = STATE.currentUser?.profile?.id || 'u-001';
+    // Usamos el usuario actual o un fallback
+    const currentUser = STATE.currentUser?.profile?.name || 'Usuario';
+    const creator = STATE.patientCreator || currentUser; 
     
-    $("#patient-meta-created").textContent = `Creado: ${fmtDateTime(STATE.patientCreatedTime)} por ${user}`;
-    $("#patient-meta-modified").textContent = `Modificado: ${fmtDateTime(STATE.patientModifiedTime)} por ${user}`;
+    $("#patient-meta-created").textContent = `Creado: ${fmtDateTime(STATE.patientCreatedTime)} por ${creator}`;
+    $("#patient-meta-modified").textContent = `Editado: ${fmtDateTime(new Date().toISOString())} por ${currentUser}`;
 }
 
-// Muestra badges de alerta en el header del paciente (Alergias, Riesgo Caída, etc)
+// Muestra badges de alerta en el header del paciente
 function updateAlertsBadge() {
     const container = $("#patient-alerts-container");
     if(!container) return;
@@ -80,23 +111,35 @@ function updateAlertsBadge() {
         const tag = document.createElement('span');
         tag.className = 'alert-tag';
         tag.textContent = text;
-        if (priority === 'critical') {
-            tag.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
-            tag.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        
+        // Estilos inline básicos para asegurar visualización si falla el CSS
+        tag.style.padding = "2px 6px";
+        tag.style.borderRadius = "4px";
+        tag.style.fontSize = "10px";
+        tag.style.fontWeight = "bold";
+        tag.style.marginRight = "4px";
+        
+        if (priority === 'critical' || priority === 'high') {
+            tag.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            tag.style.color = '#ef4444';
+            tag.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+        } else {
+            tag.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+            tag.style.color = '#3b82f6';
+            tag.style.border = '1px solid rgba(59, 130, 246, 0.2)';
         }
         container.appendChild(tag);
     };
 
-    // Lógica de alertas críticas
-    if ($("#alergias_check")?.checked) addBadge("Alergias", "high");
-    if ($("#riesgo_caidas")?.value === "Alto") addBadge("Riesgo Caída", "critical");
-    if ($("#medicamentos_check")?.checked) addBadge("Medicamentos", "high");
-    if ($("#cronicas_check")?.checked) addBadge("Crónicas", "high");
+    // Lógica de alertas
+    if ($("#alergias_check")?.checked) addBadge("ALERGIAS", "high");
+    if ($("#riesgo_caidas")?.value === "Alto") addBadge("RIESGO CAÍDA", "critical");
+    if ($("#medicamentos_check")?.checked) addBadge("MEDICAMENTOS", "medium");
+    if ($("#cronicas_check")?.checked) addBadge("CRÓNICAS", "high");
     
-    // Alertas de antecedentes importantes
-    if ($("#diabetes_check")?.checked) addBadge("Diabetes");
-    if ($("#hipertension_check")?.checked) addBadge("HTA");
-    if ($("#cardiopatias_check")?.checked) addBadge("Cardio");
+    if ($("#diabetes_check")?.checked) addBadge("DIABETES", "high");
+    if ($("#hipertension_check")?.checked) addBadge("HTA", "high");
+    if ($("#cardiopatias_check")?.checked) addBadge("CARDIO", "high");
 }
 
 // --- CÁLCULOS AUTOMÁTICOS ---
@@ -140,17 +183,17 @@ export function initializeNewPatient() {
     $("#patient-internal-id").textContent = newId;
 
     STATE.patientCreatedTime = new Date().toISOString();
+    STATE.patientCreator = STATE.currentUser?.profile?.name; // Guardar creador original
     STATE.patientModifiedTime = STATE.patientCreatedTime;
     
     // Reiniciar visibilidad de campos condicionales
-    toggleConditionalFields(); // Nueva función helper
+    toggleConditionalFields();
     calcularCampos();
     updatePatientHeader();
 }
 
 // Maneja la lógica visual de mostrar/ocultar textareas al hacer check
 export function toggleConditionalFields() {
-    // Mapa de Checkbox -> Campo Detalle
     const map = [
         { check: 'alergias_check', area: 'alergias_detalle' },
         { check: 'cronicas_check', area: 'cronicas_detalle' },
@@ -168,7 +211,6 @@ export function toggleConditionalFields() {
             const area = $(`#${item.area}`);
             if (area) {
                 area.style.display = checkbox.checked ? 'block' : 'none';
-                // Ajuste de grid si es necesario (opcional)
                 if(area.parentElement) area.parentElement.style.gridColumn = checkbox.checked ? 'span 3' : 'span 1'; 
             }
         }
@@ -186,8 +228,10 @@ export function toggleConditionalFields() {
 }
 
 // --- EXTRACTOR DE DATOS (SERIALIZACIÓN) ---
-// Esta función es CRÍTICA. Aquí listamos CADA ID del HTML original para guardar.
 export function getPatientData() {
+    // Primero validamos
+    if (!validatePatientForm()) return null;
+
     return {
         // A. Identificación
         uuid: $('#uuid')?.value,
@@ -313,7 +357,7 @@ export function getPatientData() {
         
         created: STATE.patientCreatedTime,
         modified: new Date().toISOString(),
-        creator: STATE.currentUser?.profile?.id,
+        creator: STATE.patientCreator, // Preservar creador
         modifier: STATE.currentUser?.profile?.id
     };
 }
@@ -322,8 +366,6 @@ export function getPatientData() {
 export function loadPatientDataToDOM(data) {
     if (!data) return;
 
-    // Iteramos sobre las claves del objeto data y buscamos su elemento en el DOM
-    // Esto funciona porque los IDs del HTML coinciden con las claves del JSON
     Object.keys(data).forEach(key => {
         const el = $(`#${key}`);
         if (el) {
@@ -335,14 +377,15 @@ export function loadPatientDataToDOM(data) {
         }
     });
 
-    // Restaurar estado global
+    // Restaurar estado global y metadatos
     STATE.patientCreatedTime = data.created;
     STATE.patientModifiedTime = data.modified;
+    STATE.patientCreator = data.creator; // Restaurar creador original
+    
     if(data.uuid) STATE.patientUUID = Math.max(STATE.patientUUID, parseInt(data.uuid) + 1);
 
     // Refrescar UI dependiente de datos
     toggleConditionalFields();
     calcularCampos();
     updatePatientHeader();
-} 
-// ¡Asegúrate de que esta llave de cierre esté presente!
+}
