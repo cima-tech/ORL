@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CIMA — Sistema ORL</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="app/styles/main.css">
+    <!-- Biblioteca para convertir HTML a Canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <!-- Contenedor para mensajes flash -->
+    <div id="err"></div>
+
+    <!-- Barra de herramientas -->
+    <div class="toolbar-wrapper glass">
+        <div class="toolbar">
+            <div class="logo">
+                <div class="main">C.I.M.A.</div>
+                <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
+            </div>
+            
+            <div class="toolbar-group">
+                <button id="btnNew" class="toolbar-btn">
+                    <i class="bi bi-file-earmark-plus"></i> Nueva HC
+                </button>
+                <button id="btnOpen" class="toolbar-btn">
+                    <i class="bi bi-folder2-open"></i> Abrir HC
+                </button>
+                <button id="btnClose" class="toolbar-btn">
+                    <i class="bi bi-x-circle"></i> Cerrar HC
+                </button>
+            </div>
+            
+            <div class="toolbar-group">
+                <button id="btnAddConsulta" class="toolbar-btn">
+                    <i class="bi bi-plus-circle"></i> Agregar Consulta
+                </button>
+                <button id="btnDeleteLast" class="toolbar-btn">
+                    <i class="bi bi-trash"></i> Eliminar Última
+                </button>
+                <span class="badge" id="tplStatus">✓ Plantillas Cargadas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="container">
+        <!-- Formulario de datos del paciente -->
+        <div id="patientForm" class="card hidden"></div>
+
+        <!-- Contenedor dinámico para las visitas/consultas -->
+        <div id="visitsContainer"></div>
+
+        <!-- Barra de controles para vista previa -->
+        <div id="previewBar" class="card hidden">
+            <div class="row" style="align-items: center;">
+                <div class="col" style="flex: 1;">
+                    <label class="form-label">Zoom del documento</label>
+                    <input type="range" id="zoomRange" min="40" max="120" step="5" value="60" class="form-input">
+                    <span id="zoomVal" style="font-weight: 600; margin-left: 10px;">60%</span>
+                </div>
+                <div class="col" style="flex: 0 0 auto;">
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnSigToggle" class="btn btn-ghost">
+                            <i class="bi bi-pen"></i> Firma
+                        </button>
+                        <button id="btnRefresh" class="btn btn-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                        </button>
+                        <button id="btnExport" class="btn btn-success">
+                            <i class="bi bi-download"></i> Exportar PNG
+                        </button>
+                        <button id="btnEditPreview" class="btn btn-ghost">
+                            <i class="bi bi-pencil-square"></i> Editar Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenedor para mostrar la vista previa del documento -->
+        <div id="previewShell" class="preview-shell hidden">
+            <div id="docPreview"></div>
+        </div>
+    </div>
+
+    <!-- Modal para buscar historias clínicas -->
+    <div id="searchModal" class="modal-overlay">
+        <div class="modal-box glass">
+            <div class="modal-header">Buscar Historia Clínica</div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Buscar por:</label>
+                        <select id="searchType" class="form-select">
+                            <option value="patient_id">Cédula / ID</option>
+                            <option value="full_name">Nombre completo</option>
+                            <option value="email">Email</option>
+                            <option value="phone">Teléfono</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">Valor a buscar:</label>
+                        <input id="searchValue" class="form-input" placeholder="Ingrese el valor...">
+                    </div>
+                </div>
+                <div id="searchResults" class="hidden" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+                    <div style="font-weight: 700; margin-bottom: 10px; color: #60a5fa;">Resultados encontrados:</div>
+                    <div id="searchResultsList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnCancelSearch" class="btn btn-ghost">Cancelar</button>
+                <button id="btnDoSearch" class="btn btn-primary">Buscar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación al exportar documento -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-box glass">
+            <div class="modal-header">Documento Exportado</div>
+            <div class="modal-body">
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 48px; color: #10b981; margin-bottom: 10px;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div style="font-weight: 600; font-size: 16px; color: #10b981;">Archivo guardado en Descargas</div>
+                    <div id="pngFilename" style="color: #94a3b8; margin-top: 5px;"></div>
+                </div>
+                <div style="text-align: center;">
+                    <button onclick="window.CIMA.closeModal('exportModal')" class="btn btn-primary">
+                        <i class="bi bi-check"></i> Continuar trabajando
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para compartir documentos -->
+    <div id="shareModal" class="modal-overlay">
+        <div class="modal-box glass">
+            <div class="modal-header">Compartir Documento</div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="window.CIMA.copyLinkFromShare()" class="btn btn-ghost" style="justify-content: flex-start;">
+                        <i class="bi bi-link-45deg"></i> Copiar enlace al portapapeles
+                    </button>
+                    <button onclick="window.CIMA.shareViaWhatsApp()" class="btn btn-ghost" style="justify-content: flex-start;">
+                        <i class="bi bi-whatsapp" style="color: #25D366;"></i> Enviar por WhatsApp
+                    </button>
+                    <button onclick="window.CIMA.shareViaEmail()" class="btn btn-ghost" style="justify-content: flex-start;">
+                        <i class="bi bi-envelope"></i> Enviar por Email
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="window.CIMA.closeModal('shareModal')" class="btn btn-ghost">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargar modelos primero -->
+    <script src="app/services/consultation/models/ORL-001/patient-profile.js"></script>
+    <script src="app/services/consultation/models/ORL-001/data.js"></script>
+    
+    <!-- Luego la lógica principal -->
+    <script src="app/logic/main.js"></script>
+    
+    <script>
+        // Inicializar sistema cuando todo esté cargado
+        document.addEventListener('DOMContentLoaded', () => {
+            window.CIMA.initialize();
+        });
+    </script>
+</body>
+</html>
