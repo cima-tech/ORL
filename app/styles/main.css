@@ -827,4 +827,70 @@ input[type="number"]:focus {
   color: #94a3b8;
   margin-bottom: 6px;
   font-size: 13px;
+
+}
+
+/* ... código anterior ... */
+
+.additional-study-title {
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+/* ========================================= */
+/* NUEVAS CORRECCIONES (PEGAR AQUÍ)    */
+/* ========================================= */
+
+/* --- 1. Layout más compacto (Menos trabajo visual) --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 10px 15px; 
+    align-items: end; 
+}
+
+.form-section {
+    margin-bottom: 15px; 
+    padding: 15px;       
+}
+
+/* --- 2. Efecto SHAKE (Error) --- */
+.input-error {
+    border: 2px solid #ef4444 !important;
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* --- 3. Chips Activos (Más visibles - Rojo) --- */
+.chip.on {
+    background-color: #ef4444; 
+    color: white;
+    border-color: #ef4444;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+}
+
+/* --- 4. Toolbar del Preview FIJA --- */
+#previewBar {
+    position: sticky; 
+    bottom: 20px;
+    z-index: 9999;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+/* --- 5. Edición Directa en Preview --- */
+[contenteditable="true"]:hover {
+    outline: 1px dashed #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    cursor: text;
 }
