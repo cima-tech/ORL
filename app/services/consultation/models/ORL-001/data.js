@@ -1,7 +1,8 @@
+// CORRECCIÓN: Imports limpios usando el mapa
 import { $, $$, getLocalDateTime, STATE } from 'brain';
 import { updateRecipeTextbox, updateIndicacionesSection } from 'recipe';
 
-// =========== BASE DE CONOCIMIENTO MÉDICO (DATA FULL) ===========
+// =========== BASE DE CONOCIMIENTO MÉDICO (CIMA_DATA) ===========
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
   
@@ -168,7 +169,7 @@ function createChipGroup(title, items, container) {
     container.appendChild(groupDiv);
 }
 
-// =========== GENERADOR DE TARJETA DE VISITA (ESTRUCTURA HTML EXACTA) ===========
+// =========== GENERADOR DE TARJETA DE VISITA ===========
 export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
@@ -536,6 +537,4 @@ export function createVisitCard(type = 'Primera') {
   });
 
   return wrap;
-
 }
-
