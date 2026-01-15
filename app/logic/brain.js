@@ -10,7 +10,6 @@ export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 // 2. ESTADO GLOBAL (STATE)
 // ==========================================
 export const STATE = {
-    // Contadores
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
@@ -25,8 +24,8 @@ export const STATE = {
     currentUser: {
         profile: {
             id: "u-001",
-            name: "Dra. Gonzalez",
-            title_line_1: "Médico Otorrinolaringologo",
+            name: "Dr. Usuario",
+            title_line_1: "Médico Especialista",
             phones: []
         },
         assets: {
@@ -39,11 +38,52 @@ export const STATE = {
 };
 
 // ==========================================
-// 3. CARGA DE CONFIGURACIÓN & UI
+// 3. SISTEMA DE WALLPAPERS (Tipo Google)
+// ==========================================
+const WALLPAPERS = [
+    // Selección de Paisajes Alta Calidad (Unsplash) - Tonos Fríos/Naturales
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop", // Montañas Azules
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", // Tierra/Espacio
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=3540&auto=format&fit=crop", // Niebla Montana
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=3748&auto=format&fit=crop", // Bosque Niebla
+    "https://images.unsplash.com/photo-1501854140884-074cf2b21d25?q=80&w=3544&auto=format&fit=crop", // Lago Oscuro
+    "https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=2664&auto=format&fit=crop", // Picos Nevados
+    "https://images.unsplash.com/photo-1534274988754-0d46e80b3580?q=80&w=3000&auto=format&fit=crop"  // Flores azules abstractas
+];
+
+function initWallpaperSystem() {
+    let currentWP = localStorage.getItem('CIMA_WALLPAPER_URL');
+    
+    if (!currentWP) {
+        // Primera vez: elegir uno al azar
+        const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
+        currentWP = WALLPAPERS[randomIndex];
+    }
+    
+    document.body.style.backgroundImage = `url('${currentWP}')`;
+}
+
+export function rotateWallpaper() {
+    // Función llamada desde el botón "Cambiar Fondo"
+    const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
+    const newWP = WALLPAPERS[randomIndex];
+    
+    // Pre-cargar imagen para evitar parpadeo negro
+    const img = new Image();
+    img.src = newWP;
+    img.onload = () => {
+        document.body.style.backgroundImage = `url('${newWP}')`;
+        localStorage.setItem('CIMA_WALLPAPER_URL', newWP);
+        flash("Fondo actualizado", false);
+    };
+}
+
+// ==========================================
+// 4. CARGA DE CONFIGURACIÓN
 // ==========================================
 export async function loadUserConfig() {
-    // Inyectamos estilos de notificación primero
-    injectToastStyles();
+    injectToastStyles(); // Estilos CSS para alertas
+    initWallpaperSystem(); // Fondo
 
     try {
         const response = await fetch('./app/user/u001/user.json');
@@ -56,39 +96,31 @@ export async function loadUserConfig() {
                 assets: { ...STATE.currentUser.assets, ...(config.assets || {}) },
                 profile: { ...STATE.currentUser.profile, ...(config.profile || {}) }
             };
-            console.log("Configuración cargada.");
-            
-            // ACTUALIZAR INTERFAZ (Avatar y Nombre)
+            console.log("Config cargada.");
             updateGlobalUI();
-            
         } else {
-            console.warn("user.json no encontrado, usando defaults.");
-            updateGlobalUI(); // Actualizar aunque sea con defaults
+            console.warn("User defaults.");
+            updateGlobalUI();
         }
     } catch (e) {
-        console.error("Error cargando configuración:", e);
+        console.error("Error config:", e);
     }
 }
 
-// Función para actualizar el Toolbar con los datos del usuario
 function updateGlobalUI() {
     const user = STATE.currentUser.profile;
     
-    // 1. Actualizar Iniciales del Avatar
+    // Avatar Initials
     const btnAvatar = $("#btnUserAvatar");
     if(btnAvatar) {
-        // Lógica para sacar iniciales (ej: Valentina Gonzalez -> VG)
         const parts = user.name.trim().split(" ");
         let initials = "DR";
-        if (parts.length >= 2) {
-            initials = parts[0][0] + parts[1][0];
-        } else if (parts.length === 1) {
-            initials = parts[0].substring(0, 2);
-        }
+        if (parts.length >= 2) initials = parts[0][0] + parts[1][0];
+        else if (parts.length === 1) initials = parts[0].substring(0, 2);
         btnAvatar.textContent = initials.toUpperCase();
     }
 
-    // 2. Actualizar Dropdown
+    // Dropdown Info
     const dropHeaderName = $("#userDropdown h4");
     if(dropHeaderName) dropHeaderName.textContent = user.name;
     
@@ -97,14 +129,12 @@ function updateGlobalUI() {
 }
 
 // ==========================================
-// 4. NOTIFICACIONES UI (TOAST)
+// 5. NOTIFICACIONES (TOAST)
 // ==========================================
 let timeoutHandle;
 
 export function flash(msg, isError = false) {
     let el = document.getElementById("err");
-    
-    // Si no existe, lo creamos al vuelo
     if (!el) {
         el = document.createElement("div");
         el.id = "err";
@@ -114,11 +144,11 @@ export function flash(msg, isError = false) {
     clearTimeout(timeoutHandle);
     
     el.textContent = msg;
-    // Estilo dinámico según tipo
+    // Borde de color según tipo
     el.style.borderLeft = isError ? "4px solid #ef4444" : "4px solid #10b981";
     el.style.color = isError ? "#fca5a5" : "#fff";
     
-    el.classList.add('active'); // Clase para animación CSS si existe
+    el.classList.add('active');
     el.style.display = 'block';
     el.style.opacity = '1';
     el.style.transform = 'translate(-50%, 0)';
@@ -135,7 +165,7 @@ export function showErr(msg) {
     flash(msg, true);
 }
 
-// Inyectar CSS para el mensaje flotante (Para no ensuciar el CSS principal)
+// Inyección de estilos CSS para el Toast (para no ensuciar main.css)
 function injectToastStyles() {
     const styleId = "toast-styles";
     if (document.getElementById(styleId)) return;
@@ -168,9 +198,8 @@ function injectToastStyles() {
 }
 
 // ==========================================
-// 5. FECHAS Y UTILIDADES
+// 6. FECHAS
 // ==========================================
-
 export function getLocalDateTime() {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -202,8 +231,6 @@ export function calcAge(dateString) {
     const birthDate = new Date(dateString);
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     return age >= 0 ? age : 0;
 }
