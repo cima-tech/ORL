@@ -2,373 +2,174 @@
    1. VARIABLES Y RESET GLOBAL
    ========================================= */
 :root {
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --secondary: #64748b;
-  --accent: #60a5fa;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --danger-light: rgba(239, 68, 68, 0.15);
-  --glass-bg: rgba(30, 41, 59, 0.85);
-  --glass-bg-light: rgba(51, 65, 85, 0.9);
-  --glass-border: rgba(96, 165, 250, 0.2);
-  --text-dark: #f1f5f9;
-  --text-light: #cbd5e1;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --blur: blur(20px);
-  --bg-dark: #0f172a;
-  --bg-darker: #020617;
+  --primary: #3b82f6; --primary-dark: #2563eb; --accent: #60a5fa;
+  --bg-dark: #0f172a; --bg-darker: #020617;
+  --glass-bg: rgba(30, 41, 59, 0.95); --glass-border: rgba(96, 165, 250, 0.2);
+  --text-main: #f1f5f9; --text-muted: #94a3b8;
+  --danger: #ef4444; --success: #10b981;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--bg-darker), var(--bg-dark));
+  color: var(--text-main);
   min-height: 100vh;
-  color: var(--text-dark);
-  line-height: 1.4;
+  font-size: 13px; /* Fuente base más pequeña */
 }
 
-/* Efecto Vidrio (Glassmorphism) */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  background: var(--glass-bg); backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
 }
+.hidden { display: none !important; }
 
 /* =========================================
-   2. LAYOUT PRINCIPAL (COMPACTO)
+   2. LAYOUT GENERAL
    ========================================= */
-.container {
-  max-width: 1200px; /* Ancho limitado para monitores grandes */
-  margin: 15px auto;
-  padding: 0 15px;
-}
-
-/* Toolbar Superior */
 .toolbar-wrapper {
+  position: sticky; top: 0; z-index: 1000;
   background: rgba(15, 23, 42, 0.98);
-  padding: 8px 0;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid rgba(96, 165, 250, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 8px 15px;
+  display: flex; justify-content: space-between; align-items: center;
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
+.logo .main { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.logo .subtitle { font-size: 0.7rem; color: var(--text-muted); }
 
-/* Logo */
-.logo { display: flex; flex-direction: column; color: white; }
-.logo .main { font-size: 24px; font-weight: 900; color: var(--accent); letter-spacing: 1px; }
-.logo .subtitle { font-size: 10px; opacity: 0.8; color: #cbd5e1; }
+.toolbar-group { display: flex; gap: 8px; }
 
-/* Botones Toolbar */
-.toolbar-group { display: flex; gap: 8px; align-items: center; }
 .toolbar-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px;
-  background: rgba(96, 165, 250, 0.08);
-  border: 1px solid rgba(96, 165, 250, 0.25);
-  border-radius: 8px;
-  color: #e2e8f0;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-main); padding: 6px 12px; border-radius: 6px;
+  cursor: pointer; display: flex; gap: 6px; align-items: center;
+  font-size: 0.8rem; transition: all 0.2s;
 }
-.toolbar-btn:hover {
-  background: rgba(96, 165, 250, 0.15);
-  border-color: rgba(96, 165, 250, 0.5);
-  color: white;
-}
+.toolbar-btn:hover { background: rgba(96, 165, 250, 0.2); border-color: var(--accent); }
+
+.container { max-width: 1200px; margin: 15px auto; padding: 0 15px; }
 
 /* =========================================
-   3. FORMULARIOS Y GRID (ALTA DENSIDAD)
+   3. FICHA PACIENTE (COMPACTA EXTREMA)
    ========================================= */
 .card {
-  background: var(--glass-bg-light);
-  border-radius: 12px;
-  padding: 15px; /* Padding reducido */
-  margin-bottom: 15px;
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(30, 41, 59, 0.6); border: 1px solid var(--glass-border);
+  border-radius: 10px; padding: 12px; margin-bottom: 15px;
 }
 
-/* Grid de 4 Columnas Estricto */
+.patient-header {
+  display: flex; align-items: center; gap: 15px;
+  cursor: pointer; padding-bottom: 8px;
+}
+
+/* GRID SYSTEM (4 Columnas Estricto) */
 .form-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px 10px; /* Espacio vertical mínimo, horizontal decente */
-  align-items: end;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 4px 10px; align-items: end;
 }
-
-/* Helpers de Ancho */
 .span-1 { grid-column: span 1; }
 .span-2 { grid-column: span 2; }
 .span-3 { grid-column: span 3; }
 .span-4 { grid-column: span 4; }
 
-/* Secciones Compactas */
 .form-section {
-  padding: 8px 10px;
-  margin-bottom: 5px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  padding: 6px 10px; margin-bottom: 4px;
+  background: rgba(255,255,255,0.02); border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.02);
 }
-
 .form-section-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #64748b;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 4px; letter-spacing: 0.5px;
 }
 
-/* Inputs Ultra Compactos */
-.form-label {
-  display: block;
-  font-size: 0.7rem;
-  margin-bottom: 1px;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
+/* Inputs Compactos */
+.form-label { display: block; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 1px; }
 .form-input, .form-select {
-  width: 100%;
-  height: 28px; /* Altura reducida para densidad */
-  padding: 0 8px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: white;
-  transition: all 0.2s;
+  width: 100%; height: 26px; padding: 0 6px; font-size: 0.8rem;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px; color: white;
 }
+.form-input:focus { border-color: var(--accent); outline: none; background: rgba(0,0,0,0.5); }
 
-.form-input:focus, .form-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: rgba(15, 23, 42, 0.9);
-}
-
-/* Campos calculados (solo lectura) */
-.calculated-field {
-  background: rgba(96, 165, 250, 0.05);
-  color: #93c5fd;
-  border-color: rgba(96, 165, 250, 0.1);
-  cursor: default;
-}
-
-/* Checkboxes Alineados */
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 28px; /* Para alinear con inputs */
-}
-.checkbox-group label {
-  font-size: 0.8rem;
-  cursor: pointer;
-  color: #e2e8f0;
-}
-
-/* Validación con Shake */
+/* Validación */
 .input-error {
-  border-color: #ef4444 !important;
-  background-color: rgba(239, 68, 68, 0.05) !important;
-  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  border-color: var(--danger) !important;
+  animation: shake 0.4s ease-in-out;
 }
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
 
 /* =========================================
-   4. COMPONENTES (CHIPS, BOTONES)
+   4. CONSULTA Y CHIPS (RED GLASS)
    ========================================= */
-/* Chips Red Glass (Estilo Refinado) */
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+.visit-card { margin-top: 15px; border-left: 3px solid var(--accent); }
+.visit-header { display: flex; justify-content: space-between; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
 
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
 .chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.03);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 3px 8px; font-size: 0.7rem; border-radius: 12px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer; transition: all 0.2s; color: #cbd5e1;
 }
-
-.chip:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-1px);
-}
-
-/* Estado Activo: Rojo Glass Elegante */
+.chip:hover { background: rgba(255,255,255,0.1); }
 .chip.on {
-  background: rgba(239, 68, 68, 0.15); /* Fondo rojo translúcido */
-  border: 1px solid rgba(239, 68, 68, 0.6); /* Borde brillante */
-  color: #fca5a5; /* Texto rojo claro brillante */
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5); /* Resplandor de texto */
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.1), inset 0 0 5px rgba(239, 68, 68, 0.1);
-  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1); 
+  border-color: #ef4444; 
+  color: #ef4444;
+  font-weight: 600; 
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.05);
 }
 
-/* Botones de Acción Generales */
-.btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  border: none;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: transform 0.1s;
-}
-.btn:active { transform: scale(0.98); }
-
-.btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3); }
-.btn-success { background: var(--success); color: white; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3); }
-.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; }
-.btn-ghost:hover { background: rgba(255,255,255,0.05); }
-.btn-small { padding: 4px 10px; font-size: 11px; }
-
-/* Texto de utilidad */
-.text-danger { color: #ef4444 !important; font-weight: 600; }
-
-/* =========================================
-   5. CONSULTA Y PREVIEW
-   ========================================= */
-/* Headers de Paciente y Visita */
-.patient-header, .visit-header {
-  padding: 10px;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 8px;
-  border: 1px solid rgba(96, 165, 250, 0.1);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.patient-header:hover { background: rgba(15, 23, 42, 0.6); }
-
-.badge {
-  background: rgba(96, 165, 250, 0.15);
-  color: #60a5fa;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  border: 1px solid rgba(96, 165, 250, 0.2);
-}
-
-/* Barra de Preview (Sticky bajo el toolbar) */
-#previewBar {
-  position: sticky;
-  top: 55px; /* Altura del toolbar principal aprox */
-  z-index: 900;
-  background: #1e293b;
-  border: 1px solid var(--primary);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-  margin: 0 auto 20px auto;
-  max-width: 900px;
-  padding: 8px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.preview-shell {
-  background: #334155;
-  border-radius: 12px;
-  padding: 40px;
-  overflow: auto;
-  border: 1px solid rgba(255,255,255,0.1);
-  display: flex; justify-content: center;
-}
-
-/* Hoja de Documento (Blanco y Negro Elegante) */
-.doc-page {
-  background: white;
-  color: #000;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  /* Fuentes clásicas para documentos */
-  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; 
-}
-
-.doc-letter { width: 816px; min-height: 1056px; }
-.doc-letter.land { width: 1056px; min-height: 816px; }
-
-/* Estilos internos del documento */
-.doc-header img, .doc-footer img { display: block; margin: 0 auto; }
-.doc-body { font-size: 14px; line-height: 1.5; text-align: justify; }
-
-/* Dropdowns de Indicaciones en Consulta */
 .indicaciones-dropdowns {
-    margin-top: 10px;
-    background: rgba(0,0,0,0.2);
-    padding: 10px;
-    border-radius: 8px;
+    margin-top: 8px; padding: 8px;
+    background: rgba(0,0,0,0.2); border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.05);
 }
 
 /* =========================================
+   5. PREVIEW DOCUMENTOS
+   ========================================= */
+#previewBar {
+  position: sticky; top: 60px; z-index: 900;
+  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  margin: 10px auto; max-width: 900px; padding: 8px 15px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.preview-shell {
+  background: #334155; padding: 30px; overflow: auto;
+  display: flex; justify-content: center; min-height: 500px;
+  border-radius: 8px;
+}
+#docPreview { transform-origin: top center; transition: transform 0.2s; }
+
+/* Hoja Carta Real */
+.doc-page { background: white; color: black; position: relative; box-shadow: 0 10px 30px black; overflow: hidden; }
+.doc-letter { width: 21.59cm; height: 27.94cm; }
+.doc-letter.land { width: 27.94cm; height: 21.59cm; }
+
+/* Estilos internos documento */
+.doc-header { position: absolute; top: 0.7cm; width: 100%; text-align: center; }
+.doc-footer { position: absolute; bottom: 0.5cm; width: 100%; text-align: center; }
+.doc-wrap { padding: 3.5cm 1cm 2.5cm 1.5cm; font-size: 11pt; line-height: 1.3; font-family: 'Segoe UI', sans-serif; }
+
+/* =========================================
    6. MODALES
    ========================================= */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(5px);
-  z-index: 2000;
-  display: none; align-items: center; justify-content: center;
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
 .modal-overlay.active { display: flex; }
-
-.modal-box {
-  background: #0f172a;
-  border: 1px solid var(--glass-border);
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-  width: 90%; max-width: 450px;
-}
+.modal-box { background: #1e293b; padding: 25px; border-radius: 12px; width: 400px; border: 1px solid var(--accent); }
 
 /* =========================================
    7. RESPONSIVE
    ========================================= */
-.hidden { display: none !important; }
-
 @media (max-width: 768px) {
   .form-grid { grid-template-columns: repeat(2, 1fr); }
   .span-1 { grid-column: span 1; }
   .span-2, .span-3, .span-4 { grid-column: span 2; }
-  
-  .toolbar { flex-direction: column; gap: 10px; padding: 10px; }
-  .toolbar-group { width: 100%; justify-content: center; }
-  
-  .doc-letter, .doc-letter.land { width: 100%; min-height: auto; transform: scale(1) !important; }
+  .doc-letter, .doc-letter.land { transform: scale(0.6); transform-origin: top left; }
 }
