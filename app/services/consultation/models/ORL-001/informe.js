@@ -1,6 +1,6 @@
 // CORRECCIÓN: Imports limpios
 import { $, STATE, fmtDateTime } from 'brain';
-import { CIMA_DATA } from 'data';
+import { CIMA_DATA } from 'consult';
 
 export function buildReportHTML(card) {
     // 1. Recolección de Datos de la Visita
@@ -131,3 +131,4 @@ export function buildReportHTML(card) {
         </div>
     `;
 }
+
