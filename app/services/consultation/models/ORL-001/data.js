@@ -1,5 +1,9 @@
+// app/services/consultation/models/ORL-001/data.js
+
+// CORRECCIÓN: Imports limpios usando el mapa
 import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
-import { updateRecipeTextbox, updateIndicacionesSection } from 'recipe';
+// Importamos la función nueva para renderizar dropdowns
+import { updateRecipeTextbox, renderIndicacionesDropdowns } from 'recipe';
 
 // =========== BASE DE CONOCIMIENTO MÉDICO (CIMA_DATA) ===========
 export const CIMA_DATA = {
@@ -153,7 +157,6 @@ function createChip(label, type = 'normal') {
         const isActive = s.dataset.active === '1';
         s.dataset.active = isActive ? '0' : '1';
         s.classList.toggle('on', !isActive);
-        // Disparar evento personalizado
         s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true, detail: { label, active: !isActive } }));
     });
     return s;
@@ -173,7 +176,6 @@ export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
     
-    // Metadata de la consulta
     const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
     const createdTime = new Date().toISOString();
 
@@ -184,7 +186,6 @@ export function createVisitCard(type = 'Primera') {
     wrap.dataset.createdBy = createdBy;
     wrap.dataset.createdAt = createdTime;
 
-    // Datos para EA autogenerada
     const edad = $("#edad_auto")?.value || '';
     const genero = $("#genero")?.value || '';
     const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
@@ -223,7 +224,6 @@ export function createVisitCard(type = 'Primera') {
       
       <div class="form-section">
         <div class="form-section-title">1. Anamnesis</div>
-        
         <div class="row">
           <div class="col">
             <label class="form-label">Motivo de Consulta</label>
@@ -231,14 +231,12 @@ export function createVisitCard(type = 'Primera') {
             <div class="chips chips-motivo" style="margin-top: 8px;"></div>
           </div>
         </div>
-        
         <div class="row">
           <div class="col">
             <label class="form-label">Enfermedad Actual</label>
             <textarea class="form-input txt-ea" rows="3" placeholder="(autogenerado)">${eaAuto}</textarea>
           </div>
         </div>
-        
         <div class="row">
           <div class="col">
             <label class="form-label">Antecedentes Personales</label>
@@ -258,43 +256,43 @@ export function createVisitCard(type = 'Primera') {
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-emoji-neutral"></i> Cara</div>
-          <label class="form-label">Hallazgos en Cara</label>
-          <input class="form-input txt-exam-cara" placeholder="Hallazgos en cara...">
+          <label class="form-label">Hallazgos</label>
+          <input class="form-input txt-exam-cara" placeholder="Hallazgos...">
           <div class="chips chips-exam-cara" style="margin-top: 8px;"></div>
         </div>
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Derecho</div>
-          <label class="form-label">Hallazgos Oído Derecho</label>
-          <textarea class="form-input txt-exam-oido-derecho" rows="2" placeholder="Hallazgos oído derecho..."></textarea>
+          <label class="form-label">Hallazgos</label>
+          <textarea class="form-input txt-exam-oido-derecho" rows="2" placeholder="Hallazgos..."></textarea>
           <div class="chips-exam-oido-derecho" style="margin-top: 8px;"></div>
         </div>
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Izquierdo</div>
-          <label class="form-label">Hallazgos Oído Izquierdo</label>
-          <textarea class="form-input txt-exam-oido-izquierdo" rows="2" placeholder="Hallazgos oído izquierdo..."></textarea>
+          <label class="form-label">Hallazgos</label>
+          <textarea class="form-input txt-exam-oido-izquierdo" rows="2" placeholder="Hallazgos..."></textarea>
           <div class="chips-exam-oido-izquierdo" style="margin-top: 8px;"></div>
         </div>
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-droplet"></i> Nariz</div>
-          <label class="form-label">Hallazgos en Nariz</label>
-          <textarea class="form-input txt-exam-nariz" rows="2" placeholder="Hallazgos en nariz..."></textarea>
+          <label class="form-label">Hallazgos</label>
+          <textarea class="form-input txt-exam-nariz" rows="2" placeholder="Hallazgos..."></textarea>
           <div class="chips-exam-nariz" style="margin-top: 8px;"></div>
         </div>
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-mic"></i> Orofaringe</div>
-          <label class="form-label">Hallazgos en Orofaringe</label>
-          <textarea class="form-input txt-exam-orofaringe" rows="2" placeholder="Hallazgos en orofaringe..."></textarea>
+          <label class="form-label">Hallazgos</label>
+          <textarea class="form-input txt-exam-orofaringe" rows="2" placeholder="Hallazgos..."></textarea>
           <div class="chips-exam-orofaringe" style="margin-top: 8px;"></div>
         </div>
         
         <div class="exam-area">
           <div class="exam-area-title"><i class="bi bi-person-standing"></i> Cuello</div>
-          <label class="form-label">Hallazgos en Cuello</label>
-          <input class="form-input txt-exam-cuello" placeholder="Hallazgos en cuello...">
+          <label class="form-label">Hallazgos</label>
+          <input class="form-input txt-exam-cuello" placeholder="Hallazgos...">
           <div class="chips chips-exam-cuello" style="margin-top: 8px;"></div>
         </div>
       </div>
@@ -303,7 +301,7 @@ export function createVisitCard(type = 'Primera') {
         <div class="form-section-title">3. Estudios</div>
         <div class="row">
           <div class="col">
-            <label class="form-label">Seleccionar Estudios Realizados</label>
+            <label class="form-label">Seleccionar Estudios</label>
             <div class="chips chips-studies" style="margin-top: 8px;"></div>
             <div id="studies-content-${cardId}" style="margin-top: 16px;"></div>
           </div>
@@ -345,30 +343,32 @@ export function createVisitCard(type = 'Primera') {
         </div>
       </div>
       
-      <div class="doc-status-area" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(96, 165, 250, 0.1);"></div>
+      <div style="display:flex; justify-content:center; gap:20px; padding-top:20px; margin-top:20px; border-top:1px dashed #cbd5e1;">
+        <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})">
+            <i class="bi bi-arrow-up"></i> Subir
+        </button>
+        <button type="button" class="btn btn-ghost btn-small btn-collapse-card">
+            <i class="bi bi-arrows-collapse"></i> Colapsar
+        </button>
+      </div>
     </div>
     `;
 
     // --- INYECCIÓN DE CHIPS ---
-    
-    // 1. Motivos
     const motivoContainer = wrap.querySelector('.chips-motivo');
     CIMA_DATA.MOTIVOS.forEach(m => motivoContainer.appendChild(createChip(m)));
     
-    // 2. Antecedentes
     const antPersContainer = wrap.querySelector('.chips-antecedentes-personales');
     const antFamContainer = wrap.querySelector('.chips-antecedentes-familiares');
     CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
     CIMA_DATA.ANTECEDENTES.forEach(a => antFamContainer.appendChild(createChip(a)));
     
-    // 3. Examen Físico: Cara y Cuello (Listas planas)
     const caraContainer = wrap.querySelector('.chips-exam-cara');
     CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
     
     const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
     CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
 
-    // 4. Examen Físico: Oídos, Nariz, Orofaringe (Listas agrupadas)
     const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
     Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
         createChipGroup(group, items, odContainer);
@@ -389,38 +389,36 @@ export function createVisitCard(type = 'Primera') {
         createChipGroup(group, items, oroContainer);
     });
 
-    // 5. ESTUDIOS (Unificación)
+    // Estudios
     const studiesContainer = wrap.querySelector('.chips-studies');
-    // A. Complejos
     Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
         studiesContainer.appendChild(createChip(studyName, 'study-complex'));
     });
-    // B. Simples
     CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
         studiesContainer.appendChild(createChip(studyName, 'study-simple'));
     });
 
-    // 6. Diagnósticos (DX)
     const dxContainer = wrap.querySelector('.chips-dx');
     CIMA_DATA.DX.forEach(d => dxContainer.appendChild(createChip(d)));
 
-    // 7. Recipe (Agrupado)
     const recipeContainer = wrap.querySelector('.recipe-chips-container');
     Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
         const groupDiv = document.createElement('div');
         groupDiv.style.marginBottom = '12px';
+        groupDiv.className = 'recipe-chips-group'; // Importante para la lógica de dropdowns
+        groupDiv.dataset.group = group; // Importante para agrupar por categoría
+        
         groupDiv.innerHTML = `
           <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
-          <div class="chips recipe-chips-group" data-group="${group}"></div>
+          <div class="chips"></div>
         `;
         const chipsBox = groupDiv.querySelector('.chips');
         meds.forEach(med => chipsBox.appendChild(createChip(med)));
         recipeContainer.appendChild(groupDiv);
     });
 
-    // --- EVENT LISTENERS ESPECÍFICOS DE LA TARJETA ---
-
-    // 1. Toggle de colapso (con stopPropagation para evitar burbujeo)
+    // --- EVENT LISTENERS ---
+    
     wrap.querySelector('.visit-toggle-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         const body = wrap.querySelector('.visit-body');
@@ -429,18 +427,21 @@ export function createVisitCard(type = 'Primera') {
         icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
     });
 
-    // 2. Eliminar visita
     wrap.querySelector('.btn-del-visit')?.addEventListener('click', (e) => {
         e.stopPropagation();
         if(confirm('¿Eliminar esta consulta?')) wrap.remove();
     });
+    
+    wrap.querySelector('.btn-collapse-card').addEventListener('click', () => {
+        wrap.querySelector('.visit-body').classList.add('hidden');
+        wrap.querySelector('.visit-toggle-btn i').className = 'bi bi-chevron-right';
+    });
 
-    // 3. Listener Global para Chips y Estudios
     wrap.addEventListener('chip-toggle', (e) => {
         const { label, active } = e.detail;
         const target = e.target;
 
-        // A. Lógica de Estudios (Crear área de resultados)
+        // A. Estudios
         if (target.closest('.chips-studies')) {
             const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
             const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
@@ -473,7 +474,7 @@ export function createVisitCard(type = 'Primera') {
             }
         }
 
-        // B. Sub-Chips de Estudios (Actualizar textbox)
+        // B. Sub-Chips Estudios
         if (target.closest('.study-sub-chips')) {
             const studyDiv = target.closest('.study-content');
             const textarea = studyDiv.querySelector('textarea');
@@ -491,7 +492,7 @@ export function createVisitCard(type = 'Primera') {
             textarea.value = text;
         }
 
-        // C. Inputs Normales (Motivo, Dx, Examen Físico)
+        // C. Inputs Normales
         const simpleInputs = [
             { cont: '.chips-motivo', input: '.txt-motivo' },
             { cont: '.chips-dx', input: '.txt-dx' },
@@ -511,7 +512,7 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
-        // D. Examen Físico Agrupado (Oídos, Nariz...)
+        // D. Examen Agrupado
         const groupedExamInputs = [
             { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
             { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
@@ -537,14 +538,14 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
-        // E. Recipe
+        // E. Recipe (AQUÍ ESTÁ LA MAGIA)
         if (target.closest('.recipe-chips-container')) {
             updateRecipeTextbox(wrap);
-            updateIndicacionesSection(wrap);
+            // ¡Llamada crucial a la función de dropdowns!
+            renderIndicacionesDropdowns(wrap);
         }
     });
 
-    // Marcar edición manual para no sobrescribir
     wrap.querySelectorAll('textarea, input[type="text"]').forEach(input => {
         input.addEventListener('input', () => input.dataset.userEdited = '1');
     });
