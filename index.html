@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     
     <style>
-        /* CSS Mínimo en línea para el Modal de Búsqueda */
+        /* CSS Mínimo para Modales */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
         .modal-box { background: #1e293b; border: 1px solid #3b82f6; padding: 20px; border-radius: 12px; width: 400px; max-width: 90%; color: white; }
@@ -19,7 +19,7 @@
     </style>
 </head>
 <body>
-    
+
 <div id="err"></div>
 
 <div class="toolbar-wrapper glass">
@@ -43,6 +43,7 @@
 </div>
 
 <div class="container">
+  
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
       <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
@@ -66,223 +67,14 @@
       </div>
     </div>
     
-    <div class="patient-details hidden">
-      
-      <div class="form-section">
-        <div class="form-section-title">A. Identificación</div>
-        <div class="form-grid">
-          <div class="span-2"><label class="form-label">UUID</label><input id="uuid" class="form-input calculated-field" readonly></div>
-          <div class="span-2"><label class="form-label">ID Interno</label><input id="internal_id" class="form-input calculated-field" readonly></div>
-          <div class="span-2">
-            <label class="form-label">Tipo Doc *</label>
-            <select id="documento_tipo" class="form-select"><option value="C.I.">Cédula</option><option value="Pasaporte">Pasaporte</option><option value="RIF">RIF</option></select>
-          </div>
-          <div class="span-2"><label class="form-label">Número Doc *</label><input id="documento_numero" class="form-input" placeholder="Ej: 12345678"></div>
+    <div class="patient-details hidden" id="patient-form-container">
         </div>
-      </div>
+  </div> 
 
-      <div class="form-section">
-        <div class="form-section-title">B. Nombres Completos</div>
-        <div class="form-grid">
-          <div class="span-1"><label class="form-label">1er Nombre *</label><input id="primer_nombre" class="form-input"></div>
-          <div class="span-1"><label class="form-label">2do Nombre</label><input id="segundo_nombre" class="form-input"></div>
-          <div class="span-1"><label class="form-label">1er Apellido *</label><input id="primer_apellido" class="form-input"></div>
-          <div class="span-1"><label class="form-label">2do Apellido</label><input id="segundo_apellido" class="form-input"></div>
-        </div>
-      </div>
+  <div id="visitsContainer"></div>
 
-      <div class="form-section">
-        <div class="form-section-title">C. Demografía</div>
-        <div class="form-grid">
-          <div class="span-1"><label class="form-label">Nacimiento *</label><input id="fecha_nacimiento" type="date" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Edad</label><input id="edad_auto" class="form-input calculated-field" readonly></div>
-          <div class="span-1"><label class="form-label">Género</label><select id="genero" class="form-select"><option value="M">Masc</option><option value="F">Fem</option></select></div>
-          <div class="span-1"><label class="form-label">E. Civil</label><select id="estado_civil" class="form-select"><option value="Soltero">Soltero</option><option value="Casado">Casado</option></select></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">D. Biológicos</div>
-        <div class="form-grid">
-          <div class="span-1" style="display:flex; gap:5px;">
-             <div style="flex:1"><label class="form-label">GS</label><select id="grupo_sanguineo" class="form-select"><option value="O">O</option><option value="A">A</option></select></div>
-             <div style="flex:1"><label class="form-label">RH</label><select id="factor_rh" class="form-select"><option value="+">+</option><option value="-">-</option></select></div>
-          </div>
-          <div class="span-1"><label class="form-label">Peso (kg)</label><input id="peso_kg" type="number" step="0.1" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Talla (cm)</label><input id="talla_cm" type="number" step="1" class="form-input"></div>
-          <div class="span-1"><label class="form-label">IMC</label><input id="imc_auto" class="form-input calculated-field" readonly></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">E. Contacto</div>
-        <div class="form-grid">
-          <div class="span-2"><label class="form-label">Móvil (Principal) *</label><input id="tel_principal" class="form-input" placeholder="(04xx) xxx-xxxx"></div>
-          <div class="span-2"><label class="form-label">Habitación / Otro</label><input id="tel_secundario" class="form-input"></div>
-          
-          <div class="span-2"><label class="form-label">Email Principal</label><input id="email_principal" type="email" class="form-input"></div>
-          <div class="span-2"><label class="form-label">Email Secundario</label><input id="email_secundario" type="email" class="form-input"></div>
-          
-          <div class="span-4"><label class="form-label">Dirección (Calle / Casa / Apto)</label><input id="dir_calle_num" class="form-input"></div>
-          
-          <div class="span-1"><label class="form-label">Ciudad</label><input id="dir_ciudad" class="form-input" value="Caracas"></div>
-          <div class="span-1"><label class="form-label">Estado</label><input id="dir_estado" class="form-input" value="Miranda"></div>
-          <div class="span-1"><label class="form-label">País</label><input id="dir_pais" class="form-input" value="Venezuela"></div>
-          <div class="span-1"><label class="form-label">Postal</label><input id="dir_postal" class="form-input"></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">F. Redes Sociales</div>
-        <div class="form-grid">
-          <div class="span-1"><label class="form-label">Instagram</label><input id="instagram" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Twitter/X</label><input id="x_twitter" class="form-input"></div>
-          <div class="span-1"><label class="form-label">LinkedIn</label><input id="linkedin" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Facebook</label><input id="facebook" class="form-input"></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">G. Contacto Emergencia</div>
-        <div class="form-grid">
-          <div class="span-1"><label class="form-label">Nombre</label><input id="emergencia_nombre" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Relación</label><select id="emergencia_parentesco" class="form-select"><option value="Familiar">Familiar</option><option value="Pareja">Pareja</option></select></div>
-          <div class="span-1"><label class="form-label">Teléfono</label><input id="emergencia_telefono" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Email</label><input id="emergencia_email" class="form-input"></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">H. Administrativo</div>
-        <div class="form-grid">
-          <div class="span-1"><label class="form-label">Seguro</label><input id="aseguradora" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Póliza</label><input id="numero_poliza" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Admisión</label><input id="fecha_admision" type="date" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Alta</label><input id="fecha_alta" type="date" class="form-input"></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">I. Alertas Médicas</div>
-        <div class="form-grid">
-          <div class="span-4" style="display:grid; grid-template-columns: auto 1fr; gap:10px; align-items:center;">
-             <div class="checkbox-group"><input type="checkbox" id="alergias_check"><label for="alergias_check" class="text-danger">Alergias</label></div>
-             <input id="alergias_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-          </div>
-          <div class="span-4" style="display:grid; grid-template-columns: auto 1fr; gap:10px; align-items:center;">
-             <div class="checkbox-group"><input type="checkbox" id="cronicas_check"><label for="cronicas_check" class="text-danger">Crónicas</label></div>
-             <input id="cronicas_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-          </div>
-          <div class="span-4" style="display:grid; grid-template-columns: auto 1fr; gap:10px; align-items:center;">
-             <div class="checkbox-group"><input type="checkbox" id="medicamentos_check"><label for="medicamentos_check" class="text-danger">Medicamentos Activos</label></div>
-             <input id="medicamentos_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">J. Seguridad</div>
-        <div class="form-grid">
-           <div class="span-2"><label class="form-label">Riesgo Caídas</label><select id="riesgo_caidas" class="form-select"><option value="Bajo">Bajo</option><option value="Alto">Alto</option></select></div>
-           <div class="span-2"><label class="form-label">Voluntad Anticipada</label><select id="voluntad_anticipada" class="form-select"><option value="No">No</option><option value="Si">Si</option></select></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">K. Antecedentes Personales</div>
-        <div class="form-grid" style="grid-template-columns: repeat(6, 1fr);">
-          <div class="checkbox-group"><input type="checkbox" id="hipertension_check"><label for="hipertension_check">HTA</label></div>
-          <div class="checkbox-group"><input type="checkbox" id="diabetes_check"><label for="diabetes_check">DM</label></div>
-          <div class="checkbox-group"><input type="checkbox" id="asma_check"><label for="asma_check">Asma</label></div>
-          <div class="checkbox-group"><input type="checkbox" id="cardiopatias_check"><label for="cardiopatias_check">Cardio</label></div>
-          <div class="checkbox-group"><input type="checkbox" id="epilepsia_check"><label for="epilepsia_check">Epilepsia</label></div>
-          <div class="checkbox-group"><input type="checkbox" id="tiroideos_check"><label for="tiroideos_check">Tiroides</label></div>
-          <div class="span-6" style="grid-column: span 6;"><input id="otros_antecedentes" class="form-input" placeholder="Otros antecedentes..."></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">L. Historial Quirúrgico</div>
-        <div class="form-grid">
-          <div class="span-1 checkbox-group"><input type="checkbox" id="tiene_cirugias"><label for="tiene_cirugias">¿Cirugías?</label></div>
-          <div class="span-2"><label class="form-label">Descripción</label><input id="cirugia_descripcion" class="form-input" disabled></div>
-          <div class="span-1"><label class="form-label">Año</label><input id="cirugia_anio" type="number" class="form-input" disabled></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">M. Hospitalizaciones</div>
-        <div class="form-grid">
-           <div class="span-1 checkbox-group"><input type="checkbox" id="ha_sido_hospitalizado"><label for="ha_sido_hospitalizado">¿Hospitalizado?</label></div>
-           <div class="span-2"><label class="form-label">Motivo</label><input id="hospitalizacion_motivo" class="form-input" disabled></div>
-           <div class="span-1"><label class="form-label">Año</label><input id="hospitalizacion_anio" type="number" class="form-input" disabled></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">N. Lesiones y Fracturas</div>
-        <div class="form-grid">
-          <div class="span-2"><label class="form-label">Lesión Desc.</label><input id="lesion_desc" class="form-input"></div>
-          <div class="span-1"><label class="form-label">Tipo</label><select id="lesion_tipo" class="form-select"><option value="">Sel</option><option value="Golpe">Golpe</option></select></div>
-          <div class="span-1 checkbox-group"><input type="checkbox" id="fractura_bool"><label for="fractura_bool">¿Fractura?</label></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">O. Familiares</div>
-        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr);">
-           <div class="checkbox-group"><input type="checkbox" id="familia_hipertension"><label>HTA</label></div>
-           <div class="checkbox-group"><input type="checkbox" id="familia_diabetes"><label>DM</label></div>
-           <div class="checkbox-group"><input type="checkbox" id="familia_cancer"><label>CA</label></div>
-           <div class="checkbox-group"><input type="checkbox" id="familia_cardiopatias"><label>Cardio</label></div>
-           <div class="span-4" style="grid-column: span 4;"><input id="familia_geneticas" class="form-input" placeholder="Genéticas..."></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">P. Hábitos</div>
-        <div class="form-grid">
-           <div class="span-1"><label class="form-label">Tabaco</label><select id="tabaquismo" class="form-select"><option value="No">No</option><option value="Si">Si</option></select></div>
-           <div class="span-1"><label class="form-label">Alcohol</label><select id="alcohol" class="form-select"><option value="No">No</option><option value="Si">Si</option></select></div>
-           <div class="span-2"><label class="form-label">Sustancias</label><input id="sustancias" class="form-input"></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">Q. Social</div>
-        <div class="form-grid">
-           <div class="span-2"><label class="form-label">Ocupación</label><input id="ocupacion" class="form-input"></div>
-           <div class="span-2"><label class="form-label">Educación</label><select id="educacion" class="form-select"><option value="">Sel</option><option value="Uni">Uni</option></select></div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">R. Consentimiento de Datos</div>
-        <div class="form-grid">
-          <div class="span-2 checkbox-group">
-              <input type="checkbox" id="tratamiento_datos">
-              <label for="tratamiento_datos">Acepta política de datos</label>
-          </div>
-          <div class="span-2">
-              <label class="form-label">Fecha Firma</label>
-              <input id="fecha_firma" type="datetime-local" class="form-input">
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:center; gap:20px; padding:20px 0; border-top:1px dashed #334155;">
-          <button type="button" class="btn btn-ghost" onclick="document.querySelector('.patient-header').scrollIntoView({behavior: 'smooth'})">
-              <i class="bi bi-arrow-up-circle"></i> Ir al Inicio
-          </button>
-          <button type="button" class="btn btn-ghost" onclick="window.togglePatientDetailsGlobal()">
-              <i class="bi bi-box-arrow-in-up"></i> Colapsar Ficha
-          </button>
-      </div>
-
-    </div>
-  </div> <div id="visitsContainer"></div>
-
- <div id="previewBar" class="hidden"> <div class="row" style="align-items: center; padding: 10px 20px; gap: 15px;">
+  <div id="previewBar" class="hidden">
+    <div class="row" style="align-items: center; padding: 10px 20px; gap: 15px; margin:0;">
       <div style="flex: 1; display:flex; align-items:center; gap:10px;">
         <label class="form-label" style="margin:0; color:white;">Zoom</label>
         <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
@@ -344,7 +136,7 @@
     </div>
   </div>
 </div>
- 
+
 <script type="importmap">
 {
   "imports": {
@@ -357,7 +149,6 @@
     "export": "./app/services/consultation/models/ORL-001/export.js"
   }
 }
-    
 </script>
 
 <script type="module">
@@ -367,29 +158,35 @@
     import { createVisitCard } from 'data';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.0 - Inicializando con Import Maps...");
+        console.log("CIMA ORL v2.0 - Inicializando Modular...");
         
         await loadUserConfig();
         initToolbarEvents();
         initializeNewPatient();
 
+        // Globales para eventos legacy
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
         
-        const form = document.getElementById('patientForm');
-        form.addEventListener('change', (e) => {
+        // Delegación de eventos para el formulario que ahora es dinámico
+        const formContainer = document.getElementById('patientForm');
+        formContainer.addEventListener('change', (e) => {
+            // Header Update
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) {
                 updatePatientHeader();
             }
+            // Cálculos
             if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) {
                 calcularCampos();
             }
+            // Condicionales
             if(e.target.type === 'checkbox') {
                 toggleConditionalFields();
             }
         });
         
+        // Delegación de eventos Visitas
         document.getElementById('visitsContainer').addEventListener('click', (e) => {
             const btn = e.target.closest('.visit-toggle-btn');
             if(btn) {
