@@ -3,7 +3,6 @@ import { $, $$, flash, showErr, calcAge, fmtDateTime, STATE } from 'brain';
 // ==========================================
 // 1. TEMPLATE HTML (LA VISTA DEL MODELO)
 // ==========================================
-// Aquí vive la estructura. Si cambias de modelo, este HTML cambia con él.
 const PATIENT_TEMPLATE = `
     <div class="form-section">
       <div class="form-section-title">A. Identificación</div>
@@ -49,7 +48,7 @@ const PATIENT_TEMPLATE = `
         <div class="span-1"><label class="form-label">Peso (kg)</label><input id="peso_kg" type="number" step="0.1" class="form-input"></div>
         <div class="span-1"><label class="form-label">Talla (cm)</label><input id="talla_cm" type="number" step="1" class="form-input"></div>
         <div class="span-1"><label class="form-label">IMC</label><input id="imc_auto" class="form-input calculated-field" readonly></div>
-        <div class="span-1"><label class="form-label">Lateralidad</label><select id="lateralidad" class="form-select"><option value="D">D</option><option value="I">I</option></select></div>
+        <div class="span-1"><label class="form-label">Lat.</label><select id="lateralidad" class="form-select"><option value="D">D</option><option value="I">I</option></select></div>
       </div>
     </div>
 
@@ -218,12 +217,10 @@ const PATIENT_TEMPLATE = `
 // 2. FUNCIONES DEL MODELO (RENDERIZADO)
 // ==========================================
 
-// Función que INYECTA el HTML en el index.html
 function renderPatientForm() {
     const container = $("#patient-form-container");
     if (container) {
         container.innerHTML = PATIENT_TEMPLATE;
-        // Reinicializar validadores después de inyectar el HTML
         initPatientValidators();
     } else {
         console.error("No se encontró el contenedor #patient-form-container");
@@ -245,6 +242,9 @@ export function togglePatientDetails() {
     const details = $(".patient-details");
     const toggleBtn = $(".patient-toggle-btn i");
     
+    // Safety check
+    if(!details || !toggleBtn) return;
+
     details.classList.toggle('hidden');
     if (details.classList.contains('hidden')) {
         toggleBtn.className = 'bi bi-chevron-right';
@@ -278,24 +278,34 @@ export function updatePatientHeader() {
     const nombreDisplay = nombreCompleto || 'Nuevo Paciente';
     const docInfo = ($("#documento_tipo")?.value && docInput?.value) 
         ? `${$("#documento_tipo").value}: ${docInput.value}` 
-        : 'Documento: ---';
+        : 'Doc: ---';
     const edadDisplay = $("#edad_auto")?.value ? `${$("#edad_auto").value} años` : '-- años';
     
-    $("#patient-header-name").textContent = nombreDisplay;
-    $("#patient-doc-info").textContent = docInfo;
-    $("#patient-age-display").textContent = edadDisplay;
+    const elName = $("#patient-header-name");
+    const elDoc = $("#patient-doc-info");
+    const elAge = $("#patient-age-display");
+
+    if(elName) elName.textContent = nombreDisplay;
+    if(elDoc) elDoc.textContent = docInfo;
+    if(elAge) elAge.textContent = edadDisplay;
     
     updatePatientTimestamps();
     updateAlertsBadge();
 }
 
+// AQUÍ ESTÁ EL ARREGLO PRINCIPAL DEL CRASH:
 function updatePatientTimestamps() {
     if (!STATE.patientCreatedTime) STATE.patientCreatedTime = new Date().toISOString();
     STATE.patientModifiedTime = new Date().toISOString();
     
     const user = STATE.currentUser?.profile?.id || 'u-001';
-    $("#patient-meta-created").textContent = `Creado: ${fmtDateTime(STATE.patientCreatedTime)} por ${user}`;
-    $("#patient-meta-modified").textContent = `Modificado: ${fmtDateTime(STATE.patientModifiedTime)} por ${user}`;
+    
+    const elCreated = $("#patient-meta-created");
+    const elModified = $("#patient-meta-modified");
+
+    // Verificar si existen antes de escribir (Defensivo)
+    if(elCreated) elCreated.textContent = `Creado: ${fmtDateTime(STATE.patientCreatedTime)} por ${user}`;
+    if(elModified) elModified.textContent = ` | Modificado: ${fmtDateTime(STATE.patientModifiedTime)}`;
 }
 
 function updateAlertsBadge() {
@@ -307,9 +317,17 @@ function updateAlertsBadge() {
         const tag = document.createElement('span');
         tag.className = 'alert-tag';
         tag.textContent = text;
-        if (priority === 'critical') {
-            tag.style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
-            tag.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        tag.style.fontSize = "0.7rem";
+        tag.style.padding = "2px 6px";
+        tag.style.borderRadius = "8px";
+        
+        if (priority === 'high' || priority === 'critical') {
+            tag.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            tag.style.color = '#f87171';
+            tag.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        } else {
+            tag.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+            tag.style.color = '#60a5fa';
         }
         container.appendChild(tag);
     };
@@ -340,24 +358,23 @@ export function calcularCampos() {
 
 // --- INICIALIZACIÓN ---
 export function initializeNewPatient() {
-    // 1. Inyectar HTML Dinámicamente (AQUÍ OCURRE LA MAGIA)
     renderPatientForm();
 
     const form = $("#patientForm");
-    form.classList.remove('hidden');
+    if(form) form.classList.remove('hidden');
     
-    // 2. Limpieza
     const inputs = $$("#patientForm input, #patientForm select, #patientForm textarea");
     inputs.forEach(el => {
         if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
         else el.value = '';
     });
 
-    $("#dir_pais").value = "Venezuela";
-    $("#uuid").value = generateUUID();
+    const elPais = $("#dir_pais"); if(elPais) elPais.value = "Venezuela";
+    const elUuid = $("#uuid"); if(elUuid) elUuid.value = generateUUID();
+    
     const newId = generatePatientInternalId();
-    $("#internal_id").value = newId;
-    $("#patient-internal-id").textContent = newId;
+    const elIntId = $("#internal_id"); if(elIntId) elIntId.value = newId;
+    const elIntIdHead = $("#patient-internal-id"); if(elIntIdHead) elIntIdHead.textContent = `ID: ${newId}`;
 
     STATE.patientCreatedTime = new Date().toISOString();
     STATE.patientModifiedTime = STATE.patientCreatedTime;
@@ -449,10 +466,7 @@ export function initPatientValidators() {
 }
 
 // --- DATA EXTRACTOR ---
-// Esta función extrae los datos del DOM (que ahora se genera dinámicamente)
 export function getPatientData() {
-    // Devuelve un objeto mapeando ID -> Valor
-    // Como los IDs son únicos en el DOM, podemos usar $() directamente
     const data = {
         uuid: $('#uuid')?.value,
         internal_id: $('#internal_id')?.value,
@@ -550,7 +564,6 @@ export function getPatientData() {
 export function loadPatientDataToDOM(data) {
     if (!data) return;
     
-    // Asegurar que el formulario exista antes de cargar datos
     if(!$("#documento_numero")) renderPatientForm();
 
     Object.keys(data).forEach(key => {
@@ -572,7 +585,6 @@ export function loadPatientDataToDOM(data) {
     calcularCampos();
     updatePatientHeader();
     
-    // Actualizar visualmente la fecha de firma si existe
     if(data.fecha_firma) {
          const labelFirma = $("#label_fecha_firma");
          if(labelFirma) {
