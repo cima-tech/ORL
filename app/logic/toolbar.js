@@ -2,73 +2,93 @@
 
 import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
 import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
-import { createVisitCard } from 'consult'; // <--- Conecta con el nuevo consult.js
+import { createVisitCard } from 'consult';
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
 
-// Clave para LocalStorage (Tu base de datos en el navegador)
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
 // --- INICIALIZADOR DE EVENTOS ---
 export function initToolbarEvents() {
     
+    // --- GRUPO IZQUIERDO ---
+    
     // 1. Nueva Historia
     $("#btnNew")?.addEventListener('click', () => {
-        if (!confirm('¿Iniciar nueva historia? Asegúrese de haber guardado cambios.')) return;
-        
-        initializeNewPatient();
-        const container = $("#visitsContainer");
-        if(container) container.innerHTML = '';
-        
-        STATE.visitIdCounter = 0;
-        STATE.currentPreviewCard = null;
-        closePreview();
-        
-        flash('Historia limpia iniciada.');
+        if (!confirm('¿Iniciar nueva historia? Se perderán los cambios no guardados.')) return;
+        resetWorkspace();
+        flash('Lienzo limpio.');
     });
 
-    // 2. Guardar Historia
-    $("#btnClose")?.addEventListener('click', () => {
+    // 2. Guardar (Solo guardar)
+    $("#btnSave")?.addEventListener('click', () => {
         saveCurrentHistory();
     });
 
-    // 3. Agregar Consulta (Nueva Lógica)
-    $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
-
-    // 4. Eliminar Última
-    $("#btnDeleteLast")?.addEventListener('click', () => {
-        const container = $("#visitsContainer");
-        if (container && container.firstElementChild) {
-            if (confirm('¿Eliminar la última consulta agregada?')) {
-                container.firstElementChild.remove();
-                flash('Consulta eliminada');
-            }
-        } else {
-            showErr("No hay consultas para borrar");
+    // 3. Cerrar Historia (Nuevo: Guardar y Limpiar)
+    $("#btnCloseStory")?.addEventListener('click', () => {
+        if(saveCurrentHistory()) { // Si guardó OK
+            setTimeout(() => {
+                resetWorkspace();
+                flash('Historia guardada y cerrada.');
+            }, 800);
         }
     });
 
-    // 5. Buscar Paciente
+    // 4. Agregar Consulta
+    $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
+
+    // 5. Abrir / Buscar
     $("#btnOpen")?.addEventListener('click', openSearchModal);
 
-    // --- MODALES ---
+
+    // --- GRUPO DERECHO (USUARIO & TOOLS) ---
+    
+    // Toggle Menú Usuario
+    $("#btnUserAvatar")?.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evitar cierre inmediato
+        $("#userDropdown").classList.toggle('hidden');
+    });
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        const menu = $("#userDropdown");
+        const btn = $("#btnUserAvatar");
+        if(menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        }
+    });
+    
+    // Switch de Tema (Visual por ahora)
+    $("#themeSwitch")?.addEventListener('click', (e) => {
+        const sw = e.currentTarget;
+        sw.classList.toggle('active'); // Mover bolita
+        // Aquí iría la lógica real de cambio de tema CSS
+        flash('Cambio de tema: Próximamente');
+    });
+
+
+    // --- MODALES BUSQUEDA ---
     $("#btnCancelSearch")?.addEventListener('click', closeSearchModal);
     $("#btnDoSearch")?.addEventListener('click', executeSearch);
     $("#searchValue")?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') executeSearch();
     });
 
-    // --- HERRAMIENTAS PREVIEW ---
+    // --- PREVIEW BAR (Flotante) ---
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
+    $("#btnClosePreview")?.addEventListener('click', closePreview); // Nuevo botón X
     
     // Toggle Firma
     $("#btnToggleSign")?.addEventListener('click', () => {
         STATE.USE_SIG = !STATE.USE_SIG;
         const btn = $("#btnToggleSign");
         if(btn) {
-            btn.style.color = STATE.USE_SIG ? '#60a5fa' : '#94a3b8';
-            btn.innerHTML = STATE.USE_SIG ? '<i class="bi bi-pen-fill"></i> Firma: ON' : '<i class="bi bi-pen"></i> Firma: OFF';
+            btn.classList.toggle('primary'); // Cambio visual glass
+            btn.innerHTML = STATE.USE_SIG ? '<i class="bi bi-pen-fill"></i> Con Firma' : '<i class="bi bi-pen"></i> Firmar';
         }
         refreshPreview();
     });
@@ -109,11 +129,19 @@ export function initToolbarEvents() {
     }
 }
 
+// Helper para limpiar
+function resetWorkspace() {
+    initializeNewPatient();
+    const container = $("#visitsContainer");
+    if(container) container.innerHTML = '';
+    STATE.visitIdCounter = 0;
+    closePreview();
+}
+
 // --- LÓGICA AGREGAR CONSULTA ---
 function handleAddConsulta() {
-    // Validación: Nombre obligatorio para identificar al paciente
     if (!$("#primer_nombre")?.value) {
-        showErr('Error: Ingrese el nombre del paciente antes de crear la consulta.');
+        showErr('Ingrese el nombre del paciente primero.');
         const input = $("#primer_nombre");
         if(input) {
             input.classList.add('input-error');
@@ -126,38 +154,22 @@ function handleAddConsulta() {
     const existingCards = container.querySelectorAll('.visit-card');
     const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
     
-    // Usamos el nuevo consult.js
     const newCard = createVisitCard(type);
     
-    // HERENCIA DE DATOS (Inteligencia)
     if (type === 'Sucesiva' && existingCards.length > 0) {
-        const lastCard = existingCards[0]; // La más reciente está arriba
-        
-        // Copiar inputs clave si existen en ambas tarjetas
-        const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
-        
-        fieldsToCopy.forEach(sel => {
+        const lastCard = existingCards[0];
+        // Heredar antecedentes
+        ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'].forEach(sel => {
             const source = lastCard.querySelector(sel);
             const target = newCard.querySelector(sel);
             if(source && target) target.value = source.value;
         });
-
-        // Copiar Dx anterior como referencia
-        const prevDx = lastCard.querySelector('.txt-dx')?.value;
-        const targetDx = newCard.querySelector('.txt-dx');
-        if (prevDx && targetDx) {
-            targetDx.value = prevDx + " (Control)";
-        }
-        
-        flash('Consulta sucesiva creada (Datos heredados)');
+        flash('Consulta sucesiva creada');
     } else {
         flash('Primera consulta creada');
     }
 
-    // Insertar arriba (Prepend)
     container.insertBefore(newCard, container.firstChild);
-    
-    // Scroll suave
     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -182,20 +194,14 @@ window.openDocGlobal = function(kind, cardId) {
 
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
-    STATE.currentShareCard = card;
 
-    // Generar HTML usando los módulos importados
     let html = "";
-    if (kind === 'INF') {
-        html = buildReportHTML(card);
-    } else {
-        html = buildRecipeHTML(card);
-    }
+    if (kind === 'INF') html = buildReportHTML(card);
+    else html = buildRecipeHTML(card);
     
     const preview = $("#docPreview");
     if(preview) {
         preview.innerHTML = html;
-        // Aplicar zoom actual
         const zoom = $("#zoomRange")?.value || 70;
         preview.style.transform = `scale(${zoom / 100})`;
     }
@@ -203,20 +209,18 @@ window.openDocGlobal = function(kind, cardId) {
     $("#previewBar")?.classList.remove('hidden');
     $("#previewShell")?.classList.remove('hidden');
     
-    // Scroll al preview
-    $("#previewBar")?.scrollIntoView({ behavior: 'smooth' });
+    // No hacer scroll brusco, solo mostrar la barra
 };
 
-// --- BASE DE DATOS LOCAL (PERSISTENCIA) ---
+// --- BASE DE DATOS LOCAL ---
 function saveCurrentHistory() {
     const patientData = getPatientData();
     
     if (!patientData.documento_numero || !patientData.primer_nombre) {
-        showErr('Faltan datos obligatorios del paciente (Doc o Nombre).');
-        return;
+        showErr('Faltan datos obligatorios (Doc o Nombre).');
+        return false;
     }
 
-    // Serializar Consultas (Leyendo el DOM actual)
     const visits = Array.from($$('.visit-card')).map(card => {
         return {
             type: card.dataset.type,
@@ -225,14 +229,12 @@ function saveCurrentHistory() {
             ea: card.querySelector('.txt-ea')?.value,
             ant_pers: card.querySelector('.txt-antecedentes-personales')?.value,
             ant_fam: card.querySelector('.txt-antecedentes-familiares')?.value,
-            // Examen
             ex_cara: card.querySelector('.txt-exam-cara')?.value,
             ex_od: card.querySelector('.txt-exam-oido-derecho')?.value,
             ex_oi: card.querySelector('.txt-exam-oido-izquierdo')?.value,
             ex_nariz: card.querySelector('.txt-exam-nariz')?.value,
             ex_oro: card.querySelector('.txt-exam-orofaringe')?.value,
             ex_cuello: card.querySelector('.txt-exam-cuello')?.value,
-            // Dx Plan
             dx: card.querySelector('.txt-dx')?.value,
             recipe: card.querySelector('.txt-recipe')?.value,
             indicaciones: card.querySelector('.txt-indicaciones')?.value,
@@ -250,10 +252,12 @@ function saveCurrentHistory() {
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        flash('Historia guardada localmente OK.');
+        flash('Historia guardada.');
+        return true;
     } catch (e) {
-        showErr('Error guardando: Posiblemente memoria llena.');
+        showErr('Error al guardar (LocalStorage lleno).');
         console.error(e);
+        return false;
     }
 }
 
@@ -261,12 +265,8 @@ function saveCurrentHistory() {
 function openSearchModal() {
     $("#searchModal")?.classList.add('active');
     const input = $("#searchValue");
-    if(input) {
-        input.value = '';
-        input.focus();
-    }
-    const list = $("#searchResultsList");
-    if(list) list.innerHTML = '';
+    if(input) { input.value = ''; input.focus(); }
+    $("#searchResultsList").innerHTML = '';
 }
 
 function closeSearchModal() {
@@ -288,18 +288,21 @@ function executeSearch() {
     });
 
     if (matches.length === 0) {
-        list.innerHTML = '<div style="padding:10px; text-align:center; color:#94a3b8;">Sin resultados</div>';
+        list.innerHTML = '<div style="padding:15px; text-align:center; color:#94a3b8;">No se encontraron pacientes.</div>';
         return;
     }
 
     matches.forEach(m => {
         const div = document.createElement('div');
-        div.style.padding = '10px';
-        div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
-        div.style.cursor = 'pointer';
+        div.className = "glass-btn"; // Reutilizamos estilo
+        div.style.marginBottom = "5px";
+        div.style.justifyContent = "space-between";
         div.innerHTML = `
-            <div style="color:#60a5fa; font-weight:bold;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
-            <div style="font-size:0.8rem; color:#94a3b8;">${m.patient.documento_tipo}-${m.patient.documento_numero} | ${fmtDate(m.lastUpdated)}</div>
+            <div>
+                <div style="color:var(--accent); font-weight:bold;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
+                <div style="font-size:0.75rem; color:#94a3b8;">${m.patient.documento_tipo}-${m.patient.documento_numero}</div>
+            </div>
+            <div style="font-size:0.7rem; color:#64748b;">${fmtDate(m.lastUpdated)}</div>
         `;
         div.onclick = () => loadHistoryRecord(m);
         list.appendChild(div);
@@ -307,21 +310,14 @@ function executeSearch() {
 }
 
 function loadHistoryRecord(record) {
-    initializeNewPatient(); // Limpia
-    loadPatientDataToDOM(record.patient); // Carga Paciente
+    resetWorkspace();
+    loadPatientDataToDOM(record.patient);
 
     const container = $("#visitsContainer");
-    container.innerHTML = '';
-
-    // Cargar visitas (En orden inverso para mantener cronología visual)
-    // El array guardado tiene la más reciente en índice 0 (porque usamos prepend al crear)
-    // Así que las recorremos en orden reverso para hacer appendChild y que queden igual
     const visitsReversed = [...(record.visits || [])].reverse();
 
     visitsReversed.forEach(v => {
         const card = createVisitCard(v.type || 'Sucesiva');
-        
-        // Restaurar valores (Mapeo manual para seguridad)
         const setVal = (sel, val) => { const el = card.querySelector(sel); if(el) el.value = val || ''; };
         
         setVal('.visit-date', v.date);
@@ -340,11 +336,9 @@ function loadHistoryRecord(record) {
         setVal('.txt-indicaciones', v.indicaciones);
         setVal('.txt-plan', v.plan);
 
-        // Importante: Insertar al principio (como si las fuéramos creando)
-        // O al final si las invertimos antes. Como invertimos el array, usamos prepend para que la última quede arriba.
         container.prepend(card);
     });
 
     closeSearchModal();
-    flash('Historia cargada exitosamente.');
+    flash('Historia cargada.');
 }
