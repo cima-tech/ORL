@@ -1,84 +1,182 @@
-// CORRECCIÓN: Imports limpios usando el Mapa
+// app/services/consultation/models/ORL-001/recipe-indicaciones.js
+
+// Imports limpios usando el Mapa
 import { $, STATE, fmtDate } from 'brain';
 import { CIMA_DATA } from 'data';
 
-// --- GENERADOR HTML DEL RÉCIPE ---
+// ==========================================
+// 1. LÓGICA DE UI (DROPDOWNS EN CONSULTA)
+// ==========================================
+
+export function renderIndicacionesDropdowns(card) {
+    const container = card.querySelector('.indicaciones-dropdowns');
+    if (!container) return;
+    
+    container.innerHTML = ''; // Limpiar previos
+
+    // Buscar chips activos en la sección de receta
+    const activeChips = card.querySelectorAll('.recipe-chips-container .chip.on');
+    
+    if (activeChips.length === 0) {
+        container.innerHTML = '<div style="color:#94a3b8; font-size:0.8em; padding:5px; font-style:italic;">Seleccione medicamentos arriba para ver opciones de dosis.</div>';
+        return;
+    }
+
+    // Agrupar por categoría
+    const medsByCategory = {};
+    activeChips.forEach(chip => {
+        // Buscamos el título del grupo (ej: Antibióticos)
+        const groupDiv = chip.closest('.recipe-chips-group');
+        const category = groupDiv ? groupDiv.dataset.group : 'Otros';
+        
+        if (!medsByCategory[category]) medsByCategory[category] = [];
+        medsByCategory[category].push(chip.textContent);
+    });
+
+    // Generar Selectores
+    Object.entries(medsByCategory).forEach(([category, meds]) => {
+        const options = CIMA_DATA.INDICACIONES_OPTIONS[category] || CIMA_DATA.INDICACIONES_OPTIONS["Otros"];
+        
+        meds.forEach(med => {
+            const row = document.createElement('div');
+            row.style.marginBottom = '8px';
+            row.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
+            row.style.paddingBottom = '5px';
+            
+            // Crear opciones del select
+            let optionsHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+            
+            row.innerHTML = `
+                <div style="font-weight:600; font-size:0.85em; color:#60a5fa; margin-bottom:2px;">${med}</div>
+                <select class="form-select indication-select" data-med="${med}" style="width:100%; font-size:0.8em;">
+                    ${optionsHTML}
+                    <option value="custom">-- Escribir manual --</option>
+                </select>
+            `;
+            container.appendChild(row);
+            
+            // Listener: Al cambiar la dosis, actualizar el texto grande
+            row.querySelector('select').addEventListener('change', () => syncIndicacionesText(card));
+        });
+    });
+    
+    // Sincronización inicial
+    syncIndicacionesText(card);
+}
+
+// Helper para construir el texto final desde los dropdowns
+function syncIndicacionesText(card) {
+    const selects = card.querySelectorAll('.indication-select');
+    let text = "";
+    
+    selects.forEach(sel => {
+        const med = sel.dataset.med;
+        const indicacion = sel.value === 'custom' ? '...' : sel.value;
+        text += `• ${med}:\n  ${indicacion}\n\n`;
+    });
+    
+    const txtInd = card.querySelector('.txt-indicaciones');
+    // Solo actualizamos si el usuario no ha editado manualmente el textarea grande
+    if (txtInd && !txtInd.dataset.userEdited) {
+        txtInd.value = text.trim();
+        updatePlanTratamiento(card, txtInd.value);
+    }
+}
+
+// ==========================================
+// 2. GENERADOR DE HTML (PREVIEW DOCUMENTO)
+// ==========================================
+
 export function buildRecipeHTML(card) {
-    // 1. Datos del Paciente
+    // A. Datos del Paciente
     const pNombre = [
-        $("#primer_nombre")?.value, $("#segundo_nombre")?.value,
-        $("#primer_apellido")?.value, $("#segundo_apellido")?.value
+        $("#primer_nombre")?.value, $("#primer_apellido")?.value
     ].filter(Boolean).join(' ');
     
     const doc = $("#documento_numero")?.value || '—';
     const dateISO = card.querySelector('.visit-date').value;
     const date = fmtDate(dateISO);
     
-    // 2. Contenido Médico
+    // B. Contenido Médico
     const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
     const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
     
-    // 3. Datos del Médico y Configuración Visual (Desde JSON)
-    const dr = STATE.currentUser?.profile || {};
+    // C. Configuración Visual
     const assets = STATE.currentUser?.assets || {};
-
-    // Generación de etiquetas IMG
-    // Nota: Ajustamos max-height para que no se coman todo el espacio en el récipe
-    const headerImg = assets.header_path ? `<img src="${assets.header_path}" style="width:100%; max-height:120px; object-fit:contain;">` : '';
-    const footerImg = assets.footer_path ? `<img src="${assets.footer_path}" style="width:100%; max-height:80px; object-fit:contain;">` : '';
+    const hasSign = STATE.USE_SIG; // Estado del toggle de firma en toolbar
     
-    // Firma y Sello
-    const signImg = (STATE.USE_SIG && assets.signature_path) ? `<img src="${assets.signature_path}" style="width:140px;">` : '';
-    const stampImg = (STATE.USE_SIG && assets.stamp_path) ? `<img src="${assets.stamp_path}" style="width:90px;">` : '';
-
-    // 4. Estructura HTML
-    return `
-        <div class="doc-page doc-letter land">
-            <div class="doc-header" style="text-align:center; margin-bottom:15px;">${headerImg}</div>
-
-            <div class="doc-wrap">
-                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3b82f6;" contenteditable="true">
-                    <h1 style="color: #3b82f6; margin-bottom: 5px; font-size: 22px;">RÉCIPE MÉDICO</h1>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 1.1em; background: #f8fafc; padding: 10px; border-radius: 8px;">
-                    <div><strong>Paciente:</strong> ${pNombre}</div>
-                    <div><strong>ID:</strong> ${doc}</div>
-                    <div><strong>Fecha:</strong> ${date}</div>
-                </div>
-                
-                <div style="display: flex; gap: 40px; min-height: 350px;">
-                    
-                    <div style="flex: 1; border-right: 1px dashed #94a3b8; padding-right: 20px;">
-                        <h3 style="color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom:5px; margin-top: 0;">Rp. (Medicamentos)</h3>
-                        <div contenteditable="true" style="white-space: pre-line; font-family: 'Courier New', monospace; font-size: 1.1em; line-height: 1.6; outline:none;">${recipe}</div>
-                    </div>
-                    
-                    <div style="flex: 1; padding-left: 10px;">
-                        <h3 style="color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom:5px; margin-top: 0;">Indicaciones</h3>
-                        <div contenteditable="true" style="white-space: pre-line; font-size: 0.95em; line-height: 1.5; outline:none;">${indicaciones}</div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px; display:flex; justify-content:center; gap:20px; align-items:flex-end;">
-                    <div>${signImg}</div>
-                    <div>${stampImg}</div>
-                </div>
-
-                <div style="text-align: center; font-size: 0.8em; color: #666; margin-top: 10px;">
-                    <div style="border-top: 1px solid #000; width: 250px; margin: 0 auto 5px;"></div>
-                    <strong>${dr.name || ''}</strong><br>
-                    ${dr.title_line_1 || ''}<br>
-                    ${(dr.phones || []).join(' / ')}
-                </div>
-            </div>
+    // Imágenes (Con tamaños controlados)
+    const headerImg = assets.header_path ? `<img src="${assets.header_path}" style="width:100%; max-height:80px; object-fit:contain;">` : '';
+    const footerImg = assets.footer_path ? `<img src="${assets.footer_path}" style="width:100%; max-height:60px; object-fit:contain;">` : '';
+    
+    // Bloque de Firma (Específico con MPPS/CMM)
+    const firmaBlock = `
+        <div style="height:120px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin-top:auto;">
+            ${hasSign && assets.signature_path ? `<img src="${assets.signature_path}" style="position:absolute; bottom:40px; width:140px;">` : ''}
+            ${hasSign && assets.stamp_path ? `<img src="${assets.stamp_path}" style="position:absolute; bottom:40px; right:40px; width:90px;">` : ''}
             
-            <div class="doc-footer" style="position:absolute; bottom:0; left:0; width:100%; text-align:center;">${footerImg}</div>
+            <div style="text-align:center; font-size:0.75rem; color:#000; line-height:1.2;">
+                <div style="font-weight:bold; font-size:0.9rem; border-top:1px solid #000; padding-top:4px; width:220px; margin:0 auto 2px auto;">
+                    Dra. Valentina González Yanez
+                </div>
+                Otorrinolaringología<br>
+                <span style="font-size:0.7rem;">MPPS=72004 CMM=18929</span>
+            </div>
+        </div>
+    `;
+
+    // D. Estructura HTML (Grid de 2 Columnas)
+    return `
+        <div class="doc-page doc-letter land" style="padding:30px 40px; display:grid; grid-template-columns: 1fr 1fr; gap:50px;">
+            
+            <div style="display:flex; flex-direction:column; height:100%; border-right:1px dashed #cbd5e1; padding-right:25px;">
+                <div style="text-align:center; margin-bottom:15px;">${headerImg}</div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;">
+                    <div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Rp.</div>
+                    <div style="font-size:0.85rem;">${date}</div>
+                </div>
+
+                <div style="font-size:0.95rem; margin-bottom:20px;">
+                    <b>Paciente:</b> ${pNombre} <br>
+                    <b>ID:</b> ${doc}
+                </div>
+
+                <div contenteditable="true" style="flex:1; font-family:'Courier New', monospace; font-size:1.1rem; line-height:1.5; outline:none; white-space:pre-line;">
+                    ${recipe}
+                </div>
+
+                ${firmaBlock}
+                <div style="text-align:center; margin-top:10px;">${footerImg}</div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; height:100%; padding-left:10px;">
+                <div style="text-align:center; margin-bottom:15px;">${headerImg}</div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;">
+                    <div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Indicaciones</div>
+                    <div style="font-size:0.85rem;">${date}</div>
+                </div>
+
+                <div style="font-size:0.95rem; margin-bottom:20px;">
+                    <b>Paciente:</b> ${pNombre}
+                </div>
+
+                <div contenteditable="true" style="flex:1; font-family:'Segoe UI', sans-serif; font-size:1rem; line-height:1.4; outline:none; white-space:pre-line;">
+                    ${indicaciones}
+                </div>
+
+                ${firmaBlock}
+                <div style="text-align:center; margin-top:10px;">${footerImg}</div>
+            </div>
+
         </div>
     `;
 }
 
-// --- LÓGICA REACTIVA DE MEDICAMENTOS ---
+// ==========================================
+// 3. LOGICA REACTIVA (COMPATIBILIDAD)
+// ==========================================
 
 export function updateRecipeTextbox(card) {
     const activeChips = card.querySelectorAll('.recipe-chips-container .chip.on');
@@ -92,33 +190,16 @@ export function updateRecipeTextbox(card) {
 }
 
 export function updateIndicacionesSection(card) {
-    const selectedByGroup = {};
+    // Mantenemos esta función por compatibilidad, pero delegamos al render
+    // La lógica de generación de texto ahora vive en 'syncIndicacionesText' 
+    // y se activa vía dropdowns.
     
-    card.querySelectorAll('.recipe-chips-group').forEach(groupContainer => {
-        const groupName = groupContainer.dataset.group;
-        const medsInGroup = [...groupContainer.querySelectorAll('.chip.on')].map(c => c.textContent);
-        
-        if (medsInGroup.length > 0) {
-            selectedByGroup[groupName] = medsInGroup;
-        }
-    });
-
-    let indicacionesAuto = [];
-    
-    Object.entries(selectedByGroup).forEach(([groupName, meds]) => {
-        const options = CIMA_DATA.INDICACIONES_OPTIONS[groupName] || CIMA_DATA.INDICACIONES_OPTIONS["Otros"];
-        const defaultOption = options.length > 0 ? options[0] : "Tomar según indicación médica.";
-        
-        meds.forEach(med => {
-            indicacionesAuto.push(`• ${med}:\n  ${defaultOption}`);
-        });
-    });
-
-    const txtInd = card.querySelector('.txt-indicaciones');
-    if (txtInd && !txtInd.dataset.userEdited) {
-        txtInd.value = indicacionesAuto.join('\n\n');
-        updatePlanTratamiento(card, txtInd.value);
+    // Si queremos generar un texto base inicial sin dropdowns (fallback):
+    /* const txtInd = card.querySelector('.txt-indicaciones');
+    if (txtInd && !txtInd.dataset.userEdited && !card.querySelector('.indication-select')) {
+        // Lógica antigua de generación simple si no hay dropdowns
     }
+    */
 }
 
 function updatePlanTratamiento(card, indicacionesText) {
