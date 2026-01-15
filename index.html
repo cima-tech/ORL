@@ -20,31 +20,6 @@
 </head>
 <body>
     
-<div id="exportModal" class="modal-overlay">
-  <div class="modal-box glass" style="max-width: 500px;">
-    <div style="text-align:center; margin-bottom:20px;">
-        <h3 style="color:#60a5fa; margin-bottom:5px;">Compartir Documento</h3>
-        <p style="font-size:0.9em; color:#ccc;" id="exportFileName">documento.png</p>
-    </div>
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-        <button id="btnShareWA" class="btn" style="background:#25D366; color:white; justify-content:center;">
-            <i class="bi bi-whatsapp"></i> WhatsApp
-        </button>
-        <button id="btnShareMail" class="btn" style="background:#EA4335; color:white; justify-content:center;">
-            <i class="bi bi-envelope"></i> Email
-        </button>
-        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;">
-            <i class="bi bi-download"></i> Solo Descargar
-        </button>
-    </div>
-    
-    <div style="margin-top:20px; text-align:right;">
-        <button id="btnCloseExport" class="btn btn-ghost">Cerrar</button>
-    </div>
-  </div>
-</div>
-    
 <div id="err"></div>
 
 <div class="toolbar-wrapper glass">
@@ -345,6 +320,31 @@
   </div>
 </div>
 
+<div id="exportModal" class="modal-overlay">
+  <div class="modal-box glass" style="max-width: 500px;">
+    <div style="text-align:center; margin-bottom:20px;">
+        <h3 style="color:#60a5fa; margin-bottom:5px;">Compartir Documento</h3>
+        <p style="font-size:0.9em; color:#ccc;" id="exportFileName">documento.png</p>
+    </div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <button id="btnShareWA" class="btn" style="background:#25D366; color:white; justify-content:center;">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+        </button>
+        <button id="btnShareMail" class="btn" style="background:#EA4335; color:white; justify-content:center;">
+            <i class="bi bi-envelope"></i> Email
+        </button>
+        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;">
+            <i class="bi bi-download"></i> Solo Descargar
+        </button>
+    </div>
+    
+    <div style="margin-top:20px; text-align:right;">
+        <button id="btnCloseExport" class="btn btn-ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+ 
 <script type="importmap">
 {
   "imports": {
