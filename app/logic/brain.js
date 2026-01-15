@@ -1,94 +1,108 @@
-// app/logic/brain.js
+// app/services/consultation/models/ORL-001/export.js
 
-// === ESTADO GLOBAL (STATE) ===
-export const STATE = {
-    currentUser: null,
-    
-    // Contadores de sesión
-    visitIdCounter: 0,
-    patientIdCounter: 1,
-    patientUUID: 1,
-    
-    // Timestamps
-    patientCreatedTime: null,
-    patientModifiedTime: null,
-    
-    // UI States
-    currentPreviewDoc: null,
-    currentPreviewCard: null,
-    currentShareCard: null, // Para compartir WhatsApp/Email
-    editPreviewMode: false,
-    USE_SIG: true,
-    
-    // Configuración cargada
-    config: {}
-};
+import { $, flash, showErr, fmtDate, STATE } from 'brain';
+import { buildReportHTML } from 'informe';
+import { buildRecipeHTML } from 'recipe';
 
-// === UTILIDADES DOM (HELPERS) ===
-export const $ = s => document.querySelector(s);
-export const $$ = s => Array.from(document.querySelectorAll(s));
+export async function exportToPNG() {
+    // Verificaciones de seguridad
+    if (!STATE.currentPreviewDoc || !STATE.currentPreviewCard) {
+        showErr('Error: No hay documento generado para exportar.');
+        return;
+    }
 
-// === SISTEMA DE NOTIFICACIONES ===
-export function flash(msg, isError = false) {
-    const e = $("#err");
-    if (!e) return;
-    e.textContent = msg;
-    e.className = isError ? 'error' : '';
-    e.style.display = 'block';
-    setTimeout(() => e.style.display = 'none', 3000);
-}
+    if (typeof html2canvas === 'undefined') {
+        showErr('Error crítico: Librería html2canvas no cargada.');
+        return;
+    }
 
-export function showErr(msg) { 
-    flash(msg, true); 
-    console.error(msg); 
-}
-
-// === UTILIDADES DE FECHA Y HORA ===
-export function getLocalDateTime() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    return now.toISOString().slice(0, 16);
-}
-
-export function fmtDate(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-}
-
-export function fmtDateTime(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-// === CÁLCULOS MÉDICOS ===
-export function calcAge(dob) {
-    if (!dob) return '';
-    const d = new Date(dob);
-    const n = new Date();
-    let a = n.getFullYear() - d.getFullYear();
-    const m = n.getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && n.getDate() < d.getDate())) a--;
-    return a;
-}
-
-export function validatePatientId(id) {
-    return /^[A-Za-z]+-\d+$/.test(id);
-}
-
-// === CARGA DE CONFIGURACIÓN ===
-export async function loadUserConfig() {
     try {
-        const response = await fetch('./app/user/u001/user.json');
-        if (!response.ok) throw new Error("No se pudo cargar user.json");
-        const config = await response.json();
-        STATE.currentUser = config;
-        return config;
-    } catch (e) {
-        console.error("Error crítico cargando configuración:", e);
-        showErr("Error cargando perfil del médico. Ver consola.");
-        // Fallback mínimo para que no rompa la UI
-        STATE.currentUser = { profile: { name: "Usuario Médico", phones: [] } }; 
+        flash("Generando imagen de alta resolución...", false);
+
+        // 1. Reconstruir el HTML limpio (sin inputs de edición) para la "foto"
+        // Esto es clave: usamos el generador original, no el div editable del DOM
+        const html = STATE.currentPreviewDoc === 'INF' 
+            ? buildReportHTML(STATE.currentPreviewCard) 
+            : buildRecipeHTML(STATE.currentPreviewCard);
+
+        // 2. Crear contenedor temporal fuera de pantalla (Invisible)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0px';
+        // Importante: asegurar que el div tenga el ancho correcto para que no se deforme
+        const isLand = STATE.currentPreviewDoc === 'RP';
+        tempDiv.style.width = isLand ? '1056px' : '816px'; 
+        
+        document.body.appendChild(tempDiv);
+
+        // 3. Renderizar con html2canvas
+        const docPage = tempDiv.querySelector('.doc-page');
+        
+        // Configuración para máxima calidad
+        const canvas = await html2canvas(docPage, {
+            scale: 2, // 2x para Retina/Impresión nítida
+            useCORS: true, // Permitir imágenes externas si el servidor lo soporta
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false
+        });
+
+        // 4. Limpieza del DOM
+        document.body.removeChild(tempDiv);
+
+        // 5. Obtener nombre del archivo (Desde STATE o generar fallback)
+        let filename = STATE.exportFilename;
+        if (!filename) {
+            const idPac = $("#documento_numero")?.value || 'paciente';
+            const tipo = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
+            filename = `CIMA_${idPac}_${tipo}.png`;
+        }
+
+        // 6. Descarga Blob
+        canvas.toBlob(blob => {
+            if (!blob) { throw new Error("Falló la generación del blob de imagen."); }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            flash(`Documento descargado: ${filename}`);
+        }, 'image/png');
+
+    } catch (err) {
+        showErr('Error exportando: ' + err.message);
+        console.error(err);
+    }
+}
+
+export function shareViaWhatsApp() {
+    const card = STATE.currentShareCard || STATE.currentPreviewCard;
+    if (!card) { showErr('No hay consulta seleccionada'); return; }
+
+    const phoneInput = $("#tel_principal");
+    const phoneVal = phoneInput ? phoneInput.value : '';
+    
+    // Limpieza agresiva del teléfono (solo dejar números)
+    const phoneClean = phoneVal.replace(/\D/g, '');
+    
+    const pNombre = $("#primer_nombre")?.value || 'Paciente';
+    const fecha = fmtDate(card.querySelector('.visit-date')?.value);
+    const docName = STATE.currentUser?.profile?.name || 'Su Doctor';
+    
+    // Mensaje pre-formateado
+    const mensaje = `Hola ${pNombre}, le envío los documentos de su consulta médica del día ${fecha}.\n\nAtte. ${docName}`;
+    
+    if (phoneClean && phoneClean.length > 9) { // Validación mínima de longitud
+        const url = `https://wa.me/${phoneClean}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    } else {
+        showErr('El paciente no tiene un número celular válido registrado (+58...).');
     }
 }
