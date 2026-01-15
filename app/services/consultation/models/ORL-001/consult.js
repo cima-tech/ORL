@@ -1,11 +1,9 @@
-// app/services/consultation/models/ORL-001/data.js
-
-// CORRECCIÓN: Imports limpios usando el mapa
 import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
-// Importamos la función nueva para renderizar dropdowns
 import { updateRecipeTextbox, renderIndicacionesDropdowns } from 'recipe';
 
-// =========== BASE DE CONOCIMIENTO MÉDICO (CIMA_DATA) ===========
+// ==========================================
+// 1. DATA (CONFIGURACIÓN MÉDICA)
+// ==========================================
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
   
@@ -146,57 +144,11 @@ export const CIMA_DATA = {
   ]
 };
 
-// =========== COMPONENTES DE UI (CHIPS) ===========
-function createChip(label, type = 'normal') {
-    const s = document.createElement('span');
-    s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
-    s.textContent = label;
-    s.dataset.active = '0';
-    
-    s.addEventListener('click', () => {
-        const isActive = s.dataset.active === '1';
-        s.dataset.active = isActive ? '0' : '1';
-        s.classList.toggle('on', !isActive);
-        s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true, detail: { label, active: !isActive } }));
-    });
-    return s;
-}
-
-function createChipGroup(title, items, container) {
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'chip-group';
-    groupDiv.innerHTML = `<div class="chip-group-title">${title}</div><div class="chips"></div>`;
-    const chipsDiv = groupDiv.querySelector('.chips');
-    items.forEach(item => chipsDiv.appendChild(createChip(item)));
-    container.appendChild(groupDiv);
-}
-
-// =========== GENERADOR DE TARJETA DE VISITA ===========
-export function createVisitCard(type = 'Primera') {
-    STATE.visitIdCounter++;
-    const cardId = 'visit-' + STATE.visitIdCounter;
-    
-    const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
-    const createdTime = new Date().toISOString();
-
-    const wrap = document.createElement('div');
-    wrap.id = cardId;
-    wrap.className = 'card visit-card';
-    wrap.dataset.type = type;
-    wrap.dataset.createdBy = createdBy;
-    wrap.dataset.createdAt = createdTime;
-
-    const edad = $("#edad_auto")?.value || '';
-    const genero = $("#genero")?.value || '';
-    const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
-    const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
-
-    wrap.innerHTML = `
+// ==========================================
+// 2. TEMPLATE HTML (LA VISTA DE LA TARJETA)
+// ==========================================
+const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
     <div class="visit-header">
-      <button type="button" class="visit-toggle-btn">
-        <i class="bi bi-chevron-down"></i>
-      </button>
-      
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
              <span class="badge">${type}</span>
@@ -211,6 +163,7 @@ export function createVisitCard(type = 'Primera') {
         <button type="button" class="btn btn-primary btn-small btn-inf"><i class="bi bi-file-text"></i> Informe</button>
         <button type="button" class="btn btn-success btn-small btn-rp"><i class="bi bi-prescription"></i> Receta</button>
         <button type="button" class="btn btn-ghost btn-small text-danger btn-del-visit"><i class="bi bi-x-lg"></i></button>
+        <button type="button" class="visit-toggle-btn btn btn-ghost btn-small"><i class="bi bi-chevron-down"></i></button>
       </div>
     </div>
     
@@ -330,8 +283,8 @@ export function createVisitCard(type = 'Primera') {
         <div class="row">
           <div class="col">
             <label class="form-label">Indicaciones (Posología)</label>
+            <div class="indicaciones-dropdowns" style="margin-bottom: 10px;"></div>
             <textarea class="form-input txt-indicaciones" rows="6" placeholder="(se generan automáticamente)"></textarea>
-            <div class="indicaciones-dropdowns" style="margin-top: 8px;"></div>
           </div>
         </div>
         
@@ -343,7 +296,7 @@ export function createVisitCard(type = 'Primera') {
         </div>
       </div>
       
-      <div style="display:flex; justify-content:center; gap:20px; padding-top:20px; margin-top:20px; border-top:1px dashed #cbd5e1;">
+      <div class="patient-nav">
         <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})">
             <i class="bi bi-arrow-up"></i> Subir
         </button>
@@ -352,7 +305,59 @@ export function createVisitCard(type = 'Primera') {
         </button>
       </div>
     </div>
-    `;
+`;
+
+// ==========================================
+// 3. LOGICA DEL COMPONENTE (ENGINE)
+// ==========================================
+
+// Helper para crear chips
+function createChip(label, type = 'normal') {
+    const s = document.createElement('span');
+    s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
+    s.textContent = label;
+    s.dataset.active = '0';
+    
+    s.addEventListener('click', () => {
+        const isActive = s.dataset.active === '1';
+        s.dataset.active = isActive ? '0' : '1';
+        s.classList.toggle('on', !isActive);
+        s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true, detail: { label, active: !isActive } }));
+    });
+    return s;
+}
+
+function createChipGroup(title, items, container) {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'chip-group';
+    groupDiv.innerHTML = `<div class="chip-group-title" style="font-size:0.75rem; color:#60a5fa; margin:5px 0;">${title}</div><div class="chips"></div>`;
+    const chipsDiv = groupDiv.querySelector('.chips');
+    items.forEach(item => chipsDiv.appendChild(createChip(item)));
+    container.appendChild(groupDiv);
+}
+
+// Función principal exportada
+export function createVisitCard(type = 'Primera') {
+    STATE.visitIdCounter++;
+    const cardId = 'visit-' + STATE.visitIdCounter;
+    
+    const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
+    const createdTime = new Date().toISOString();
+
+    const wrap = document.createElement('div');
+    wrap.id = cardId;
+    wrap.className = 'card visit-card';
+    wrap.dataset.type = type;
+    wrap.dataset.createdBy = createdBy;
+    wrap.dataset.createdAt = createdTime;
+
+    const edad = $("#edad_auto")?.value || '';
+    const genero = $("#genero")?.value || '';
+    const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
+    const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
+
+    // INYECTAR EL TEMPLATE
+    wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto);
 
     // --- INYECCIÓN DE CHIPS ---
     const motivoContainer = wrap.querySelector('.chips-motivo');
@@ -405,8 +410,8 @@ export function createVisitCard(type = 'Primera') {
     Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
         const groupDiv = document.createElement('div');
         groupDiv.style.marginBottom = '12px';
-        groupDiv.className = 'recipe-chips-group'; // Importante para la lógica de dropdowns
-        groupDiv.dataset.group = group; // Importante para agrupar por categoría
+        groupDiv.className = 'recipe-chips-group'; 
+        groupDiv.dataset.group = group; 
         
         groupDiv.innerHTML = `
           <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
@@ -538,10 +543,9 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
-        // E. Recipe (AQUÍ ESTÁ LA MAGIA)
+        // E. Recipe (Llamando a las funciones importadas)
         if (target.closest('.recipe-chips-container')) {
             updateRecipeTextbox(wrap);
-            // ¡Llamada crucial a la función de dropdowns!
             renderIndicacionesDropdowns(wrap);
         }
     });
