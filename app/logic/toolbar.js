@@ -2,7 +2,7 @@
 
 import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
 import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
-import { createVisitCard } from 'consult';
+import { createVisitCard } from 'consult'; 
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
@@ -12,83 +12,83 @@ const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 // --- INICIALIZADOR DE EVENTOS ---
 export function initToolbarEvents() {
     
-    // --- GRUPO IZQUIERDO ---
-    
     // 1. Nueva Historia
     $("#btnNew")?.addEventListener('click', () => {
-        if (!confirm('¿Iniciar nueva historia? Se perderán los cambios no guardados.')) return;
-        resetWorkspace();
-        flash('Lienzo limpio.');
+        if (!confirm('¿Iniciar nueva historia? Asegúrese de haber guardado cambios.')) return;
+        resetStory();
+        flash('Historia limpia iniciada.');
     });
 
-    // 2. Guardar (Solo guardar)
-    $("#btnSave")?.addEventListener('click', () => {
+    // 2. Guardar Historia
+    $("#btnClose")?.addEventListener('click', () => {
         saveCurrentHistory();
     });
 
-    // 3. Cerrar Historia (Nuevo: Guardar y Limpiar)
+    // 2.1 NUEVO: Cerrar Historia (Guardar + Limpiar)
     $("#btnCloseStory")?.addEventListener('click', () => {
-        if(saveCurrentHistory()) { // Si guardó OK
-            setTimeout(() => {
-                resetWorkspace();
-                flash('Historia guardada y cerrada.');
-            }, 800);
+        if(confirm("¿Desea guardar y cerrar la historia actual?")) {
+            saveCurrentHistory();
+            resetStory();
+            flash("Historia guardada y cerrada.");
         }
     });
 
-    // 4. Agregar Consulta
+    // 3. Agregar Consulta
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
 
-    // 5. Abrir / Buscar
-    $("#btnOpen")?.addEventListener('click', openSearchModal);
-
-
-    // --- GRUPO DERECHO (USUARIO & TOOLS) ---
-    
-    // Toggle Menú Usuario
-    $("#btnUserAvatar")?.addEventListener('click', (e) => {
-        e.stopPropagation(); // Evitar cierre inmediato
-        $("#userDropdown").classList.toggle('hidden');
-    });
-
-    // Cerrar menú al hacer clic fuera
-    document.addEventListener('click', (e) => {
-        const menu = $("#userDropdown");
-        const btn = $("#btnUserAvatar");
-        if(menu && !menu.classList.contains('hidden')) {
-            if (!menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.classList.add('hidden');
+    // 4. Eliminar Última
+    $("#btnDeleteLast")?.addEventListener('click', () => {
+        const container = $("#visitsContainer");
+        if (container && container.firstElementChild) {
+            if (confirm('¿Eliminar la última consulta agregada?')) {
+                container.firstElementChild.remove();
+                flash('Consulta eliminada');
             }
+        } else {
+            showErr("No hay consultas para borrar");
         }
     });
-    
-    // Switch de Tema (Visual por ahora)
-    $("#themeSwitch")?.addEventListener('click', (e) => {
-        const sw = e.currentTarget;
-        sw.classList.toggle('active'); // Mover bolita
-        // Aquí iría la lógica real de cambio de tema CSS
-        flash('Cambio de tema: Próximamente');
-    });
 
+    // 5. Buscar Paciente
+    $("#btnOpen")?.addEventListener('click', openSearchModal);
 
-    // --- MODALES BUSQUEDA ---
+    // 6. MENÚ DE USUARIO (NUEVO)
+    const btnAvatar = $("#btnUserAvatar");
+    const dropdown = $("#userDropdown");
+
+    if(btnAvatar && dropdown) {
+        btnAvatar.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que el click cierre inmediatamente
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Click fuera para cerrar
+        document.addEventListener('click', (e) => {
+            if (!dropdown.classList.contains('hidden')) {
+                if (!dropdown.contains(e.target) && !btnAvatar.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // --- MODALES ---
     $("#btnCancelSearch")?.addEventListener('click', closeSearchModal);
     $("#btnDoSearch")?.addEventListener('click', executeSearch);
     $("#searchValue")?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') executeSearch();
     });
 
-    // --- PREVIEW BAR (Flotante) ---
+    // --- HERRAMIENTAS PREVIEW ---
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
-    $("#btnClosePreview")?.addEventListener('click', closePreview); // Nuevo botón X
     
-    // Toggle Firma
     $("#btnToggleSign")?.addEventListener('click', () => {
         STATE.USE_SIG = !STATE.USE_SIG;
         const btn = $("#btnToggleSign");
         if(btn) {
-            btn.classList.toggle('primary'); // Cambio visual glass
-            btn.innerHTML = STATE.USE_SIG ? '<i class="bi bi-pen-fill"></i> Con Firma' : '<i class="bi bi-pen"></i> Firmar';
+            btn.style.borderColor = STATE.USE_SIG ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
+            btn.style.color = STATE.USE_SIG ? 'var(--accent)' : 'var(--text-muted)';
+            btn.innerHTML = STATE.USE_SIG ? '<i class="bi bi-pen-fill"></i> Firma: ON' : '<i class="bi bi-pen"></i> Firmar';
         }
         refreshPreview();
     });
@@ -129,12 +129,13 @@ export function initToolbarEvents() {
     }
 }
 
-// Helper para limpiar
-function resetWorkspace() {
+// Función auxiliar para resetear UI
+function resetStory() {
     initializeNewPatient();
     const container = $("#visitsContainer");
     if(container) container.innerHTML = '';
     STATE.visitIdCounter = 0;
+    STATE.currentPreviewCard = null;
     closePreview();
 }
 
@@ -144,8 +145,9 @@ function handleAddConsulta() {
         showErr('Ingrese el nombre del paciente primero.');
         const input = $("#primer_nombre");
         if(input) {
-            input.classList.add('input-error');
-            setTimeout(() => input.classList.remove('input-error'), 500);
+            input.focus();
+            input.style.borderColor = 'var(--danger)';
+            setTimeout(() => input.style.borderColor = '', 1000);
         }
         return;
     }
@@ -156,15 +158,23 @@ function handleAddConsulta() {
     
     const newCard = createVisitCard(type);
     
+    // HERENCIA DE DATOS
     if (type === 'Sucesiva' && existingCards.length > 0) {
         const lastCard = existingCards[0];
-        // Heredar antecedentes
-        ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'].forEach(sel => {
+        
+        const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
+        fieldsToCopy.forEach(sel => {
             const source = lastCard.querySelector(sel);
             const target = newCard.querySelector(sel);
             if(source && target) target.value = source.value;
         });
-        flash('Consulta sucesiva creada');
+
+        const prevDx = lastCard.querySelector('.txt-dx')?.value;
+        const targetDx = newCard.querySelector('.txt-dx');
+        if (prevDx && targetDx) {
+            targetDx.value = prevDx + " (Control)";
+        }
+        flash('Consulta sucesiva creada (Datos heredados)');
     } else {
         flash('Primera consulta creada');
     }
@@ -187,17 +197,21 @@ function refreshPreview() {
     }
 }
 
-// Global para los botones de las tarjetas
+// Global
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
 
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
+    STATE.currentShareCard = card;
 
     let html = "";
-    if (kind === 'INF') html = buildReportHTML(card);
-    else html = buildRecipeHTML(card);
+    if (kind === 'INF') {
+        html = buildReportHTML(card);
+    } else {
+        html = buildRecipeHTML(card);
+    }
     
     const preview = $("#docPreview");
     if(preview) {
@@ -209,7 +223,8 @@ window.openDocGlobal = function(kind, cardId) {
     $("#previewBar")?.classList.remove('hidden');
     $("#previewShell")?.classList.remove('hidden');
     
-    // No hacer scroll brusco, solo mostrar la barra
+    // No hacemos scroll forzoso al preview para no perder el contexto de escritura,
+    // ya que ahora la barra flota.
 };
 
 // --- BASE DE DATOS LOCAL ---
@@ -218,7 +233,7 @@ function saveCurrentHistory() {
     
     if (!patientData.documento_numero || !patientData.primer_nombre) {
         showErr('Faltan datos obligatorios (Doc o Nombre).');
-        return false;
+        return;
     }
 
     const visits = Array.from($$('.visit-card')).map(card => {
@@ -253,11 +268,8 @@ function saveCurrentHistory() {
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         flash('Historia guardada.');
-        return true;
     } catch (e) {
-        showErr('Error al guardar (LocalStorage lleno).');
-        console.error(e);
-        return false;
+        showErr('Error de almacenamiento (LocalStorage lleno).');
     }
 }
 
@@ -265,8 +277,12 @@ function saveCurrentHistory() {
 function openSearchModal() {
     $("#searchModal")?.classList.add('active');
     const input = $("#searchValue");
-    if(input) { input.value = ''; input.focus(); }
-    $("#searchResultsList").innerHTML = '';
+    if(input) {
+        input.value = '';
+        input.focus();
+    }
+    const list = $("#searchResultsList");
+    if(list) list.innerHTML = '';
 }
 
 function closeSearchModal() {
@@ -288,29 +304,32 @@ function executeSearch() {
     });
 
     if (matches.length === 0) {
-        list.innerHTML = '<div style="padding:15px; text-align:center; color:#94a3b8;">No se encontraron pacientes.</div>';
+        list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);">Sin resultados</div>';
         return;
     }
 
     matches.forEach(m => {
         const div = document.createElement('div');
-        div.className = "glass-btn"; // Reutilizamos estilo
-        div.style.marginBottom = "5px";
-        div.style.justifyContent = "space-between";
+        div.style.padding = '12px';
+        div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+        div.style.cursor = 'pointer';
         div.innerHTML = `
-            <div>
-                <div style="color:var(--accent); font-weight:bold;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
-                <div style="font-size:0.75rem; color:#94a3b8;">${m.patient.documento_tipo}-${m.patient.documento_numero}</div>
+            <div style="color:var(--accent); font-weight:bold; font-size:1.05rem;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
+            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-top:4px;">
+                <span>${m.patient.documento_tipo}-${m.patient.documento_numero}</span>
+                <span>${fmtDate(m.lastUpdated)}</span>
             </div>
-            <div style="font-size:0.7rem; color:#64748b;">${fmtDate(m.lastUpdated)}</div>
         `;
+        div.addEventListener('mouseenter', () => div.style.background = 'rgba(255,255,255,0.05)');
+        div.addEventListener('mouseleave', () => div.style.background = 'transparent');
+        
         div.onclick = () => loadHistoryRecord(m);
         list.appendChild(div);
     });
 }
 
 function loadHistoryRecord(record) {
-    resetWorkspace();
+    resetStory(); // Usamos la nueva función helper
     loadPatientDataToDOM(record.patient);
 
     const container = $("#visitsContainer");
@@ -340,5 +359,5 @@ function loadHistoryRecord(record) {
     });
 
     closeSearchModal();
-    flash('Historia cargada.');
+    flash('Historia cargada exitosamente.');
 }
