@@ -2,7 +2,7 @@
 
 // Imports limpios usando el Mapa
 import { $, STATE, fmtDate } from 'brain';
-import { CIMA_DATA } from 'data';
+import { CIMA_DATA } from 'consult';
 
 // ==========================================
 // 1. LÓGICA DE UI (DROPDOWNS EN CONSULTA)
@@ -210,3 +210,4 @@ function updatePlanTratamiento(card, indicacionesText) {
     
     txtPlan.value = indicacionesText + contacto;
 }
+
