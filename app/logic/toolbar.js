@@ -1,6 +1,6 @@
 // app/logic/toolbar.js
 
-import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
+import { $, $$, flash, showErr, STATE, fmtDate, rotateWallpaper } from 'brain';
 import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
 import { createVisitCard } from 'consult'; 
 import { exportToPNG, shareViaWhatsApp } from 'export';
@@ -9,7 +9,6 @@ import { buildRecipeHTML } from 'recipe';
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
-// --- INICIALIZADOR DE EVENTOS ---
 export function initToolbarEvents() {
     
     // 1. Nueva Historia
@@ -20,11 +19,9 @@ export function initToolbarEvents() {
     });
 
     // 2. Guardar Historia
-    $("#btnClose")?.addEventListener('click', () => {
-        saveCurrentHistory();
-    });
+    $("#btnClose")?.addEventListener('click', saveCurrentHistory);
 
-    // 2.1 NUEVO: Cerrar Historia (Guardar + Limpiar)
+    // 2.1 Cerrar Historia
     $("#btnCloseStory")?.addEventListener('click', () => {
         if(confirm("¿Desea guardar y cerrar la historia actual?")) {
             saveCurrentHistory();
@@ -33,10 +30,8 @@ export function initToolbarEvents() {
         }
     });
 
-    // 3. Agregar Consulta
+    // 3. Consultas
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
-
-    // 4. Eliminar Última
     $("#btnDeleteLast")?.addEventListener('click', () => {
         const container = $("#visitsContainer");
         if (container && container.firstElementChild) {
@@ -49,20 +44,19 @@ export function initToolbarEvents() {
         }
     });
 
-    // 5. Buscar Paciente
+    // 4. Buscar
     $("#btnOpen")?.addEventListener('click', openSearchModal);
 
-    // 6. MENÚ DE USUARIO (NUEVO)
+    // 5. MENÚ DE USUARIO & WALLPAPER
     const btnAvatar = $("#btnUserAvatar");
     const dropdown = $("#userDropdown");
 
     if(btnAvatar && dropdown) {
         btnAvatar.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evitar que el click cierre inmediatamente
+            e.stopPropagation();
             dropdown.classList.toggle('hidden');
         });
 
-        // Click fuera para cerrar
         document.addEventListener('click', (e) => {
             if (!dropdown.classList.contains('hidden')) {
                 if (!dropdown.contains(e.target) && !btnAvatar.contains(e.target)) {
@@ -70,24 +64,29 @@ export function initToolbarEvents() {
                 }
             }
         });
+        
+        // BOTÓN CAMBIAR FONDO (Nuevo)
+        $("#btnChangeWallpaper")?.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita que se cierre el menú
+            rotateWallpaper();
+        });
     }
 
-    // --- MODALES ---
+    // Modales Búsqueda
     $("#btnCancelSearch")?.addEventListener('click', closeSearchModal);
     $("#btnDoSearch")?.addEventListener('click', executeSearch);
     $("#searchValue")?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') executeSearch();
     });
 
-    // --- HERRAMIENTAS PREVIEW ---
+    // Preview
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
     
     $("#btnToggleSign")?.addEventListener('click', () => {
         STATE.USE_SIG = !STATE.USE_SIG;
         const btn = $("#btnToggleSign");
         if(btn) {
-            btn.style.borderColor = STATE.USE_SIG ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
-            btn.style.color = STATE.USE_SIG ? 'var(--accent)' : 'var(--text-muted)';
+            btn.style.color = STATE.USE_SIG ? 'var(--primary)' : 'var(--text-muted)';
             btn.innerHTML = STATE.USE_SIG ? '<i class="bi bi-pen-fill"></i> Firma: ON' : '<i class="bi bi-pen"></i> Firmar';
         }
         refreshPreview();
@@ -99,56 +98,38 @@ export function initToolbarEvents() {
         
         const fname = $("#documento_numero")?.value || 'paciente';
         const type = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
-        
         STATE.exportFilename = `CIMA_${fname}_${type}.png`;
+        
         const label = $("#exportFileName");
         if(label) label.textContent = STATE.exportFilename;
-        
         $("#exportModal").classList.add('active');
     });
 
     $("#btnCloseExport")?.addEventListener('click', () => $("#exportModal").classList.remove('active'));
-    
-    $("#btnDownload")?.addEventListener('click', () => {
-        exportToPNG();
-        $("#exportModal").classList.remove('active');
-    });
-    
+    $("#btnDownload")?.addEventListener('click', () => { exportToPNG(); $("#exportModal").classList.remove('active'); });
     $("#btnShareWA")?.addEventListener('click', shareViaWhatsApp);
     
-    // Zoom Listener
-    const zoomInput = $("#zoomRange");
-    if(zoomInput) {
-        zoomInput.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const label = $("#zoomVal");
-            const preview = $("#docPreview");
-            if(label) label.textContent = val + '%';
-            if(preview) preview.style.transform = `scale(${val / 100})`;
-        });
-    }
+    // Zoom
+    $("#zoomRange")?.addEventListener('input', (e) => {
+        const val = e.target.value;
+        $("#zoomVal").textContent = val + '%';
+        $("#docPreview").style.transform = `scale(${val / 100})`;
+    });
 }
 
-// Función auxiliar para resetear UI
 function resetStory() {
     initializeNewPatient();
-    const container = $("#visitsContainer");
-    if(container) container.innerHTML = '';
+    $("#visitsContainer").innerHTML = '';
     STATE.visitIdCounter = 0;
     STATE.currentPreviewCard = null;
     closePreview();
 }
 
-// --- LÓGICA AGREGAR CONSULTA ---
 function handleAddConsulta() {
     if (!$("#primer_nombre")?.value) {
         showErr('Ingrese el nombre del paciente primero.');
         const input = $("#primer_nombre");
-        if(input) {
-            input.focus();
-            input.style.borderColor = 'var(--danger)';
-            setTimeout(() => input.style.borderColor = '', 1000);
-        }
+        if(input) { input.focus(); input.style.borderColor = 'var(--danger)'; setTimeout(() => input.style.borderColor = '', 1000); }
         return;
     }
 
@@ -158,23 +139,18 @@ function handleAddConsulta() {
     
     const newCard = createVisitCard(type);
     
-    // HERENCIA DE DATOS
     if (type === 'Sucesiva' && existingCards.length > 0) {
         const lastCard = existingCards[0];
-        
         const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
         fieldsToCopy.forEach(sel => {
             const source = lastCard.querySelector(sel);
             const target = newCard.querySelector(sel);
             if(source && target) target.value = source.value;
         });
-
         const prevDx = lastCard.querySelector('.txt-dx')?.value;
         const targetDx = newCard.querySelector('.txt-dx');
-        if (prevDx && targetDx) {
-            targetDx.value = prevDx + " (Control)";
-        }
-        flash('Consulta sucesiva creada (Datos heredados)');
+        if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
+        flash('Consulta sucesiva creada');
     } else {
         flash('Primera consulta creada');
     }
@@ -183,12 +159,10 @@ function handleAddConsulta() {
     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// --- PREVIEW ---
 function closePreview() {
     $("#previewBar")?.classList.add('hidden');
     $("#previewShell")?.classList.add('hidden');
     STATE.currentPreviewDoc = null;
-    STATE.currentPreviewCard = null;
 }
 
 function refreshPreview() {
@@ -197,7 +171,6 @@ function refreshPreview() {
     }
 }
 
-// Global
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
@@ -206,13 +179,7 @@ window.openDocGlobal = function(kind, cardId) {
     STATE.currentPreviewDoc = kind;
     STATE.currentShareCard = card;
 
-    let html = "";
-    if (kind === 'INF') {
-        html = buildReportHTML(card);
-    } else {
-        html = buildRecipeHTML(card);
-    }
-    
+    let html = kind === 'INF' ? buildReportHTML(card) : buildRecipeHTML(card);
     const preview = $("#docPreview");
     if(preview) {
         preview.innerHTML = html;
@@ -222,19 +189,11 @@ window.openDocGlobal = function(kind, cardId) {
     
     $("#previewBar")?.classList.remove('hidden');
     $("#previewShell")?.classList.remove('hidden');
-    
-    // No hacemos scroll forzoso al preview para no perder el contexto de escritura,
-    // ya que ahora la barra flota.
 };
 
-// --- BASE DE DATOS LOCAL ---
 function saveCurrentHistory() {
     const patientData = getPatientData();
-    
-    if (!patientData.documento_numero || !patientData.primer_nombre) {
-        showErr('Faltan datos obligatorios (Doc o Nombre).');
-        return;
-    }
+    if (!patientData.documento_numero || !patientData.primer_nombre) { showErr('Faltan datos obligatorios (Doc o Nombre).'); return; }
 
     const visits = Array.from($$('.visit-card')).map(card => {
         return {
@@ -257,37 +216,17 @@ function saveCurrentHistory() {
         };
     });
 
-    const fullRecord = {
-        patient: patientData,
-        visits: visits,
-        lastUpdated: new Date().toISOString()
-    };
-
+    const fullRecord = { patient: patientData, visits: visits, lastUpdated: new Date().toISOString() };
     try {
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         flash('Historia guardada.');
-    } catch (e) {
-        showErr('Error de almacenamiento (LocalStorage lleno).');
-    }
+    } catch (e) { showErr('Error de almacenamiento local.'); }
 }
 
-// --- BUSQUEDA ---
-function openSearchModal() {
-    $("#searchModal")?.classList.add('active');
-    const input = $("#searchValue");
-    if(input) {
-        input.value = '';
-        input.focus();
-    }
-    const list = $("#searchResultsList");
-    if(list) list.innerHTML = '';
-}
-
-function closeSearchModal() {
-    $("#searchModal")?.classList.remove('active');
-}
+function openSearchModal() { $("#searchModal")?.classList.add('active'); $("#searchValue")?.focus(); $("#searchResultsList").innerHTML = ''; }
+function closeSearchModal() { $("#searchModal")?.classList.remove('active'); }
 
 function executeSearch() {
     const query = $("#searchValue")?.value.toLowerCase().trim();
@@ -299,43 +238,26 @@ function executeSearch() {
 
     const matches = Object.values(db).filter(r => {
         const p = r.patient;
-        const name = `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase();
-        return name.includes(query) || p.documento_numero.includes(query);
+        return `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase().includes(query) || p.documento_numero.includes(query);
     });
 
-    if (matches.length === 0) {
-        list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);">Sin resultados</div>';
-        return;
-    }
+    if (matches.length === 0) { list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);">Sin resultados</div>'; return; }
 
     matches.forEach(m => {
         const div = document.createElement('div');
-        div.style.padding = '12px';
-        div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
-        div.style.cursor = 'pointer';
-        div.innerHTML = `
-            <div style="color:var(--accent); font-weight:bold; font-size:1.05rem;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
-            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-top:4px;">
-                <span>${m.patient.documento_tipo}-${m.patient.documento_numero}</span>
-                <span>${fmtDate(m.lastUpdated)}</span>
-            </div>
-        `;
-        div.addEventListener('mouseenter', () => div.style.background = 'rgba(255,255,255,0.05)');
-        div.addEventListener('mouseleave', () => div.style.background = 'transparent');
-        
+        div.style.padding = '12px'; div.style.borderBottom = '1px solid rgba(255,255,255,0.1)'; div.style.cursor = 'pointer';
+        div.innerHTML = `<div style="color:var(--accent); font-weight:bold;">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div>
+                         <div style="font-size:0.85rem; color:var(--text-muted);">${m.patient.documento_tipo}-${m.patient.documento_numero} | ${fmtDate(m.lastUpdated)}</div>`;
         div.onclick = () => loadHistoryRecord(m);
         list.appendChild(div);
     });
 }
 
 function loadHistoryRecord(record) {
-    resetStory(); // Usamos la nueva función helper
+    resetStory();
     loadPatientDataToDOM(record.patient);
-
     const container = $("#visitsContainer");
-    const visitsReversed = [...(record.visits || [])].reverse();
-
-    visitsReversed.forEach(v => {
+    [...(record.visits || [])].reverse().forEach(v => {
         const card = createVisitCard(v.type || 'Sucesiva');
         const setVal = (sel, val) => { const el = card.querySelector(sel); if(el) el.value = val || ''; };
         
@@ -354,10 +276,8 @@ function loadHistoryRecord(record) {
         setVal('.txt-recipe', v.recipe);
         setVal('.txt-indicaciones', v.indicaciones);
         setVal('.txt-plan', v.plan);
-
         container.prepend(card);
     });
-
     closeSearchModal();
-    flash('Historia cargada exitosamente.');
+    flash('Historia cargada.');
 }
