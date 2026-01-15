@@ -17,69 +17,66 @@
 
 <div id="err"></div>
 
-<div class="toolbar-wrapper glass">
-  <div class="toolbar-content">
+<div class="toolbar-wrapper">
+  <div class="toolbar">
     
-    <div class="toolbar-left">
+    <div class="toolbar-section-left">
         <div class="logo">
           <div class="main">CIMA</div>
           <div class="subtitle">ORL v2.0</div>
         </div>
         
-        <div class="toolbar-divider"></div>
+        <div class="toolbar-actions">
+            <button id="btnNew" class="toolbar-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i> <span class="d-none-mobile">Nueva</span></button>
+            <button id="btnOpen" class="toolbar-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i> <span class="d-none-mobile">Abrir</span></button>
+            <button id="btnClose" class="toolbar-btn" title="Guardar Cambios"><i class="bi bi-save"></i> <span class="d-none-mobile">Guardar</span></button>
+            
+            <div class="v-sep"></div>
 
-        <div class="action-group">
-          <button id="btnNew" class="glass-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i> <span class="btn-label">Nueva</span></button>
-          <button id="btnOpen" class="glass-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i> <span class="btn-label">Abrir</span></button>
-          <button id="btnSave" class="glass-btn" title="Guardar Cambios"><i class="bi bi-save"></i> <span class="btn-label">Guardar</span></button>
-          
-          <div class="toolbar-separator"></div>
+            <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle-dotted"></i> Consulta</button>
+            <button id="btnDeleteLast" class="toolbar-btn text-danger" title="Borrar Última"><i class="bi bi-trash"></i></button>
+            
+            <div class="v-sep"></div>
 
-          <button id="btnAddConsulta" class="glass-btn accent" title="Agregar Consulta"><i class="bi bi-plus-circle"></i> Consulta</button>
-          
-          <button id="btnCloseStory" class="glass-btn danger-glass" title="Guardar y Cerrar Historia">
-              <i class="bi bi-x-lg"></i> Cerrar
-          </button>
+            <button id="btnCloseStory" class="toolbar-btn btn-close-story">
+                <i class="bi bi-x-lg"></i> Cerrar HC
+            </button>
         </div>
     </div>
     
-    <div class="toolbar-right">
-        <button class="glass-btn icon-only" title="Agenda (Próximamente)"><i class="bi bi-calendar-week"></i></button>
-        <button class="glass-btn icon-only" title="Facturación (Próximamente)"><i class="bi bi-currency-dollar"></i></button>
+    <div class="toolbar-section-right">
+        <button class="toolbar-btn" style="opacity:0.6;" title="Agenda (Próximamente)"><i class="bi bi-calendar-week"></i></button>
+        <button class="toolbar-btn" style="opacity:0.6;" title="Facturación (Próximamente)"><i class="bi bi-receipt"></i></button>
         
-        <div class="toolbar-separator"></div>
+        <div class="v-sep"></div>
 
         <div class="user-menu-container">
-            <button id="btnUserAvatar" class="user-avatar-btn">
-                <span>DR</span>
-            </button>
-
-            <div id="userDropdown" class="user-dropdown glass hidden">
+            <button id="btnUserAvatar" class="avatar-btn">DR</button>
+            
+            <div id="userDropdown" class="user-dropdown hidden animate-fade">
                 <div class="dropdown-header">
-                    <p class="user-name">Dr. Usuario</p>
-                    <p class="user-role">Otorrinolaringología</p>
+                    <h4>Dr. Usuario</h4>
+                    <p>Configuración General</p>
                 </div>
                 
-                <ul class="dropdown-list">
-                    <li><button><i class="bi bi-layout-sidebar"></i> Alternar Sidebar</button></li>
-                    
-                    <li class="switch-item">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <i class="bi bi-palette"></i> Tema
-                        </div>
-                        <div class="smart-switch" id="themeSwitch">
-                            <div class="switch-handle"></div>
-                            <div class="switch-icons">
-                                <i class="bi bi-sun-fill text-xs text-yellow-500"></i>
-                                <i class="bi bi-moon-fill text-xs text-blue-300"></i>
-                            </div>
-                        </div>
-                    </li>
-                    
-                    <li><button><i class="bi bi-gear"></i> Configuración</button></li>
-                    <li class="divider"></li>
-                    <li><button class="text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button></li>
-                </ul>
+                <button class="dropdown-item">
+                    <i class="bi bi-layout-sidebar"></i> Sidebar / Toolbar
+                </button>
+                
+                <div class="dropdown-item smart-switch" id="btnThemeSwitch">
+                    <span style="display:flex; gap:10px;"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
+                    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                </div>
+
+                <button class="dropdown-item">
+                    <i class="bi bi-sliders"></i> Preferencias
+                </button>
+                
+                <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+                
+                <button class="dropdown-item" style="color:#ef4444;">
+                    <i class="bi bi-power"></i> Cerrar Sesión
+                </button>
             </div>
         </div>
     </div>
@@ -91,38 +88,39 @@
   
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
-      <div style="flex:1; display:flex; align-items:center; gap:15px;">
-        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--accent); filter: drop-shadow(0 0 5px rgba(96,165,250,0.5));"></i>
+      <div style="flex:1; display:flex; align-items:center; gap:20px;">
+        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--accent);"></i>
         <div>
-            <div style="display:flex; gap:10px; align-items:baseline;">
-                <h3 id="patient-header-name" style="margin:0; font-size:1.3rem; color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5);">Nuevo Paciente</h3>
-                <span id="patient-age-display" class="glass-badge">-- años</span>
+            <div style="display:flex; gap:12px; align-items:baseline;">
+                <h3 id="patient-header-name" style="margin:0; font-size:1.4rem; color:white;">Nuevo Paciente</h3>
+                <span id="patient-age-display" class="badge" style="background:var(--accent); color:black; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.75rem;">-- años</span>
             </div>
-            <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px;">
-                <span id="patient-doc-info">Doc: ---</span> | <span id="patient-internal-id">ID: ---</span>
+            <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">
+                <span id="patient-doc-info">Doc: ---</span> • <span id="patient-internal-id">ID: ---</span>
             </div>
         </div>
       </div>
-      <button class="collapse-btn-glass"><i class="bi bi-chevron-down"></i></button>
+      <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
     </div>
     
-    <div class="patient-details hidden" id="patient-form-container"></div>
+    <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--glass-border);"></div>
   </div> 
 
   <div id="visitsContainer"></div>
 
-  <div id="previewBar" class="glass-floating hidden">
+  <div id="previewBar" class="hidden">
     <div class="preview-controls">
-        <label class="zoom-label"><i class="bi bi-search"></i></label>
-        <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" class="styled-range">
-        <span id="zoomVal">70%</span>
-        <div class="v-separator"></div>
-        <button id="btnToggleSign" class="glass-btn-sm"><i class="bi bi-pen"></i> Firmar</button>
+        <i class="bi bi-zoom-out" style="color:var(--text-muted)"></i>
+        <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
+        <span id="zoomVal" style="color:var(--accent); font-size:0.85rem; font-weight:600; width:40px;">70%</span>
+        
+        <button id="btnToggleSign" class="toolbar-btn" style="border:1px solid var(--glass-border);">
+            <i class="bi bi-pen"></i> Firmar
+        </button>
     </div>
     <div class="preview-actions">
-        <button id="btnRefresh" class="glass-btn-sm primary"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
-        <button id="btnOpenExport" class="glass-btn-sm success"><i class="bi bi-share-fill"></i> Exportar</button>
-        <button id="btnClosePreview" class="glass-btn-sm danger-text" title="Cerrar Preview"><i class="bi bi-x-lg"></i></button>
+        <button id="btnRefresh" class="toolbar-btn"><i class="bi bi-arrow-clockwise"></i></button>
+        <button id="btnOpenExport" class="toolbar-btn" style="background:var(--success); color:white; border:none;"><i class="bi bi-share-fill"></i> Exportar</button>
     </div>
   </div>
 
@@ -134,12 +132,12 @@
 
 <div id="searchModal" class="modal-overlay">
   <div class="modal-box glass">
-    <h3 style="color:var(--accent); margin-bottom:15px;">Buscar Paciente</h3>
-    <input id="searchValue" class="form-input" placeholder="Nombre o Cédula..." style="margin-bottom:15px;">
+    <h3 style="color:var(--accent); margin-bottom:15px; font-weight:300;">Buscar Paciente</h3>
+    <input id="searchValue" class="form-input" placeholder="Escriba nombre o cédula..." style="margin-bottom:15px; padding:12px;">
     <div id="searchResultsList" style="max-height:300px; overflow-y:auto; margin-bottom:15px;"></div>
     <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
-      <button id="btnCancelSearch" class="glass-btn">Cancelar</button>
-      <button id="btnDoSearch" class="glass-btn primary">Buscar</button>
+      <button id="btnCancelSearch" class="toolbar-btn">Cancelar</button>
+      <button id="btnDoSearch" class="toolbar-btn" style="background:var(--primary); color:white;">Buscar</button>
     </div>
   </div>
 </div>
@@ -147,14 +145,14 @@
 <div id="exportModal" class="modal-overlay">
   <div class="modal-box glass">
     <h3 style="color:var(--accent); text-align:center; margin-bottom:5px;">Compartir Documento</h3>
-    <p id="exportFileName" style="text-align:center; color:#94a3b8; font-family:monospace; margin-bottom:20px; font-size:0.85rem;"></p>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <button id="btnShareWA" class="btn btn-success" style="justify-content:center;"><i class="bi bi-whatsapp"></i> WhatsApp</button>
-        <button id="btnShareMail" class="btn btn-danger" style="justify-content:center;"><i class="bi bi-envelope"></i> Email</button>
-        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;"><i class="bi bi-download"></i> Descargar Imagen</button>
+    <p id="exportFileName" style="text-align:center; color:var(--text-muted); font-family:monospace; margin-bottom:25px;"></p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <button id="btnShareWA" class="toolbar-btn" style="background:#25D366; color:white; justify-content:center;"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+        <button id="btnShareMail" class="toolbar-btn" style="background:#EA4335; color:white; justify-content:center;"><i class="bi bi-envelope-fill"></i> Email</button>
+        <button id="btnDownload" class="toolbar-btn" style="background:var(--primary); color:white; grid-column:span 2; justify-content:center; padding:12px;"><i class="bi bi-download"></i> Descargar Imagen</button>
     </div>
-    <div style="text-align:right; margin-top:15px;">
-        <button id="btnCloseExport" class="glass-btn">Cerrar</button>
+    <div style="text-align:right; margin-top:20px;">
+        <button id="btnCloseExport" class="toolbar-btn">Cerrar</button>
     </div>
   </div>
 </div>
@@ -179,17 +177,15 @@
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.1 - Glass UI");
+        console.log("CIMA ORL v2.1 - UI Refactor Init...");
         await loadUserConfig();
         initToolbarEvents();
         initializeNewPatient();
 
-        // Bindings Globales
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
         
-        // Listener Formulario
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
@@ -197,14 +193,17 @@
             if(e.target.type === 'checkbox') toggleConditionalFields();
         });
         
-        // Listener Visitas
         document.getElementById('visitsContainer').addEventListener('click', (e) => {
             const btn = e.target.closest('.visit-toggle-btn');
             if(btn) {
                 const card = btn.closest('.visit-card');
                 card.querySelector('.visit-body').classList.toggle('hidden');
-                btn.querySelector('i').classList.toggle('bi-chevron-right');
-                btn.querySelector('i').classList.toggle('bi-chevron-down');
+                const icon = btn.querySelector('i');
+                if(icon.classList.contains('bi-chevron-right')) {
+                    icon.classList.remove('bi-chevron-right'); icon.classList.add('bi-chevron-down');
+                } else {
+                    icon.classList.remove('bi-chevron-down'); icon.classList.add('bi-chevron-right');
+                }
             }
             if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
             if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
