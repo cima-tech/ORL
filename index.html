@@ -19,7 +19,32 @@
     </style>
 </head>
 <body>
-
+    
+<div id="exportModal" class="modal-overlay">
+  <div class="modal-box glass" style="max-width: 500px;">
+    <div style="text-align:center; margin-bottom:20px;">
+        <h3 style="color:#60a5fa; margin-bottom:5px;">Compartir Documento</h3>
+        <p style="font-size:0.9em; color:#ccc;" id="exportFileName">documento.png</p>
+    </div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <button id="btnShareWA" class="btn" style="background:#25D366; color:white; justify-content:center;">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+        </button>
+        <button id="btnShareMail" class="btn" style="background:#EA4335; color:white; justify-content:center;">
+            <i class="bi bi-envelope"></i> Email
+        </button>
+        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;">
+            <i class="bi bi-download"></i> Solo Descargar
+        </button>
+    </div>
+    
+    <div style="margin-top:20px; text-align:right;">
+        <button id="btnCloseExport" class="btn btn-ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+    
 <div id="err"></div>
 
 <div class="toolbar-wrapper glass">
@@ -282,16 +307,22 @@
     </div>
   </div> <div id="visitsContainer"></div>
 
-  <div id="previewBar" class="card hidden" style="position: sticky; bottom: 20px; z-index: 1000; border: 1px solid #3b82f6;">
-    <div class="row" style="align-items: center; margin: 0;">
-      <div class="col" style="flex: 1;">
-        <label class="form-label" style="display:inline; margin-right:10px;">Zoom</label>
-        <input type="range" id="zoomRange" min="40" max="120" step="5" value="60" oninput="$('#zoomVal').textContent = this.value + '%'; $('#docPreview').style.transform = 'scale(' + (this.value/100) + ')'">
-        <span id="zoomVal" style="font-weight: 600; margin-left: 10px;">60%</span>
+ <div id="previewBar" class="hidden"> <div class="row" style="align-items: center; padding: 10px 20px; gap: 15px;">
+      <div style="flex: 1; display:flex; align-items:center; gap:10px;">
+        <label class="form-label" style="margin:0; color:white;">Zoom</label>
+        <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
+        <span id="zoomVal" style="font-weight:600; color:#60a5fa; font-size:0.8rem;">70%</span>
+        
+        <div style="border-left:1px solid #475569; padding-left:15px; margin-left:5px;">
+            <button id="btnToggleSign" class="btn btn-ghost btn-small" style="color:white; border:1px solid #475569;">
+                <i class="bi bi-pen"></i> Firmar
+            </button>
+        </div>
       </div>
-      <div class="col" style="flex: 0 0 auto;">
-         <button id="btnRefresh" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
-         <button id="btnExport" class="btn btn-success"><i class="bi bi-download"></i> Descargar PNG</button>
+      
+      <div style="flex: 0 0 auto; display:flex; gap:10px;">
+         <button id="btnRefresh" class="btn btn-primary btn-small"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+         <button id="btnOpenExport" class="btn btn-success btn-small"><i class="bi bi-share"></i> Exportar / Compartir</button>
       </div>
     </div>
   </div>
@@ -326,6 +357,7 @@
     "export": "./app/services/consultation/models/ORL-001/export.js"
   }
 }
+    
 </script>
 
 <script type="module">
