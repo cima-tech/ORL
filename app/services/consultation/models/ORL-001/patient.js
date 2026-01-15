@@ -7,112 +7,192 @@ const PATIENT_TEMPLATE = `
     <div class="form-section">
       <div class="form-section-title">ID</div>
       <div class="form-grid">
-        <div class="span-1" draggable="false">
+        <div class="span-1">
           <label class="form-label">Tipo Doc *</label>
-          <select id="documento_tipo" class="form-select" style=""><option value="C.I.">Cédula</option><option value="Pasaporte">Pasaporte</option><option value="RIF">RIF</option></select>
+          <select id="documento_tipo" class="form-select"><option value="C.I.">Cédula</option><option value="Pasaporte">Pasaporte</option><option value="RIF">RIF</option></select>
         </div>
-        <div class="span-1" draggable="false"><label class="form-label">Número Doc *</label><input id="documento_numero" class="form-input" placeholder="Ej: V-12345678" data-mask="cedula" style=""></div>
-        <div class="span-1" draggable="false" style=""><label class="form-label">ID Interno</label><input id="internal_id" class="form-input calculated-field" readonly="" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">UUID</label><input id="uuid" class="form-input calculated-field" readonly="" style=""></div>
+        <div class="span-1"><label class="form-label">Número Doc *</label><input id="documento_numero" class="form-input" placeholder="Ej: V-12345678" data-mask="cedula"></div>
+        <div class="span-1"><label class="form-label">ID Interno</label><input id="internal_id" class="form-input calculated-field" readonly></div>
+        <div class="span-1"><label class="form-label">UUID</label><input id="uuid" class="form-input calculated-field" readonly></div>
       </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Nombre</div>
       <div class="form-grid">
-        <div class="span-1" draggable="false"><label class="form-label">Primer Nombre *</label><input id="primer_nombre" class="form-input" data-mask="capital" style=""></div>
-        <div class="span-1" draggable="false"><label class="form-label">Segundo Nombre</label><input id="segundo_nombre" class="form-input" data-mask="capital" style=""></div>
-        <div class="span-1" draggable="false"><label class="form-label">Primer Apellido *</label><input id="primer_apellido" class="form-input" data-mask="capital" style=""></div>
-        <div class="span-1" draggable="false"><label class="form-label">Segundo Apellido</label><input id="segundo_apellido" class="form-input" data-mask="capital" style=""></div>
+        <div class="span-1"><label class="form-label">Primer Nombre *</label><input id="primer_nombre" class="form-input" data-mask="capital"></div>
+        <div class="span-1"><label class="form-label">Segundo Nombre</label><input id="segundo_nombre" class="form-input" data-mask="capital"></div>
+        <div class="span-1"><label class="form-label">Primer Apellido *</label><input id="primer_apellido" class="form-input" data-mask="capital"></div>
+        <div class="span-1"><label class="form-label">Segundo Apellido</label><input id="segundo_apellido" class="form-input" data-mask="capital"></div>
       </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Demografía</div>
       <div class="form-grid" style="grid-template-columns: repeat(6, 1fr);">
-        <div class="span-1" draggable="false" style=""><label class="form-label">Fecha de Nacimiento *</label><input id="fecha_nacimiento" type="date" class="form-input" style=""></div>
-        <div class="span-1" draggable="false"><label class="form-label">Edad</label><input id="edad_auto" class="form-input calculated-field" readonly="" style="text-align: center;"></div>
-        <div class="span-1" draggable="false" style=""><label class="form-label">Sexo</label><select id="genero" class="form-select" style=""><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option></select></div>
-        <div class="span-1" draggable="false"><label class="form-label">Id. Género</label><select id="identidad_genero" class="form-select" style=""><option value="Cis">Cis</option><option value="Trans">Trans</option><option value="Otro">Otro</option></select></div>
-        <div class="span-1" draggable="false"><label class="form-label">E. Civil</label><select id="estado_civil" class="form-select" style=""><option value="Soltero">Soltero</option><option value="Casado">Casado</option></select></div>
-      <div class="span-1" draggable="false"><label class="form-label">Comunicación</label><select id="barrera" class="form-select" style=""><option value="Sin Barreras">Sin Barreras</option><option value="Discapacidad">Discapacidad</option></select></div></div>
+        <div class="span-1"><label class="form-label">Fecha de Nacimiento *</label><input id="fecha_nacimiento" type="date" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Edad</label><input id="edad_auto" class="form-input calculated-field" readonly style="text-align: center;"></div>
+        <div class="span-1"><label class="form-label">Sexo</label><select id="genero" class="form-select"><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option></select></div>
+        <div class="span-1"><label class="form-label">Id. Género</label><select id="identidad_genero" class="form-select"><option value="Cis">Cis</option><option value="Trans">Trans</option><option value="Otro">Otro</option></select></div>
+        <div class="span-1"><label class="form-label">E. Civil</label><select id="estado_civil" class="form-select"><option value="Soltero">Soltero</option><option value="Casado">Casado</option></select></div>
+        <div class="span-1"><label class="form-label">Comunicación</label><select id="barrera" class="form-select"><option value="Sin Barreras">Sin Barreras</option><option value="Discapacidad">Discapacidad</option></select></div>
+      </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Contacto</div>
       <div class="form-grid" style="grid-template-columns: repeat(5, 1fr);">
-      <div class="span-1" draggable="false" style=""><label class="form-label">Móvil *</label><input id="tel_principal" class="form-input" placeholder="+58 (412) 123-4567" data-mask="phone" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Otro Tlf</label><input id="tel_secundario" class="form-input" placeholder="+58 (212) ..." data-mask="phone" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Email Principal</label><input id="email_principal" type="email" class="form-input" placeholder="usuario@dominio.com" data-mask="email" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Email Secundario</label><input id="email_secundario" type="email" class="form-input" placeholder="usuario@dominio.com" data-mask="email" style=""></div><div class="span-2" draggable="false" style=""><label class="form-label">Dirección</label><input id="dir_calle_num" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Ciudad</label><input id="dir_ciudad" class="form-input" value="Caracas" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Estado</label><input id="dir_estado" class="form-input" value="Miranda" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">País</label><input id="dir_pais" class="form-input" value="Venezuela" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Código Postal</label><input id="dir_postal" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Instagram</label><input id="instagram" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Twitter/X</label><input id="x_twitter" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Facebook</label><input id="facebook" class="form-input" style=""></div></div>
+        <div class="span-1"><label class="form-label">Móvil *</label><input id="tel_principal" class="form-input" placeholder="+58 (412) 123-4567" data-mask="phone"></div>
+        <div class="span-1"><label class="form-label">Otro Tlf</label><input id="tel_secundario" class="form-input" placeholder="+58 (212) ..." data-mask="phone"></div>
+        <div class="span-1"><label class="form-label">Email Principal</label><input id="email_principal" type="email" class="form-input" placeholder="usuario@dominio.com" data-mask="email"></div>
+        <div class="span-1"><label class="form-label">Email Secundario</label><input id="email_secundario" type="email" class="form-input" placeholder="usuario@dominio.com" data-mask="email"></div>
+        <div class="span-2"><label class="form-label">Dirección</label><input id="dir_calle_num" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Ciudad</label><input id="dir_ciudad" class="form-input" value="Caracas"></div>
+        <div class="span-1"><label class="form-label">Estado</label><input id="dir_estado" class="form-input" value="Miranda"></div>
+        <div class="span-1"><label class="form-label">País</label><input id="dir_pais" class="form-input" value="Venezuela"></div>
+        <div class="span-1"><label class="form-label">Código Postal</label><input id="dir_postal" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Instagram</label><input id="instagram" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Twitter/X</label><input id="x_twitter" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Facebook</label><input id="facebook" class="form-input"></div>
+      </div>
     </div>
+
     <div class="form-section">
-      <div class="form-section-title">En Caso de Emergencia, contactar a:</div>
+      <div class="form-section-title">En Caso de Emergencia</div>
       <div class="form-grid">
-      <div class="span-1" draggable="false" style=""><label class="form-label">Nombre</label><input id="emergencia_nombre" class="form-input" data-mask="capital" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Relación</label><select id="emergencia_parentesco" class="form-select" style=""><option value="Familiar">Familiar</option><option value="Pareja">Pareja</option><option value="Amistad">Amistad</option><option value="Otro">Otro</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Teléfono</label><input id="emergencia_telefono" class="form-input" placeholder="+58..." data-mask="phone" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Email</label><input id="emergencia_email" class="form-input" data-mask="email" style=""></div></div>
+        <div class="span-1"><label class="form-label">Nombre</label><input id="emergencia_nombre" class="form-input" data-mask="capital"></div>
+        <div class="span-1"><label class="form-label">Relación</label><select id="emergencia_parentesco" class="form-select"><option value="Familiar">Familiar</option><option value="Pareja">Pareja</option><option value="Amistad">Amistad</option><option value="Otro">Otro</option></select></div>
+        <div class="span-1"><label class="form-label">Teléfono</label><input id="emergencia_telefono" class="form-input" placeholder="+58..." data-mask="phone"></div>
+        <div class="span-1"><label class="form-label">Email</label><input id="emergencia_email" class="form-input" data-mask="email"></div>
+      </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Administrativo</div>
       <div class="form-grid">
-      <div class="span-1" draggable="false" style=""><label class="form-label">Educación</label><select id="educacion" class="form-select" style=""><option value="Primaria">Primaria</option><option value="Secundaria">Secundaria</option><option value="Bachiller">Bachiller</option><option value="Tecnico">Tecnico</option><option value="Pregrado">Pregrado</option><option value="Licenciatura">Licenciatura</option><option value="Postgrado">Postgrado</option><option value="Maestria">Maestria</option><option value="Doctorado">Doctorado</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Ocupación</label><input id="ocupacion" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Seguro</label><input id="aseguradora" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Póliza</label><input id="numero_poliza" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Admisión</label><input id="fecha_admision" type="date" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Alta</label><input id="fecha_alta" type="date" class="form-input" style=""></div><div class="span-1" draggable="false"><label class="form-label">Referido Por</label><input id="referidopor" class="form-input" style=""></div></div>
+        <div class="span-1"><label class="form-label">Educación</label><select id="educacion" class="form-select"><option value="Primaria">Primaria</option><option value="Secundaria">Secundaria</option><option value="Bachiller">Bachiller</option><option value="Tecnico">Tecnico</option><option value="Pregrado">Pregrado</option><option value="Licenciatura">Licenciatura</option><option value="Postgrado">Postgrado</option><option value="Maestria">Maestria</option><option value="Doctorado">Doctorado</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div>
+        <div class="span-1"><label class="form-label">Ocupación</label><input id="ocupacion" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Seguro</label><input id="aseguradora" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Póliza</label><input id="numero_poliza" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Admisión</label><input id="fecha_admision" type="date" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Alta</label><input id="fecha_alta" type="date" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Referido Por</label><input id="referidopor" class="form-input"></div>
+      </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Datos Biométricos</div>
       <div class="form-grid">
-      <div class="span-1" style="display: flex; gap: 2px;" draggable="false">
+        <div class="span-1" style="display: flex; gap: 2px;">
            <select id="grupo_sanguineo" class="form-select" style="padding: 0px 2px;"><option value="O">O</option><option value="A">A</option><option value="B">B</option></select>
            <select id="factor_rh" class="form-select" style="padding:0 2px;"><option value="+">+</option><option value="-">-</option></select>
-        </div><div class="span-1" draggable="false" style=""><label class="form-label">Peso (kg)</label><input id="peso_kg" type="number" step="0.1" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Talla (cm)</label><input id="talla_cm" type="number" step="1" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Lateralidad</label><select id="lateralidad" class="form-select" style=""><option value="Diestro">Diestro</option><option value="Zurdo">Zurdo</option><option value="Ambidiestro">Ambidiestro</option><option value="Contrariado">Contrariado</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">IMC</label><input id="imc_auto" class="form-input calculated-field" readonly="" style=""></div></div>
+        </div>
+        <div class="span-1"><label class="form-label">Peso (kg)</label><input id="peso_kg" type="number" step="0.1" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Talla (cm)</label><input id="talla_cm" type="number" step="1" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Lateralidad</label><select id="lateralidad" class="form-select"><option value="Diestro">Diestro</option><option value="Zurdo">Zurdo</option><option value="Ambidiestro">Ambidiestro</option><option value="Contrariado">Contrariado</option></select></div>
+        <div class="span-1"><label class="form-label">IMC</label><input id="imc_auto" class="form-input calculated-field" readonly></div>
+      </div>
     </div>
+
     <div class="form-section">
       <div class="form-section-title">Antecedentes Personales</div>
       <div class="form-grid">
-      <div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;" draggable="false">
-           <div class="checkbox-group"><input type="checkbox" id="alergias_check" data-toggle-target="alergias_detalle" style=""><label for="alergias_check" class="text-danger">Alergias</label></div>
+        <div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
+           <div class="checkbox-group"><input type="checkbox" id="alergias_check" data-toggle-target="alergias_detalle"><label for="alergias_check" class="text-danger">Alergias</label></div>
            <input id="alergias_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-        </div><div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;" draggable="false">
-           <div class="checkbox-group"><input type="checkbox" id="cronicas_check" data-toggle-target="cronicas_detalle" style=""><label for="cronicas_check" class="text-danger">Enfermedad Crónica</label></div>
+        </div>
+        <div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
+           <div class="checkbox-group"><input type="checkbox" id="cronicas_check" data-toggle-target="cronicas_detalle"><label for="cronicas_check" class="text-danger">Enf. Crónica</label></div>
            <input id="cronicas_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-        </div><div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;" draggable="false">
-           <div class="checkbox-group"><input type="checkbox" id="medicamentos_check" data-toggle-target="medicamentos_detalle" style=""><label for="medicamentos_check" class="text-danger">Medicamentos Activos</label></div>
+        </div>
+        <div class="span-1" style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center;">
+           <div class="checkbox-group"><input type="checkbox" id="medicamentos_check" data-toggle-target="medicamentos_detalle"><label for="medicamentos_check" class="text-danger">Meds Activos</label></div>
            <input id="medicamentos_detalle" class="form-input alert-field" placeholder="Especifique..." style="display:none;">
-        </div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="diabetes_check" style=""><label for="diabetes_check">DM</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="asma_check" style=""><label for="asma_check">Asma</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="cardiopatias_check" style=""><label for="cardiopatias_check">Cardiopatía</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="epilepsia_check" style=""><label for="epilepsia_check">Epilepsia</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="tiroideos_check" style=""><label for="tiroideos_check">Tiroides</label></div><div class="span-1" draggable="false" style=""><label class="form-label">Riesgo Caídas</label><select id="riesgo_caidas" class="form-select" style=""><option value="Bajo">Bajo</option><option value="Alto">Alto</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Voluntad Anticipada</label><select id="voluntad_anticipada" class="form-select" style=""><option value="No">No</option><option value="Si">Si</option></select></div><div class="span-1" draggable="false"><label class="form-label">Otros Antecedentes</label><input id="otros_antecedentes" class="form-input" style=""></div></div>
+        </div>
+        <div class="checkbox-group"><input type="checkbox" id="diabetes_check"><label for="diabetes_check">DM</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="asma_check"><label for="asma_check">Asma</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="cardiopatias_check"><label for="cardiopatias_check">Cardiopatía</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="epilepsia_check"><label for="epilepsia_check">Epilepsia</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="tiroideos_check"><label for="tiroideos_check">Tiroides</label></div>
+        <div class="span-1"><label class="form-label">Riesgo Caídas</label><select id="riesgo_caidas" class="form-select"><option value="Bajo">Bajo</option><option value="Alto">Alto</option></select></div>
+        <div class="span-1"><label class="form-label">Voluntad Anticipada</label><select id="voluntad_anticipada" class="form-select"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="span-1"><label class="form-label">Otros Antecedentes</label><input id="otros_antecedentes" class="form-input"></div>
+      </div>
     </div>
+
     <div class="form-section">
-      <div class="form-section-title">Habitos y Salud</div>
+      <div class="form-section-title">Hábitos y Salud</div>
       <div class="form-grid">
-      <div class="span-1" draggable="false" style=""><label class="form-label">Estado Fisico General</label><select id="estadofisico" class="form-select" style=""><option value="Sedentario">Sedentario</option><option value="Deportista">Deportista</option><option value="Rutina de Ejercicios">Rutina de Ejercicios</option><option value="Ejercicio esporádico">Ejercicio esporádico</option><option value="Sedentarismo">Sedentarismo</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Horas de sueño</label><select id="Sueno" class="form-select" style=""><option value="≥ 7 horas diarias">≥ 7 horas diarias</option><option value="≤ 6 horas diarias">≤ 6 horas diarias</option><option value="Insuficiente">Insuficiente</option><option value="Suficientes">Suficientes</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Salud Sexual</label><select id="saludsexual" class="form-select" style=""><option value="Poco frecuente">Poco frecuente</option><option value="Poco o Nada">Poco o Nada</option><option value="Regularmente">Regularmente</option><option value="Mucho">Mucho</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Consumo de Alcohol</label><select id="alcohol" class="form-select" style=""><option value="Nunca">Nunca</option><option value="Poco">Poco</option><option value="Social">Social</option><option value="Frecuente">Frecuente</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Fuma?</label><select id="tabaquismo" class="form-select" style=""><option value="No">No</option><option value="Si">Si</option><option value="Prefiero No decirlo">Prefiero No decirlo</option></select></div><div class="span-1" draggable="false" style=""><label class="form-label">Otras Sustancias</label><input id="sustancias" class="form-input" style=""></div></div>
+        <div class="span-1"><label class="form-label">Estado Físico</label><select id="estadofisico" class="form-select"><option value="Sedentario">Sedentario</option><option value="Deportista">Deportista</option><option value="Rutina">Rutina de Ejercicios</option><option value="Esporádico">Ejercicio esporádico</option></select></div>
+        <div class="span-1"><label class="form-label">Sueño</label><select id="Sueno" class="form-select"><option value="≥ 7 horas">≥ 7 horas diarias</option><option value="≤ 6 horas">≤ 6 horas diarias</option><option value="Insuficiente">Insuficiente</option></select></div>
+        <div class="span-1"><label class="form-label">Alcohol</label><select id="alcohol" class="form-select"><option value="Nunca">Nunca</option><option value="Poco">Poco</option><option value="Social">Social</option><option value="Frecuente">Frecuente</option></select></div>
+        <div class="span-1"><label class="form-label">Fuma?</label><select id="tabaquismo" class="form-select"><option value="No">No</option><option value="Si">Si</option></select></div>
+        <div class="span-1"><label class="form-label">Sustancias</label><input id="sustancias" class="form-input"></div>
+      </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Inmunizaciones</div>
         <div class="form-grid">
-        <div class="span-1 checkbox-group" draggable="false" style=""><input type="checkbox" id="esquema_infancia" style=""><label for="new_185">Tiene esquema de Vacunación Infantil?</label></div><div class="span-1" draggable="false"><label class="form-label">Vacunas COVID-19</label><select id="covid_estado" class="form-select" style=""><option value="No Vacunado">No Vacunado</option><option value="Esquema Básico">Esquema Básico</option><option value="Con Refuerzos">Con Refuerzos</option><option value="Prefiero No Decirlo">Prefiero No Decirlo</option></select></div><div class="span-2"><label class="form-label">Ha Tenido Recciones adverss a Vacunas?</label><input id="reacciones_adversas" class="form-input" style="" placeholder="Ejemplo: Fiebre, Alergia"></div><div class="span-2" draggable="false"><label class="form-label">Otras Vacunas Relevantes?</label><input id="otras_vacunas" class="form-input" style="" placeholder="Fiebre amarilla, VPH, Influenza, etc"></div></div>
+        <div class="span-1 checkbox-group"><input type="checkbox" id="esquema_infancia"><label for="esquema_infancia">Esq. Infancia</label></div>
+        <div class="span-1"><label class="form-label">COVID-19</label><select id="covid_estado" class="form-select"><option value="No Vacunado">No Vacunado</option><option value="Esquema Básico">Esquema Básico</option><option value="Refuerzos">Con Refuerzos</option></select></div>
+        <div class="span-2"><label class="form-label">Reacciones Adversas</label><input id="reacciones_adversas" class="form-input" placeholder="Ej: Fiebre..."></div>
+        <div class="span-2"><label class="form-label">Otras Vacunas</label><input id="otras_vacunas" class="form-input" placeholder="Fiebre amarilla, VPH..."></div>
+        </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Antecedentes Familiares</div>
         <div class="form-grid" style="grid-template-columns: repeat(6, 1fr);">
-        <div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="familia_hipertension" style=""><label>HTA</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="familia_diabetes" style=""><label>DM</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="familia_cardiopatias" style=""><label>Cardiopatía</label></div><div class="checkbox-group" draggable="false" style=""><input type="checkbox" id="familia_cancer" style=""><label>Ca</label></div><div class="span-4" style="grid-column: span 4;" draggable="false"><input id="familia_geneticas" class="form-input" placeholder="Genéticas..." style=""></div></div>
+        <div class="checkbox-group"><input type="checkbox" id="familia_hipertension"><label>HTA</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="familia_diabetes"><label>DM</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="familia_cardiopatias"><label>Cardio</label></div>
+        <div class="checkbox-group"><input type="checkbox" id="familia_cancer"><label>Ca</label></div>
+        <div class="span-4" style="grid-column: span 4;"><input id="familia_geneticas" class="form-input" placeholder="Genéticas..."></div>
+        </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Lesiones y Fracturas</div>
         <div class="form-grid">
-        <div class="span-1 checkbox-group" draggable="false" style=""><input type="checkbox" id="fractura_bool" style=""><label for="fractura_bool">¿Fractura?</label></div><div class="span-2" draggable="false" style=""><label class="form-label">Lesión Desc.</label><input id="lesion_desc" class="form-input" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Tipo</label><select id="lesion_tipo" class="form-select" style=""><option value="Golpe">Golpe</option><option value="Cortada">Cortada</option><option value="Golpe + Cortada">Golpe + Cortada</option></select></div></div>
+        <div class="span-1 checkbox-group"><input type="checkbox" id="fractura_bool"><label for="fractura_bool">¿Fractura?</label></div>
+        <div class="span-2"><label class="form-label">Lesión Desc.</label><input id="lesion_desc" class="form-input"></div>
+        <div class="span-1"><label class="form-label">Tipo</label><select id="lesion_tipo" class="form-select"><option value="Golpe">Golpe</option><option value="Cortada">Cortada</option></select></div>
+        </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Historial Quirúrgico</div>
         <div class="form-grid">
-        <div class="span-1 checkbox-group" draggable="false" style=""><input type="checkbox" id="tiene_cirugias" data-toggle-target="cirugia_descripcion" style=""><label for="tiene_cirugias">¿Cirugías?</label></div><div class="span-2" draggable="false" style=""><label class="form-label">Descripción</label><input id="cirugia_descripcion" class="form-input" disabled="" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Año</label><input id="cirugia_anio" type="number" class="form-input" disabled="" style=""></div></div>
+        <div class="span-1 checkbox-group"><input type="checkbox" id="tiene_cirugias" data-toggle-target="cirugia_descripcion"><label for="tiene_cirugias">¿Cirugías?</label></div>
+        <div class="span-2"><label class="form-label">Descripción</label><input id="cirugia_descripcion" class="form-input" disabled></div>
+        <div class="span-1"><label class="form-label">Año</label><input id="cirugia_anio" type="number" class="form-input" disabled></div>
+        </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Hospitalizaciones</div>
         <div class="form-grid">
-        <div class="span-1 checkbox-group" draggable="false" style=""><input type="checkbox" id="ha_sido_hospitalizado" data-toggle-target="hospitalizacion_motivo" style=""><label for="ha_sido_hospitalizado">¿Hospitalizado?</label></div><div class="span-2" draggable="false" style=""><label class="form-label">Motivo</label><input id="hospitalizacion_motivo" class="form-input" disabled="" style=""></div><div class="span-1" draggable="false" style=""><label class="form-label">Año</label><input id="hospitalizacion_anio" type="number" class="form-input" disabled="" style=""></div><div class="span-1 checkbox-group" draggable="false" style=""><input type="checkbox" id="transfusion" style=""><label for="new_159">Recibió Transfusión Sanguínea</label></div></div>
+        <div class="span-1 checkbox-group"><input type="checkbox" id="ha_sido_hospitalizado" data-toggle-target="hospitalizacion_motivo"><label for="ha_sido_hospitalizado">¿Hosp?</label></div>
+        <div class="span-2"><label class="form-label">Motivo</label><input id="hospitalizacion_motivo" class="form-input" disabled></div>
+        <div class="span-1"><label class="form-label">Año</label><input id="hospitalizacion_anio" type="number" class="form-input" disabled></div>
+        <div class="span-1 checkbox-group"><input type="checkbox" id="transfusion"><label for="transfusion">Transfusión</label></div>
+        </div>
     </div>
+
     <div class="form-section">
         <div class="form-section-title">Consentimiento de Datos</div>
-        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr);">
-        <div class="checkbox-group span-1" draggable="false" style="">
-            <input type="checkbox" id="tratamiento_datos" style="">
+        <div class="form-grid">
+        <div class="checkbox-group span-4">
+            <input type="checkbox" id="tratamiento_datos">
             <label for="tratamiento_datos">Paciente acepta política de tratamiento de datos</label>
             <span id="label_fecha_firma" style="margin-left:auto; font-size:0.8em; color:#93c5fd; font-family:monospace;"></span>
             <input id="fecha_firma" type="hidden">
-        </div></div>
+        </div>
+        </div>
     </div>
     
-    <div style="display:flex; justify-content:center; gap:20px; padding:20px 0; border-top:1px dashed #334155;">
+    <div class="patient-nav">
         <button type="button" class="btn btn-ghost" onclick="document.querySelector('.patient-header').scrollIntoView({behavior: 'smooth'})">
             <i class="bi bi-arrow-up-circle"></i> Ir al Inicio
         </button>
@@ -130,7 +210,6 @@ function renderPatientForm() {
     const container = $("#patient-form-container");
     if (container) {
         container.innerHTML = PATIENT_TEMPLATE;
-        // Reinicializar validadores e inputs especiales
         initPatientValidators();
     } else {
         console.error("No se encontró el contenedor #patient-form-container");
