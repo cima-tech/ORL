@@ -58,10 +58,51 @@ export function initToolbarEvents() {
         if (e.key === 'Enter') executeSearch();
     });
 
-    // --- EVENTOS DE PREVIEW (BARRA FLOTANTE) ---
-    // Estos eventos suelen estar en el HTML estático, pero los manejamos aquí para centralizar lógica
+    // --- EVENTOS DE PREVIEW Y HERRAMIENTAS ---
+    
+    // Actualizar Preview
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
-    $("#btnExport")?.addEventListener('click', exportToPNG);
+    
+    // Toggle Firma (Nuevo)
+    $("#btnToggleSign")?.addEventListener('click', () => {
+        STATE.USE_SIG = !STATE.USE_SIG;
+        const btn = $("#btnToggleSign");
+        // Cambio visual del botón para indicar estado
+        if(STATE.USE_SIG) {
+            btn.style.background = 'rgba(59, 130, 246, 0.5)';
+            btn.style.borderColor = '#3b82f6';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.borderColor = '#475569';
+        }
+        refreshPreview(); // Regenerar documento con/sin firma
+    });
+
+    // Abrir Modal de Exportación (Nuevo)
+    $("#btnOpenExport")?.addEventListener('click', () => {
+        if (!STATE.currentPreviewDoc) {
+            showErr("Genere un documento primero");
+            return;
+        }
+        const fname = $("#documento_numero")?.value || 'doc';
+        const type = STATE.currentPreviewDoc === 'INF' ? 'Informe' : 'Recipe';
+        $("#exportFileName").textContent = `CIMA_${fname}_${type}.png`;
+        $("#exportModal").classList.add('active');
+    });
+
+    // --- EVENTOS DEL MODAL DE EXPORTACIÓN ---
+    $("#btnCloseExport")?.addEventListener('click', () => $("#exportModal").classList.remove('active'));
+    
+    $("#btnDownload")?.addEventListener('click', () => {
+        exportToPNG();
+        $("#exportModal").classList.remove('active');
+    });
+    
+    $("#btnShareWA")?.addEventListener('click', shareViaWhatsApp);
+    
+    $("#btnShareMail")?.addEventListener('click', () => {
+       flash("Función de Email pendiente de servidor backend", true);
+    });
 }
 
 // --- LÓGICA DE AGREGAR CONSULTA ---
@@ -69,6 +110,9 @@ function handleAddConsulta() {
     // Validación mínima: Paciente debe tener nombre
     if (!$("#primer_nombre").value) {
         showErr('Error: Debe ingresar al menos el Primer Nombre del paciente antes de iniciar consultas.');
+        // Efecto shake visual en el campo nombre si falta
+        $("#primer_nombre").classList.add('input-error');
+        setTimeout(() => $("#primer_nombre").classList.remove('input-error'), 500);
         return;
     }
 
@@ -118,9 +162,7 @@ function saveCurrentHistory() {
     }
 
     // 2. Serializar Visitas
-    // Recorremos el DOM de visitas para extraer su estado actual
     const visits = $$('.visit-card').map(card => {
-        // Serialización manual de los campos de la tarjeta
         return {
             type: card.dataset.type,
             date: card.querySelector('.visit-date').value,
@@ -149,14 +191,13 @@ function saveCurrentHistory() {
     // 3. Estructura del Registro
     const fullRecord = {
         patient: patientData,
-        visits: visits, // Array de visitas
+        visits: visits,
         lastUpdated: new Date().toISOString()
     };
 
     // 4. Guardar en LocalStorage
     try {
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        // Usamos el número de documento como clave primaria
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         flash('Historia guardada exitosamente en base de datos local.');
@@ -182,6 +223,9 @@ function loadHistory(docId) {
     // 2. Cargar Visitas
     $("#visitsContainer").innerHTML = '';
     
+    // Cargar en orden inverso para que aparezcan correctamente (Append al final)
+    // Asumimos que visits[0] es la más reciente si se guardó desde el DOM
+    // Si queremos mantener el orden visual, usamos appendChild.
     (record.visits || []).forEach(vData => {
         const card = createVisitCard(vData.type || 'Sucesiva');
         
@@ -235,25 +279,34 @@ function executeSearch() {
 
     const matches = Object.values(db).filter(record => {
         const p = record.patient;
+        // Búsqueda flexible: Nombre, Apellido o Cédula
         const fullName = `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase();
         const doc = p.documento_numero.toLowerCase();
         return fullName.includes(query) || doc.includes(query);
     });
 
     if (matches.length === 0) {
-        resultsContainer.innerHTML = '<div style="padding:10px; color:#ccc;">No se encontraron resultados.</div>';
+        resultsContainer.innerHTML = '<div style="padding:10px; color:#ccc; text-align:center;">No se encontraron resultados.</div>';
         return;
     }
 
     matches.forEach(match => {
         const div = document.createElement('div');
-        div.className = 'search-result-item';
+        div.className = 'search-result-item'; // Necesita CSS básico (ya incluido en main.css nuevo)
         div.style.padding = "10px";
         div.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
         div.style.cursor = "pointer";
+        div.style.transition = "background 0.2s";
+        div.onmouseover = () => div.style.background = "rgba(255,255,255,0.05)";
+        div.onmouseout = () => div.style.background = "transparent";
+        
         div.innerHTML = `
             <div style="font-weight:bold; color:#60a5fa">${match.patient.primer_nombre} ${match.patient.primer_apellido}</div>
-            <div style="font-size:0.8em; color:#ccc">ID: ${match.patient.documento_numero} | Última: ${fmtDate(match.lastUpdated)}</div>
+            <div style="font-size:0.8em; color:#94a3b8">
+                ID: ${match.patient.documento_numero} 
+                <span style="margin:0 5px;">|</span> 
+                Última: ${fmtDate(match.lastUpdated)}
+            </div>
         `;
         div.addEventListener('click', () => {
             loadHistory(match.patient.documento_numero);
@@ -280,7 +333,7 @@ function refreshPreview() {
     }
 }
 
-// Función global openDoc
+// Función global openDoc (Llamada desde data.js onclick)
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
@@ -291,12 +344,20 @@ window.openDocGlobal = function(kind, cardId) {
 
     const html = kind === 'INF' ? buildReportHTML(card) : buildRecipeHTML(card);
     
+    // Mostrar UI
     $("#previewBar").classList.remove('hidden');
     $("#previewShell").classList.remove('hidden');
     $("#docPreview").innerHTML = html;
     
+    // Configurar Zoom inicial
     const zoom = STATE.currentUser?.preferences?.default_zoom || 60;
+    const zoomInput = $("#zoomRange");
+    const zoomVal = $("#zoomVal");
+    
+    if(zoomInput) zoomInput.value = zoom;
+    if(zoomVal) zoomVal.textContent = zoom + '%';
     $("#docPreview").style.transform = `scale(${zoom / 100})`;
-    $("#zoomRange").value = zoom;
-    $("#zoomVal").textContent = zoom + '%';
+    
+    // Scroll suave hacia el preview
+    $("#previewBar").scrollIntoView({ behavior: 'smooth' });
 };
