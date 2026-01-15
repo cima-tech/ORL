@@ -1,259 +1,171 @@
 /* =========================================
-   1. CORE & RESET
+   1. CORE & RESET (Estilo "Aero/Glass")
    ========================================= */
 :root {
-  --primary: #3b82f6; --primary-dark: #2563eb; --accent: #06b6d4; /* Cyan/Teal más clínico */
-  --bg-dark: #0f172a; --bg-darker: #020617;
-  --glass-bg: rgba(255, 255, 255, 0.08); 
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-highlight: rgba(255, 255, 255, 0.2);
-  --text-main: #f8fafc; --text-muted: #94a3b8;
-  --danger: #ef4444; --success: #10b981;
+  /* Colores Médicos/Tecnológicos (Nada de rosas) */
+  --primary: #0ea5e9; /* Sky Blue */
+  --accent: #22d3ee;  /* Cyan brillante */
+  --text-main: #ffffff;
+  --text-muted: #cbd5e1;
+  
+  /* Variables del Vidrio (Glass) */
+  --glass-bg: rgba(15, 23, 42, 0.65); /* Azul muy oscuro pero transparente */
+  --glass-border: rgba(255, 255, 255, 0.15); /* Borde sutil */
+  --glass-highlight: rgba(255, 255, 255, 0.25); /* Brillo superior */
+  --blur-strength: 20px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  /* Degradado sutil para resaltar el efecto glass */
-  background: radial-gradient(circle at top left, #1e293b, var(--bg-darker));
   color: var(--text-main);
   min-height: 100vh;
   font-size: 14px;
   overflow-x: hidden;
+  
+  /* PROPIEDADES DEL WALLPAPER */
+  background-color: #0f172a; /* Color de respaldo */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Efecto Parallax: el fondo se queda quieto al hacer scroll */
+  background-repeat: no-repeat;
+  transition: background-image 0.5s ease-in-out;
 }
 
-/* Clases Utilitarias Glass */
-.glass {
-  background: var(--glass-bg); 
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border); 
-  border-radius: 12px;
+/* Capa oscura sobre el fondo para que el texto se lea bien siempre */
+body::before {
+    content: ''; position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.3); /* Oscurece un 30% la foto de fondo */
+    z-index: -1; pointer-events: none;
+}
+
+/* CLASE MAESTRA GLASS (Aplicada a paneles y tarjetas) */
+.glass, .card, .modal-box {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.7), 
+    rgba(15, 23, 42, 0.8)
+  );
+  backdrop-filter: blur(var(--blur-strength));
+  -webkit-backdrop-filter: blur(var(--blur-strength));
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-highlight); /* Luz cenital */
+  border-radius: 16px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .hidden { display: none !important; }
 
-/* Animaciones */
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade { animation: fadeInDown 0.2s ease-out forwards; }
-
 /* =========================================
-   2. TOOLBAR PRINCIPAL (REESTRUCTURADO)
+   2. TOOLBAR (Estilo Flotante como la imagen)
    ========================================= */
 .toolbar-wrapper {
   position: sticky; top: 0; z-index: 1000;
-  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 10px 24px;
+  padding: 15px 24px;
+  /* Fondo transparente con mucho blur */
+  background: rgba(15, 23, 42, 0.4); 
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.1);
 }
 
 .toolbar {
   display: flex; align-items: center; justify-content: space-between;
-  width: 100%;
+  max-width: 1400px; margin: 0 auto;
 }
 
-/* Sección Izquierda (Logo + Acciones Historia) */
-.toolbar-section-left {
-  display: flex; align-items: center; gap: 20px;
-}
+/* Logotipo más brillante */
+.logo { padding-right: 20px; border-right: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; }
+.logo .main { font-size: 1.4rem; font-weight: 800; color: white; text-shadow: 0 0 15px rgba(14, 165, 233, 0.6); letter-spacing: 1px; }
+.logo .subtitle { color: var(--accent); font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; }
 
-.logo { display: flex; flex-direction: column; padding-right: 15px; border-right: 1px solid var(--glass-border); }
-.logo .main { font-size: 1.2rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
-.logo .subtitle { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
-
-.toolbar-actions { display: flex; gap: 8px; align-items: center; }
-
-/* Sección Derecha (Sistema + Usuario) */
-.toolbar-section-right {
-  display: flex; align-items: center; gap: 12px;
-}
-
-/* Botones Toolbar */
+/* Botones Toolbar "Glass Pill" */
 .toolbar-btn {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid transparent;
-  color: var(--text-muted); 
-  padding: 8px 12px; border-radius: 8px;
+  color: #e2e8f0; 
+  padding: 8px 16px; border-radius: 50px; /* Bordes redondos tipo pastilla */
   cursor: pointer; display: flex; gap: 8px; align-items: center;
-  font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+  font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease;
 }
-.toolbar-btn:hover { background: var(--glass-highlight); color: white; border-color: var(--glass-border); }
 
-/* Botón Especial Cerrar Historia */
-.btn-close-story {
-    color: #fca5a5; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  transform: translateY(-1px);
 }
-.btn-close-story:hover { background: var(--danger); color: white; border-color: var(--danger); }
 
-/* Separador Vertical */
-.v-sep { width: 1px; height: 24px; background: var(--glass-border); margin: 0 4px; }
+.toolbar-section-left, .toolbar-section-right { display: flex; align-items: center; gap: 15px; }
 
-/* Avatar y Dropdown */
-.user-menu-container { position: relative; }
+/* Separadores */
+.v-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
+
+/* Avatar Brillante */
 .avatar-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--primary));
-    color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.2);
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);
     cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
     transition: transform 0.2s;
 }
-.avatar-btn:hover { transform: scale(1.05); border-color: white; }
-
-.user-dropdown {
-    position: absolute; right: 0; top: 50px; width: 220px;
-    background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border); border-radius: 12px;
-    padding: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    display: flex; flex-direction: column; gap: 4px;
-}
-.dropdown-item {
-    display: flex; align-items: center; gap: 10px; width: 100%;
-    padding: 10px; border-radius: 8px; color: var(--text-muted);
-    background: transparent; border: none; cursor: pointer; text-align: left;
-    font-size: 0.85rem; transition: background 0.2s;
-}
-.dropdown-item:hover { background: var(--glass-highlight); color: white; }
-.dropdown-header { padding: 10px; border-bottom: 1px solid var(--glass-border); margin-bottom: 5px; }
-.dropdown-header h4 { color: white; font-size: 0.9rem; }
-.dropdown-header p { color: var(--text-muted); font-size: 0.75rem; }
-
-/* Switch Toggle Style */
-.smart-switch {
-    display: flex; justify-content: space-between; align-items: center;
-}
-.toggle-track {
-    width: 36px; height: 20px; background: #334155; border-radius: 20px;
-    position: relative; transition: background 0.3s;
-}
-.toggle-thumb {
-    width: 16px; height: 16px; background: white; border-radius: 50%;
-    position: absolute; top: 2px; left: 2px; transition: transform 0.3s;
-}
+.avatar-btn:hover { transform: scale(1.1); border-color: white; }
 
 /* =========================================
-   3. CONTENIDO PRINCIPAL
+   3. MENÚ DROPDOWN & PANELES
    ========================================= */
-.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; padding-bottom: 120px; }
-
-/* Ficha Paciente */
-.card {
-  background: rgba(255, 255, 255, 0.03); 
-  border: 1px solid var(--glass-border);
-  border-radius: 16px; padding: 25px; margin-bottom: 25px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+.user-dropdown {
+    position: absolute; right: 0; top: 60px; width: 260px;
+    background: rgba(11, 15, 25, 0.75); /* Más oscuro para contraste */
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
+    border-radius: 16px; padding: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column; gap: 5px; z-index: 2000;
 }
 
-.patient-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-
-/* Botón Collapse/Expand Rediseñado */
-.patient-toggle-btn {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--glass-bg); border: 1px solid var(--glass-border);
-    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; cursor: pointer;
+.dropdown-item {
+    padding: 12px; border-radius: 10px; color: var(--text-muted);
+    background: transparent; border: none; cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 12px; transition: all 0.2s;
 }
-.patient-toggle-btn:hover { background: white; color: var(--primary); transform: rotate(180deg); }
+.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; padding-left: 15px; }
 
-/* Grid Forms */
-.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; align-items: end; }
-.span-1 { grid-column: span 1; }
-.span-2 { grid-column: span 2; }
-.span-4 { grid-column: span 4; }
+/* Switch Style */
+.smart-switch { justify-content: space-between; }
+.toggle-track { width: 40px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 20px; position: relative; }
+.toggle-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.3s; }
 
+/* =========================================
+   4. CONTENIDO (Formularios)
+   ========================================= */
+.container { max-width: 1200px; margin: 40px auto; padding: 0 20px; padding-bottom: 120px; }
+
+/* Inputs estilo "Ghost" */
 .form-input {
-  width: 100%; height: 36px; padding: 0 12px; font-size: 0.9rem;
-  background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+  width: 100%; height: 38px; padding: 0 15px;
+  background: rgba(0, 0, 0, 0.2); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px; color: white; transition: all 0.2s;
 }
-.form-input:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
-
-/* GLASS CHECKBOXES (Reemplazo visual) */
-input[type="checkbox"] {
-    appearance: none; -webkit-appearance: none;
-    width: 18px; height: 18px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid var(--glass-border);
-    border-radius: 4px; cursor: pointer;
-    position: relative; display: inline-block; vertical-align: middle;
-    margin-right: 8px; transition: all 0.2s;
-}
-input[type="checkbox"]:checked {
-    background: var(--accent); border-color: var(--accent);
-}
-input[type="checkbox"]:checked::after {
-    content: '✔'; position: absolute; top: -2px; left: 3px; font-size: 12px; color: #000; font-weight: bold;
+.form-input:focus {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 /* =========================================
-   4. TARJETAS DE VISITA
-   ========================================= */
-.visit-card { 
-    margin-top: 20px; border-radius: 12px; overflow: hidden;
-    background: rgba(30, 41, 59, 0.4); border: 1px solid var(--glass-border);
-}
-.visit-header {
-    background: rgba(255,255,255,0.03); padding: 15px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--glass-border);
-}
-
-/* =========================================
-   5. PREVIEW BAR (MEJORADO)
+   5. PREVIEW BAR (Flotante)
    ========================================= */
 #previewBar {
-    position: fixed; bottom: 30px; right: 30px; z-index: 2000;
-    width: auto; max-width: 90%;
-    /* Estilo Glass Intenso */
+    position: fixed; bottom: 30px; right: 50%; transform: translateX(50%); /* Centrado abajo */
     background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 16px;
-    padding: 12px 20px;
-    display: flex; align-items: center; gap: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    animation: fadeInDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.preview-controls { display: flex; align-items: center; gap: 15px; border-right: 1px solid var(--glass-border); padding-right: 15px; }
-.preview-actions { display: flex; gap: 10px; }
-
-#docPreview { background: white; color: black; transform-origin: top center; transition: transform 0.2s; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-.preview-shell {
-    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-    width: 900px; height: calc(100vh - 200px);
-    overflow: auto; z-index: 1999;
-    border-radius: 12px; display: flex; justify-content: center; padding-top: 20px;
-    /* Fondo oscuro traslúcido detrás del papel */
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-}
-
-/* Range Slider Custom */
-input[type=range] { -webkit-appearance: none; background: transparent; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--accent); margin-top: -5px; box-shadow: 0 0 10px var(--accent); }
-input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
-
-/* =========================================
-   6. MODALES
-   ========================================= */
-.modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000;
-    display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px);
-}
-.modal-overlay.active { display: flex; }
-.modal-box {
-    background: #1e293b; padding: 30px; border-radius: 20px; width: 450px;
-    border: 1px solid var(--glass-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .form-grid { grid-template-columns: repeat(2, 1fr); }
-  .span-4, .span-2 { grid-column: span 2; }
-  .toolbar-section-left { gap: 10px; }
-  .logo .subtitle { display: none; }
-  #previewBar { flex-direction: column; bottom: 10px; right: 10px; left: 10px; width: auto; }
-  .preview-controls { border-right: none; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; padding-right: 0; }
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; /* Forma de cápsula */
+    padding: 10px 30px; display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    z-index: 2000; width: auto;
 }
