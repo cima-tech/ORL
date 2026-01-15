@@ -14,18 +14,22 @@
 <div id="err"></div>
 
 <div class="toolbar-wrapper glass">
-  <div class="logo">
-    <div class="main">C.I.M.A.</div>
-    <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
-  </div>
-  <div class="toolbar-group">
-    <button id="btnNew" class="toolbar-btn"><i class="bi bi-file-earmark-plus"></i> Nueva HC</button>
-    <button id="btnOpen" class="toolbar-btn"><i class="bi bi-folder2-open"></i> Abrir HC</button>
-    <button id="btnClose" class="toolbar-btn"><i class="bi bi-save"></i> Guardar</button>
-  </div>
-  <div class="toolbar-group">
-    <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle"></i> Consulta</button>
-    <button id="btnDeleteLast" class="toolbar-btn"><i class="bi bi-trash"></i> Borrar Últ.</button>
+  <div class="toolbar">
+    <div class="logo">
+      <div class="main">C.I.M.A.</div>
+      <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
+    </div>
+    
+    <div class="toolbar-group">
+      <button id="btnNew" class="toolbar-btn"><i class="bi bi-file-earmark-plus"></i> Nueva HC</button>
+      <button id="btnOpen" class="toolbar-btn"><i class="bi bi-folder2-open"></i> Abrir HC</button>
+      <button id="btnClose" class="toolbar-btn"><i class="bi bi-save"></i> Guardar</button>
+    </div>
+    
+    <div class="toolbar-group">
+      <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle"></i> Consulta</button>
+      <button id="btnDeleteLast" class="toolbar-btn"><i class="bi bi-trash"></i> Borrar Últ.</button>
+    </div>
   </div>
 </div>
 
@@ -42,6 +46,10 @@
             </div>
             <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
                 <span id="patient-doc-info">Doc: ---</span> | <span id="patient-internal-id">ID: ---</span>
+            </div>
+            <div style="font-size:0.65rem; color:#64748b; margin-top:2px; display:flex; gap:10px;">
+               <span id="patient-meta-created"></span>
+               <span id="patient-meta-modified"></span>
             </div>
             <div id="patient-alerts-container" style="display:flex; gap:5px; margin-top:5px;"></div>
         </div>
@@ -74,7 +82,7 @@
 </div> 
 
 <div id="searchModal" class="modal-overlay">
-  <div class="modal-box">
+  <div class="modal-box glass">
     <h3 style="color:#60a5fa; margin-bottom:15px;">Buscar Paciente</h3>
     <input id="searchValue" class="form-input" placeholder="Nombre o Cédula..." style="margin-bottom:15px;">
     <div id="searchResultsList" style="max-height:300px; overflow-y:auto; margin-bottom:15px;"></div>
@@ -86,7 +94,7 @@
 </div>
 
 <div id="exportModal" class="modal-overlay">
-  <div class="modal-box">
+  <div class="modal-box glass">
     <h3 style="color:#60a5fa; text-align:center; margin-bottom:5px;">Compartir Documento</h3>
     <p id="exportFileName" style="text-align:center; color:#94a3b8; font-family:monospace; margin-bottom:20px; font-size:0.85rem;"></p>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -118,13 +126,12 @@
     import { $, loadUserConfig } from 'brain';
     import { initToolbarEvents } from 'toolbar';
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
-    
+    import { createVisitCard } from 'data';
+
     document.addEventListener('DOMContentLoaded', async () => {
         console.log("CIMA ORL v2.0 - Init...");
         await loadUserConfig();
         initToolbarEvents();
-        
-        // Inicializa el paciente (Esto inyecta el HTML automáticamente)
         initializeNewPatient();
 
         // Bindings Globales
@@ -132,7 +139,7 @@
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
         
-        // Listener Formulario (Delegación al contenedor padre)
+        // Listener Formulario
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
@@ -149,7 +156,6 @@
                 btn.querySelector('i').classList.toggle('bi-chevron-right');
                 btn.querySelector('i').classList.toggle('bi-chevron-down');
             }
-            // Abrir docs
             if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
             if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
         });
