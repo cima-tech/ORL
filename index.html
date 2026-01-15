@@ -7,38 +7,25 @@
     
     <link rel="stylesheet" href="app/styles/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    
-    <style>
-        /* CSS Mínimo para Modales */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .modal-overlay.active { display: flex; }
-        .modal-box { background: #1e293b; border: 1px solid #3b82f6; padding: 20px; border-radius: 12px; width: 400px; max-width: 90%; color: white; }
-        .hidden { display: none !important; }
-    </style>
 </head>
 <body>
 
 <div id="err"></div>
 
 <div class="toolbar-wrapper glass">
-  <div class="toolbar">
-    <div class="logo">
-      <div class="main">C.I.M.A.</div>
-      <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
-    </div>
-    
-    <div class="toolbar-group">
-      <button id="btnNew" class="toolbar-btn"><i class="bi bi-file-earmark-plus"></i> Nueva HC</button>
-      <button id="btnOpen" class="toolbar-btn"><i class="bi bi-folder2-open"></i> Abrir HC</button>
-      <button id="btnClose" class="toolbar-btn"><i class="bi bi-save"></i> Guardar</button>
-    </div>
-    
-    <div class="toolbar-group">
-      <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle"></i> Agregar Consulta</button>
-      <button id="btnDeleteLast" class="toolbar-btn"><i class="bi bi-trash"></i> Eliminar Última</button>
-    </div>
+  <div class="logo">
+    <div class="main">C.I.M.A.</div>
+    <div class="subtitle">Coordinador Inteligente de Monitoreo Asistido</div>
+  </div>
+  <div class="toolbar-group">
+    <button id="btnNew" class="toolbar-btn"><i class="bi bi-file-earmark-plus"></i> Nueva HC</button>
+    <button id="btnOpen" class="toolbar-btn"><i class="bi bi-folder2-open"></i> Abrir HC</button>
+    <button id="btnClose" class="toolbar-btn"><i class="bi bi-save"></i> Guardar</button>
+  </div>
+  <div class="toolbar-group">
+    <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle"></i> Consulta</button>
+    <button id="btnDeleteLast" class="toolbar-btn"><i class="bi bi-trash"></i> Borrar Últ.</button>
   </div>
 </div>
 
@@ -46,51 +33,37 @@
   
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
-      <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-        <button type="button" class="patient-toggle-btn">
-          <i class="bi bi-chevron-right"></i>
-        </button>
-        <span class="badge">PACIENTE</span>
-        <div style="display: flex; flex-direction: column; gap: 2px; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <span style="font-weight: 700; font-size: 16px; color: #60a5fa;" id="patient-header-name">Nuevo Paciente</span>
-            <span style="background: rgba(96, 165, 250, 0.1); color: #93c5fd; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-family: monospace;" id="patient-internal-id">p0000001u001</span>
-            <span style="background: rgba(96, 165, 250, 0.1); color: #93c5fd; padding: 2px 8px; border-radius: 6px; font-size: 11px;" id="patient-doc-info">C.I.: ---</span>
-            <span style="background: rgba(96, 165, 250, 0.1); color: #93c5fd; padding: 2px 8px; border-radius: 6px; font-size: 11px;" id="patient-age-display">-- años</span>
-          </div>
-          <div class="patient-alerts" id="patient-alerts-container"></div>
-          <div style="display: flex; gap: 16px; font-size: 10px; color: #94a3b8;">
-            <span id="patient-meta-created">Creado: --/--/---- --:--</span>
-            <span id="patient-meta-modified">Modificado: --/--/---- --:--</span>
-          </div>
+      <div style="flex:1; display:flex; align-items:center; gap:15px;">
+        <i class="bi bi-person-circle" style="font-size: 2rem; color:#60a5fa;"></i>
+        <div>
+            <div style="display:flex; gap:10px; align-items:baseline;">
+                <h3 id="patient-header-name" style="margin:0; font-size:1.2rem; color:white;">Nuevo Paciente</h3>
+                <span id="patient-age-display" class="badge">-- años</span>
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
+                <span id="patient-doc-info">Doc: ---</span> | <span id="patient-internal-id">ID: ---</span>
+            </div>
+            <div id="patient-alerts-container" style="display:flex; gap:5px; margin-top:5px;"></div>
         </div>
       </div>
+      <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
     </div>
     
-    <div class="patient-details hidden" id="patient-form-container">
-        </div>
+    <div class="patient-details hidden" id="patient-form-container"></div>
   </div> 
 
   <div id="visitsContainer"></div>
 
   <div id="previewBar" class="hidden">
-    <div class="row" style="align-items: center; padding: 10px 20px; gap: 15px; margin:0;">
-      <div style="flex: 1; display:flex; align-items:center; gap:10px;">
-        <label class="form-label" style="margin:0; color:white;">Zoom</label>
+    <div style="display:flex; gap:15px; align-items:center;">
+        <label style="color:#94a3b8; font-size:0.8rem;">Zoom</label>
         <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
-        <span id="zoomVal" style="font-weight:600; color:#60a5fa; font-size:0.8rem;">70%</span>
-        
-        <div style="border-left:1px solid #475569; padding-left:15px; margin-left:5px;">
-            <button id="btnToggleSign" class="btn btn-ghost btn-small" style="color:white; border:1px solid #475569;">
-                <i class="bi bi-pen"></i> Firmar
-            </button>
-        </div>
-      </div>
-      
-      <div style="flex: 0 0 auto; display:flex; gap:10px;">
-         <button id="btnRefresh" class="btn btn-primary btn-small"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
-         <button id="btnOpenExport" class="btn btn-success btn-small"><i class="bi bi-share"></i> Exportar / Compartir</button>
-      </div>
+        <span id="zoomVal" style="color:#60a5fa; font-size:0.8rem; font-weight:600;">70%</span>
+        <button id="btnToggleSign" class="btn btn-ghost"><i class="bi bi-pen"></i> Firmar</button>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button id="btnRefresh" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+        <button id="btnOpenExport" class="btn btn-success"><i class="bi bi-share"></i> Exportar</button>
     </div>
   </div>
 
@@ -101,11 +74,11 @@
 </div> 
 
 <div id="searchModal" class="modal-overlay">
-  <div class="modal-box glass">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #60a5fa;">Buscar Paciente</div>
-    <input id="searchValue" class="form-input" placeholder="Nombre o Cédula..." style="margin-bottom: 15px;">
-    <div id="searchResultsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
-    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+  <div class="modal-box">
+    <h3 style="color:#60a5fa; margin-bottom:15px;">Buscar Paciente</h3>
+    <input id="searchValue" class="form-input" placeholder="Nombre o Cédula..." style="margin-bottom:15px;">
+    <div id="searchResultsList" style="max-height:300px; overflow-y:auto; margin-bottom:15px;"></div>
+    <div style="text-align:right;">
       <button id="btnCancelSearch" class="btn btn-ghost">Cancelar</button>
       <button id="btnDoSearch" class="btn btn-primary">Buscar</button>
     </div>
@@ -113,25 +86,15 @@
 </div>
 
 <div id="exportModal" class="modal-overlay">
-  <div class="modal-box glass" style="max-width: 500px;">
-    <div style="text-align:center; margin-bottom:20px;">
-        <h3 style="color:#60a5fa; margin-bottom:5px;">Compartir Documento</h3>
-        <p style="font-size:0.9em; color:#ccc;" id="exportFileName">documento.png</p>
+  <div class="modal-box">
+    <h3 style="color:#60a5fa; text-align:center; margin-bottom:5px;">Compartir Documento</h3>
+    <p id="exportFileName" style="text-align:center; color:#94a3b8; font-family:monospace; margin-bottom:20px; font-size:0.85rem;"></p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button id="btnShareWA" class="btn btn-success" style="justify-content:center;"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+        <button id="btnShareMail" class="btn btn-danger" style="justify-content:center;"><i class="bi bi-envelope"></i> Email</button>
+        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;"><i class="bi bi-download"></i> Descargar</button>
     </div>
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-        <button id="btnShareWA" class="btn" style="background:#25D366; color:white; justify-content:center;">
-            <i class="bi bi-whatsapp"></i> WhatsApp
-        </button>
-        <button id="btnShareMail" class="btn" style="background:#EA4335; color:white; justify-content:center;">
-            <i class="bi bi-envelope"></i> Email
-        </button>
-        <button id="btnDownload" class="btn btn-primary" style="grid-column:span 2; justify-content:center;">
-            <i class="bi bi-download"></i> Solo Descargar
-        </button>
-    </div>
-    
-    <div style="margin-top:20px; text-align:right;">
+    <div style="text-align:right; margin-top:15px;">
         <button id="btnCloseExport" class="btn btn-ghost">Cerrar</button>
     </div>
   </div>
@@ -155,38 +118,29 @@
     import { $, loadUserConfig } from 'brain';
     import { initToolbarEvents } from 'toolbar';
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
-    import { createVisitCard } from 'data';
-
+    
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.0 - Inicializando Modular...");
-        
+        console.log("CIMA ORL v2.0 - Init...");
         await loadUserConfig();
         initToolbarEvents();
+        
+        // Inicializa el paciente (Esto inyecta el HTML automáticamente)
         initializeNewPatient();
 
-        // Globales para eventos legacy
+        // Bindings Globales
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
         
-        // Delegación de eventos para el formulario que ahora es dinámico
+        // Listener Formulario (Delegación al contenedor padre)
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
-            // Header Update
-            if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) {
-                updatePatientHeader();
-            }
-            // Cálculos
-            if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) {
-                calcularCampos();
-            }
-            // Condicionales
-            if(e.target.type === 'checkbox') {
-                toggleConditionalFields();
-            }
+            if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
+            if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) calcularCampos();
+            if(e.target.type === 'checkbox') toggleConditionalFields();
         });
         
-        // Delegación de eventos Visitas
+        // Listener Visitas
         document.getElementById('visitsContainer').addEventListener('click', (e) => {
             const btn = e.target.closest('.visit-toggle-btn');
             if(btn) {
@@ -195,14 +149,9 @@
                 btn.querySelector('i').classList.toggle('bi-chevron-right');
                 btn.querySelector('i').classList.toggle('bi-chevron-down');
             }
-            if(e.target.closest('.btn-inf')) {
-                const card = e.target.closest('.visit-card');
-                window.openDocGlobal('INF', card.id);
-            }
-            if(e.target.closest('.btn-rp')) {
-                const card = e.target.closest('.visit-card');
-                window.openDocGlobal('RP', card.id);
-            }
+            // Abrir docs
+            if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
+            if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
         });
         
         toggleConditionalFields();
