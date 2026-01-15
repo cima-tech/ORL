@@ -1,7 +1,7 @@
 // CORRECCIÓN: Usamos los nombres del Import Map definidos en index.html
 import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
 import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
-import { createVisitCard } from 'data';
+import { createVisitCard } from 'consult';
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
@@ -361,3 +361,4 @@ window.openDocGlobal = function(kind, cardId) {
     // Scroll suave hacia el preview
     $("#previewBar").scrollIntoView({ behavior: 'smooth' });
 };
+
