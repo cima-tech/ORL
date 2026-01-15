@@ -1,260 +1,259 @@
 /* =========================================
-   1. CORE & RESET & GLASS BASE
+   1. CORE & RESET
    ========================================= */
 :root {
-  --primary: #3b82f6; --primary-dark: #2563eb; 
-  --accent: #60a5fa; --accent-glow: rgba(96, 165, 250, 0.4);
+  --primary: #3b82f6; --primary-dark: #2563eb; --accent: #06b6d4; /* Cyan/Teal más clínico */
   --bg-dark: #0f172a; --bg-darker: #020617;
-  --glass-bg: rgba(30, 41, 59, 0.75); 
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.05);
-  --text-main: #f1f5f9; --text-muted: #94a3b8;
+  --glass-bg: rgba(255, 255, 255, 0.08); 
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --text-main: #f8fafc; --text-muted: #94a3b8;
   --danger: #ef4444; --success: #10b981;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  /* Fondo con degradado para resaltar el glass */
-  background: radial-gradient(circle at top left, #1e293b, #020617);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Degradado sutil para resaltar el efecto glass */
+  background: radial-gradient(circle at top left, #1e293b, var(--bg-darker));
   color: var(--text-main);
   min-height: 100vh;
-  font-size: 13px;
+  font-size: 14px;
   overflow-x: hidden;
 }
 
-/* Scrollbar Bonita */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+/* Clases Utilitarias Glass */
+.glass {
+  background: var(--glass-bg); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); 
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
 
 .hidden { display: none !important; }
 
-/* =========================================
-   2. TOOLBAR PRINCIPAL (GLASS)
-   ========================================= */
-.toolbar-wrapper {
-  position: sticky; top: 0; z-index: 1000;
-  background: rgba(15, 23, 42, 0.85); /* Un poco más sólido arriba */
-  backdrop-filter: blur(15px);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 0 20px;
-  height: 64px;
-  display: flex; align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-.toolbar-content {
-    width: 100%; max-width: 1200px; margin: 0 auto;
-    display: flex; justify-content: space-between; align-items: center;
-}
-
-.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 15px; }
-
-/* Logo */
-.logo { display: flex; flex-direction: column; cursor: default; }
-.logo .main { font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.5px; }
-.logo .subtitle { font-size: 0.65rem; color: var(--text-muted); opacity: 0.8; letter-spacing: 1px; }
-
-/* Separadores */
-.toolbar-divider { width: 1px; height: 24px; background: var(--glass-border); margin: 0 5px; }
-.toolbar-separator { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 5px; }
-
-/* Botones Glass (Estilo Unificado) */
-.glass-btn {
-  background: var(--glass-highlight);
-  border: 1px solid var(--glass-border);
-  color: var(--text-muted);
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex; gap: 8px; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 500;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-}
-.glass-btn:hover {
-  background: rgba(255,255,255,0.1);
-  color: white;
-  border-color: rgba(255,255,255,0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.glass-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-.glass-btn.accent { color: var(--accent); border-color: rgba(96, 165, 250, 0.3); }
-.glass-btn.accent:hover { background: var(--accent); color: white; }
-
-.glass-btn.danger-glass { color: #f87171; border-color: rgba(248, 113, 113, 0.2); background: rgba(248, 113, 113, 0.05); }
-.glass-btn.danger-glass:hover { background: #ef4444; color: white; border-color: #ef4444; }
-
-.glass-btn.icon-only { padding: 6px 10px; border-radius: 8px; font-size: 1.1rem; color: #64748b; }
-.glass-btn.icon-only:hover { color: var(--text-main); }
-
-@media (max-width: 768px) {
-    .btn-label { display: none; } /* Ocultar texto en móviles */
-}
-
-/* =========================================
-   3. USUARIO & DROPDOWN MENU
-   ========================================= */
-.user-menu-container { position: relative; }
-
-.user-avatar-btn {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), #06b6d4);
-    border: 2px solid rgba(255,255,255,0.2);
-    color: white; font-weight: 700; font-size: 0.8rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-.user-avatar-btn:hover { transform: scale(1.05); border-color: white; }
-
-/* Dropdown Animado */
-.user-dropdown {
-    position: absolute; right: 0; top: 50px;
-    width: 240px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 8px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1500;
-}
-@keyframes slideDown {
+/* Animaciones */
+@keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.animate-fade { animation: fadeInDown 0.2s ease-out forwards; }
 
-.dropdown-header { padding: 10px 12px; border-bottom: 1px solid var(--glass-border); margin-bottom: 5px; }
-.user-name { font-weight: 600; color: white; font-size: 0.9rem; }
-.user-role { font-size: 0.75rem; color: var(--accent); }
-
-.dropdown-list { list-style: none; }
-.dropdown-list li button {
-    width: 100%; text-align: left; padding: 10px 12px;
-    background: transparent; border: none; color: var(--text-muted);
-    border-radius: 8px; cursor: pointer; display: flex; gap: 10px; align-items: center;
-    font-size: 0.9rem; transition: all 0.1s;
+/* =========================================
+   2. TOOLBAR PRINCIPAL (REESTRUCTURADO)
+   ========================================= */
+.toolbar-wrapper {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 10px 24px;
 }
-.dropdown-list li button:hover { background: rgba(255,255,255,0.1); color: white; }
-.dropdown-list li.divider { height: 1px; background: var(--glass-border); margin: 5px 0; }
-.text-danger:hover { color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
 
-/* Smart Switch (Visual) */
-.switch-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 12px; color: var(--text-muted); font-size: 0.9rem;
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
 }
+
+/* Sección Izquierda (Logo + Acciones Historia) */
+.toolbar-section-left {
+  display: flex; align-items: center; gap: 20px;
+}
+
+.logo { display: flex; flex-direction: column; padding-right: 15px; border-right: 1px solid var(--glass-border); }
+.logo .main { font-size: 1.2rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+.logo .subtitle { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+
+.toolbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Sección Derecha (Sistema + Usuario) */
+.toolbar-section-right {
+  display: flex; align-items: center; gap: 12px;
+}
+
+/* Botones Toolbar */
+.toolbar-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted); 
+  padding: 8px 12px; border-radius: 8px;
+  cursor: pointer; display: flex; gap: 8px; align-items: center;
+  font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+}
+.toolbar-btn:hover { background: var(--glass-highlight); color: white; border-color: var(--glass-border); }
+
+/* Botón Especial Cerrar Historia */
+.btn-close-story {
+    color: #fca5a5; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.btn-close-story:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+/* Separador Vertical */
+.v-sep { width: 1px; height: 24px; background: var(--glass-border); margin: 0 4px; }
+
+/* Avatar y Dropdown */
+.user-menu-container { position: relative; }
+.avatar-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+}
+.avatar-btn:hover { transform: scale(1.05); border-color: white; }
+
+.user-dropdown {
+    position: absolute; right: 0; top: 50px; width: 220px;
+    background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border); border-radius: 12px;
+    padding: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; gap: 4px;
+}
+.dropdown-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 10px; border-radius: 8px; color: var(--text-muted);
+    background: transparent; border: none; cursor: pointer; text-align: left;
+    font-size: 0.85rem; transition: background 0.2s;
+}
+.dropdown-item:hover { background: var(--glass-highlight); color: white; }
+.dropdown-header { padding: 10px; border-bottom: 1px solid var(--glass-border); margin-bottom: 5px; }
+.dropdown-header h4 { color: white; font-size: 0.9rem; }
+.dropdown-header p { color: var(--text-muted); font-size: 0.75rem; }
+
+/* Switch Toggle Style */
 .smart-switch {
-    width: 40px; height: 22px; background: #334155;
-    border-radius: 20px; position: relative; cursor: pointer;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-}
-.switch-handle {
-    width: 16px; height: 16px; background: white; border-radius: 50%;
-    position: absolute; top: 3px; left: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-/* Estado "Dark" por defecto simulado */
-.smart-switch.active .switch-handle { transform: translateX(18px); }
-
-/* =========================================
-   4. FICHA PACIENTE (MEJORAS)
-   ========================================= */
-.container { max-width: 1100px; margin: 30px auto; padding: 0 20px 120px 20px; }
-
-.card {
-  background: rgba(30, 41, 59, 0.4); 
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 16px; padding: 25px; margin-bottom: 25px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-}
-
-.glass-badge {
-    background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px;
-    font-size: 0.7rem; color: var(--accent); border: 1px solid rgba(255,255,255,0.1);
-}
-
-.collapse-btn-glass {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s;
-}
-.collapse-btn-glass:hover { background: var(--accent); color: white; border-color: var(--accent); }
-
-/* Inputs mejorados */
-.form-input, .form-select {
-  background: rgba(0,0,0,0.3); 
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #e2e8f0;
-}
-.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2); }
-
-/* Checkbuttons bonitos (No nativos) */
-.glass-check {
-    cursor: pointer; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem;
-    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
-    color: var(--text-muted); transition: all 0.2s; user-select: none;
-    display: inline-block; margin-right: 5px; margin-bottom: 5px;
-}
-.glass-check:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
-.glass-check.checked { 
-    background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; 
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
-}
-
-/* =========================================
-   5. PREVIEW BAR FLOTANTE
-   ========================================= */
-.glass-floating {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    width: auto; min-width: 600px;
-    background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 20px;
-    padding: 10px 20px;
     display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    z-index: 2000;
+}
+.toggle-track {
+    width: 36px; height: 20px; background: #334155; border-radius: 20px;
+    position: relative; transition: background 0.3s;
+}
+.toggle-thumb {
+    width: 16px; height: 16px; background: white; border-radius: 50%;
+    position: absolute; top: 2px; left: 2px; transition: transform 0.3s;
 }
 
-.preview-controls, .preview-actions { display: flex; align-items: center; gap: 12px; }
-.v-separator { width: 1px; height: 16px; background: rgba(255,255,255,0.15); margin: 0 5px; }
+/* =========================================
+   3. CONTENIDO PRINCIPAL
+   ========================================= */
+.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; padding-bottom: 120px; }
 
-.zoom-label { color: var(--text-muted); }
-#zoomVal { font-family: monospace; color: var(--accent); min-width: 35px; }
-
-.styled-range {
-    -webkit-appearance: none; width: 100px; height: 4px; background: rgba(255,255,255,0.2);
-    border-radius: 2px; outline: none;
-}
-.styled-range::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); cursor: pointer; box-shadow: 0 0 10px var(--accent);
+/* Ficha Paciente */
+.card {
+  background: rgba(255, 255, 255, 0.03); 
+  border: 1px solid var(--glass-border);
+  border-radius: 16px; padding: 25px; margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
-.glass-btn-sm {
-    padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; border: 1px solid transparent;
-    background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer; transition: all 0.2s;
-    display: flex; gap: 6px; align-items: center;
-}
-.glass-btn-sm:hover { background: rgba(255,255,255,0.15); color: white; }
-.glass-btn-sm.primary { background: var(--primary); color: white; }
-.glass-btn-sm.primary:hover { background: var(--primary-dark); }
-.glass-btn-sm.success { background: #059669; color: white; }
-.glass-btn-sm.danger-text:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.patient-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 
-/* Modal y Preview Shell */
-.modal-box.glass {
-    background: #1e293b; border: 1px solid var(--glass-border);
-    box-shadow: 0 25px 80px rgba(0,0,0,0.7);
+/* Botón Collapse/Expand Rediseñado */
+.patient-toggle-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; cursor: pointer;
 }
-.preview-shell { background: transparent; border: 1px dashed rgba(255,255,255,0.1); }
+.patient-toggle-btn:hover { background: white; color: var(--primary); transform: rotate(180deg); }
+
+/* Grid Forms */
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; align-items: end; }
+.span-1 { grid-column: span 1; }
+.span-2 { grid-column: span 2; }
+.span-4 { grid-column: span 4; }
+
+.form-input {
+  width: 100%; height: 36px; padding: 0 12px; font-size: 0.9rem;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+  border-radius: 8px; color: white; transition: all 0.2s;
+}
+.form-input:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
+
+/* GLASS CHECKBOXES (Reemplazo visual) */
+input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px; cursor: pointer;
+    position: relative; display: inline-block; vertical-align: middle;
+    margin-right: 8px; transition: all 0.2s;
+}
+input[type="checkbox"]:checked {
+    background: var(--accent); border-color: var(--accent);
+}
+input[type="checkbox"]:checked::after {
+    content: '✔'; position: absolute; top: -2px; left: 3px; font-size: 12px; color: #000; font-weight: bold;
+}
+
+/* =========================================
+   4. TARJETAS DE VISITA
+   ========================================= */
+.visit-card { 
+    margin-top: 20px; border-radius: 12px; overflow: hidden;
+    background: rgba(30, 41, 59, 0.4); border: 1px solid var(--glass-border);
+}
+.visit-header {
+    background: rgba(255,255,255,0.03); padding: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* =========================================
+   5. PREVIEW BAR (MEJORADO)
+   ========================================= */
+#previewBar {
+    position: fixed; bottom: 30px; right: 30px; z-index: 2000;
+    width: auto; max-width: 90%;
+    /* Estilo Glass Intenso */
+    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 16px;
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: fadeInDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.preview-controls { display: flex; align-items: center; gap: 15px; border-right: 1px solid var(--glass-border); padding-right: 15px; }
+.preview-actions { display: flex; gap: 10px; }
+
+#docPreview { background: white; color: black; transform-origin: top center; transition: transform 0.2s; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+.preview-shell {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: calc(100vh - 200px);
+    overflow: auto; z-index: 1999;
+    border-radius: 12px; display: flex; justify-content: center; padding-top: 20px;
+    /* Fondo oscuro traslúcido detrás del papel */
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+}
+
+/* Range Slider Custom */
+input[type=range] { -webkit-appearance: none; background: transparent; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--accent); margin-top: -5px; box-shadow: 0 0 10px var(--accent); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+/* =========================================
+   6. MODALES
+   ========================================= */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000;
+    display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px);
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: #1e293b; padding: 30px; border-radius: 20px; width: 450px;
+    border: 1px solid var(--glass-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .form-grid { grid-template-columns: repeat(2, 1fr); }
+  .span-4, .span-2 { grid-column: span 2; }
+  .toolbar-section-left { gap: 10px; }
+  .logo .subtitle { display: none; }
+  #previewBar { flex-direction: column; bottom: 10px; right: 10px; left: 10px; width: auto; }
+  .preview-controls { border-right: none; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; padding-right: 0; }
+}
