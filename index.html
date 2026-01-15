@@ -15,8 +15,6 @@
 </head>
 <body>
 
-<div id="err"></div>
-
 <div class="toolbar-wrapper">
   <div class="toolbar">
     
@@ -26,51 +24,45 @@
           <div class="subtitle">ORL v2.0</div>
         </div>
         
-        <div class="toolbar-actions">
-            <button id="btnNew" class="toolbar-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i> <span class="d-none-mobile">Nueva</span></button>
-            <button id="btnOpen" class="toolbar-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i> <span class="d-none-mobile">Abrir</span></button>
-            <button id="btnClose" class="toolbar-btn" title="Guardar Cambios"><i class="bi bi-save"></i> <span class="d-none-mobile">Guardar</span></button>
-            
-            <div class="v-sep"></div>
+        <button id="btnNew" class="toolbar-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i> <span class="d-none-mobile">Nueva</span></button>
+        <button id="btnOpen" class="toolbar-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i> <span class="d-none-mobile">Abrir</span></button>
+        <button id="btnClose" class="toolbar-btn" title="Guardar Cambios"><i class="bi bi-save"></i> <span class="d-none-mobile">Guardar</span></button>
+        
+        <div class="v-sep"></div>
 
-            <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle-dotted"></i> Consulta</button>
-            <button id="btnDeleteLast" class="toolbar-btn text-danger" title="Borrar Última"><i class="bi bi-trash"></i></button>
-            
-            <div class="v-sep"></div>
+        <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle-dotted"></i> Consulta</button>
+        <button id="btnDeleteLast" class="toolbar-btn text-danger" title="Borrar Última"><i class="bi bi-trash"></i></button>
+        
+        <div class="v-sep"></div>
 
-            <button id="btnCloseStory" class="toolbar-btn btn-close-story">
-                <i class="bi bi-x-lg"></i> Cerrar HC
-            </button>
-        </div>
+        <button id="btnCloseStory" class="toolbar-btn btn-close-story">
+            <i class="bi bi-x-lg"></i> Cerrar HC
+        </button>
     </div>
     
     <div class="toolbar-section-right">
-        <button class="toolbar-btn" style="opacity:0.6;" title="Agenda (Próximamente)"><i class="bi bi-calendar-week"></i></button>
-        <button class="toolbar-btn" style="opacity:0.6;" title="Facturación (Próximamente)"><i class="bi bi-receipt"></i></button>
+        <button class="toolbar-btn" style="opacity:0.6;" title="Agenda (Futuro)"><i class="bi bi-calendar-week"></i></button>
+        <button class="toolbar-btn" style="opacity:0.6;" title="Facturación (Futuro)"><i class="bi bi-receipt"></i></button>
         
         <div class="v-sep"></div>
 
         <div class="user-menu-container">
             <button id="btnUserAvatar" class="avatar-btn">DR</button>
             
-            <div id="userDropdown" class="user-dropdown hidden animate-fade">
+            <div id="userDropdown" class="user-dropdown hidden">
                 <div class="dropdown-header">
                     <h4>Dr. Usuario</h4>
                     <p>Configuración General</p>
                 </div>
                 
-                <button class="dropdown-item">
-                    <i class="bi bi-layout-sidebar"></i> Sidebar / Toolbar
+                <button id="btnChangeWallpaper" class="dropdown-item">
+                    <i class="bi bi-card-image"></i> Cambiar Fondo
                 </button>
-                
+
                 <div class="dropdown-item smart-switch" id="btnThemeSwitch">
                     <span style="display:flex; gap:10px;"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
                     <div class="toggle-track"><div class="toggle-thumb"></div></div>
                 </div>
-
-                <button class="dropdown-item">
-                    <i class="bi bi-sliders"></i> Preferencias
-                </button>
                 
                 <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
                 
@@ -80,7 +72,6 @@
             </div>
         </div>
     </div>
-
   </div>
 </div>
 
@@ -89,7 +80,7 @@
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
       <div style="flex:1; display:flex; align-items:center; gap:20px;">
-        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--accent);"></i>
+        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--primary);"></i>
         <div>
             <div style="display:flex; gap:12px; align-items:baseline;">
                 <h3 id="patient-header-name" style="margin:0; font-size:1.4rem; color:white;">Nuevo Paciente</h3>
@@ -102,23 +93,19 @@
       </div>
       <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
     </div>
-    
-    <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--glass-border);"></div>
+    <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);"></div>
   </div> 
 
   <div id="visitsContainer"></div>
 
   <div id="previewBar" class="hidden">
-    <div class="preview-controls">
+    <div style="display:flex; gap:15px; align-items:center;">
         <i class="bi bi-zoom-out" style="color:var(--text-muted)"></i>
         <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
         <span id="zoomVal" style="color:var(--accent); font-size:0.85rem; font-weight:600; width:40px;">70%</span>
-        
-        <button id="btnToggleSign" class="toolbar-btn" style="border:1px solid var(--glass-border);">
-            <i class="bi bi-pen"></i> Firmar
-        </button>
+        <button id="btnToggleSign" class="toolbar-btn" style="border:1px solid rgba(255,255,255,0.2);"><i class="bi bi-pen"></i> Firmar</button>
     </div>
-    <div class="preview-actions">
+    <div style="display:flex; gap:10px; margin-left:20px; padding-left:20px; border-left:1px solid rgba(255,255,255,0.1);">
         <button id="btnRefresh" class="toolbar-btn"><i class="bi bi-arrow-clockwise"></i></button>
         <button id="btnOpenExport" class="toolbar-btn" style="background:var(--success); color:white; border:none;"><i class="bi bi-share-fill"></i> Exportar</button>
     </div>
@@ -177,7 +164,7 @@
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.1 - UI Refactor Init...");
+        console.log("CIMA ORL v2.5 - Frost Glass Init...");
         await loadUserConfig();
         initToolbarEvents();
         initializeNewPatient();
@@ -185,7 +172,8 @@
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
-        
+        window.openDocGlobal = (kind, id) => console.log("Init Pending..."); // Placeholder hasta que toolbar cargue
+
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
