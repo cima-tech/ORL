@@ -1,108 +1,137 @@
-// app/services/consultation/models/ORL-001/export.js
+// app/logic/brain.js
 
-import { $, flash, showErr, fmtDate, STATE } from 'brain';
-import { buildReportHTML } from 'informe';
-import { buildRecipeHTML } from 'recipe';
+// ==========================================
+// 1. UTILIDADES DOM (Selectores cortos)
+// ==========================================
+// Esta es la línea que faltaba y causaba el error en recipe-indicaciones.js
+export const $ = (selector) => document.querySelector(selector);
+export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-export async function exportToPNG() {
-    // Verificaciones de seguridad
-    if (!STATE.currentPreviewDoc || !STATE.currentPreviewCard) {
-        showErr('Error: No hay documento generado para exportar.');
-        return;
-    }
-
-    if (typeof html2canvas === 'undefined') {
-        showErr('Error crítico: Librería html2canvas no cargada.');
-        return;
-    }
-
-    try {
-        flash("Generando imagen de alta resolución...", false);
-
-        // 1. Reconstruir el HTML limpio (sin inputs de edición) para la "foto"
-        // Esto es clave: usamos el generador original, no el div editable del DOM
-        const html = STATE.currentPreviewDoc === 'INF' 
-            ? buildReportHTML(STATE.currentPreviewCard) 
-            : buildRecipeHTML(STATE.currentPreviewCard);
-
-        // 2. Crear contenedor temporal fuera de pantalla (Invisible)
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '0px';
-        // Importante: asegurar que el div tenga el ancho correcto para que no se deforme
-        const isLand = STATE.currentPreviewDoc === 'RP';
-        tempDiv.style.width = isLand ? '1056px' : '816px'; 
-        
-        document.body.appendChild(tempDiv);
-
-        // 3. Renderizar con html2canvas
-        const docPage = tempDiv.querySelector('.doc-page');
-        
-        // Configuración para máxima calidad
-        const canvas = await html2canvas(docPage, {
-            scale: 2, // 2x para Retina/Impresión nítida
-            useCORS: true, // Permitir imágenes externas si el servidor lo soporta
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            logging: false
-        });
-
-        // 4. Limpieza del DOM
-        document.body.removeChild(tempDiv);
-
-        // 5. Obtener nombre del archivo (Desde STATE o generar fallback)
-        let filename = STATE.exportFilename;
-        if (!filename) {
-            const idPac = $("#documento_numero")?.value || 'paciente';
-            const tipo = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
-            filename = `CIMA_${idPac}_${tipo}.png`;
+// ==========================================
+// 2. ESTADO GLOBAL (STATE)
+// ==========================================
+export const STATE = {
+    // Contadores para IDs únicos
+    visitIdCounter: 0,
+    patientIdCounter: 1, 
+    patientUUID: 1, 
+    
+    // Timestamps
+    patientCreatedTime: null,
+    patientModifiedTime: null,
+    
+    // UI States
+    currentPreviewCard: null, 
+    currentPreviewDoc: null,
+    currentShareCard: null,
+    USE_SIG: true,
+    exportFilename: '',
+    
+    // Configuración Usuario
+    currentUser: {
+        profile: {
+            id: "u-001",
+            name: "Dr. Usuario",
+            title_line_1: "Médico Especialista",
+            phones: []
+        },
+        assets: {
+            header_path: "./app/user/u001/layout/header.png",
+            footer_path: "./app/user/u001/layout/footer.png",
+            signature_path: "./app/user/u001/layout/firma.png",
+            stamp_path: "./app/user/u001/layout/sello.png"
         }
+    }
+};
 
-        // 6. Descarga Blob
-        canvas.toBlob(blob => {
-            if (!blob) { throw new Error("Falló la generación del blob de imagen."); }
-            
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            flash(`Documento descargado: ${filename}`);
-        }, 'image/png');
-
-    } catch (err) {
-        showErr('Error exportando: ' + err.message);
-        console.error(err);
+// ==========================================
+// 3. CARGA DE CONFIGURACIÓN
+// ==========================================
+export async function loadUserConfig() {
+    try {
+        const response = await fetch('./app/user/u001/config/user.json');
+        if (response.ok) {
+            const config = await response.json();
+            STATE.currentUser = { 
+                ...STATE.currentUser, 
+                ...config,
+                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) },
+                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) }
+            };
+            console.log("Configuración cargada.");
+        }
+    } catch (e) {
+        console.warn("Usando configuración por defecto.");
     }
 }
 
-export function shareViaWhatsApp() {
-    const card = STATE.currentShareCard || STATE.currentPreviewCard;
-    if (!card) { showErr('No hay consulta seleccionada'); return; }
+// ==========================================
+// 4. NOTIFICACIONES UI
+// ==========================================
+let timeoutHandle;
 
-    const phoneInput = $("#tel_principal");
-    const phoneVal = phoneInput ? phoneInput.value : '';
+export function flash(msg, isError = false) {
+    const el = document.getElementById("err"); // Usamos getElementById nativo por seguridad
+    if (!el) return;
     
-    // Limpieza agresiva del teléfono (solo dejar números)
-    const phoneClean = phoneVal.replace(/\D/g, '');
+    clearTimeout(timeoutHandle);
     
-    const pNombre = $("#primer_nombre")?.value || 'Paciente';
-    const fecha = fmtDate(card.querySelector('.visit-date')?.value);
-    const docName = STATE.currentUser?.profile?.name || 'Su Doctor';
+    el.textContent = msg;
+    el.className = isError ? 'error' : '';
+    el.style.display = 'block';
     
-    // Mensaje pre-formateado
-    const mensaje = `Hola ${pNombre}, le envío los documentos de su consulta médica del día ${fecha}.\n\nAtte. ${docName}`;
-    
-    if (phoneClean && phoneClean.length > 9) { // Validación mínima de longitud
-        const url = `https://wa.me/${phoneClean}?text=${encodeURIComponent(mensaje)}`;
-        window.open(url, '_blank');
-    } else {
-        showErr('El paciente no tiene un número celular válido registrado (+58...).');
+    // Reiniciar animación
+    el.style.animation = 'none';
+    el.offsetHeight; /* trigger reflow */
+    el.style.animation = 'fadeIn 0.3s ease-out';
+
+    timeoutHandle = setTimeout(() => {
+        el.style.display = 'none';
+    }, 3000);
+}
+
+export function showErr(msg) {
+    console.error(msg);
+    flash(msg, true);
+}
+
+// ==========================================
+// 5. FECHAS Y FORMATOS
+// ==========================================
+
+export function getLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
+export function fmtDate(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (isNaN(date)) return isoString;
+    return date.toLocaleDateString('es-VE', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+}
+
+export function fmtDateTime(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (isNaN(date)) return isoString;
+    return date.toLocaleString('es-VE', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
+}
+
+export function calcAge(dateString) {
+    if (!dateString) return "";
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
     }
+    return age >= 0 ? age : 0;
 }
