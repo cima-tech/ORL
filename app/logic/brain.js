@@ -3,7 +3,6 @@
 // ==========================================
 // 1. UTILIDADES DOM (Selectores cortos)
 // ==========================================
-// Esta es la línea que faltaba y causaba el error en recipe-indicaciones.js
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
@@ -49,7 +48,9 @@ export const STATE = {
 // ==========================================
 export async function loadUserConfig() {
     try {
-        const response = await fetch('./app/user/u001/config/user.json');
+        // CORRECCIÓN: Ruta directa sin carpeta /config/
+        const response = await fetch('./app/user/u001/user.json');
+        
         if (response.ok) {
             const config = await response.json();
             STATE.currentUser = { 
@@ -58,10 +59,13 @@ export async function loadUserConfig() {
                 assets: { ...STATE.currentUser.assets, ...(config.assets || {}) },
                 profile: { ...STATE.currentUser.profile, ...(config.profile || {}) }
             };
-            console.log("Configuración cargada.");
+            console.log("Configuración cargada correctamente.");
+        } else {
+            console.warn("No se encontró user.json, usando valores por defecto.");
         }
     } catch (e) {
-        console.warn("Usando configuración por defecto.");
+        console.error("Error cargando configuración:", e);
+        // No mostramos error en UI para no ser intrusivos al inicio
     }
 }
 
@@ -71,7 +75,7 @@ export async function loadUserConfig() {
 let timeoutHandle;
 
 export function flash(msg, isError = false) {
-    const el = document.getElementById("err"); // Usamos getElementById nativo por seguridad
+    const el = document.getElementById("err");
     if (!el) return;
     
     clearTimeout(timeoutHandle);
