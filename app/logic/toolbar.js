@@ -11,10 +11,10 @@ import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, lo
 // ==========================================
 
 function getNavGroupHTML() {
-    // Estilo activo para indicar dónde estamos
+    // Todos activos visualmente, solo indicador sutil para el seleccionado
     const activeStyle = (mode) => STATE.UI.currentMode === mode 
         ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' 
-        : ''; // Ya no usamos opacity:0.6 para los inactivos, se verán full color
+        : ''; 
     
     const user = STATE.currentUser.profile;
     const parts = user.name.trim().split(" ");
@@ -27,23 +27,22 @@ function getNavGroupHTML() {
             <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
             <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
             <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
-            
-            <button class="icon-btn" title="Inbox" style="position:relative;">
-                <i class="bi bi-inbox"></i>
-                <span class="badge-dot"></span>
-            </button>
+            <button class="icon-btn" title="Inbox" style="position:relative;"><i class="bi bi-inbox"></i><span class="badge-dot"></span></button>
             
             <div class="user-menu-wrapper">
                 <button id="btnUserAvatar" class="avatar-circle">${initials.toUpperCase()}</button>
                 
                 <div id="userDropdown" class="user-dropdown hidden">
                     <div class="dropdown-header"><h4>${user.name}</h4><p>Administrador</p></div>
-                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button>
+                    
+                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración Cuenta</button>
                     <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
-                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Tema</button>
-                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Layout</button>
+                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Alternar Tema</button>
+                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Toolbar / Sidebar</button>
+                    
                     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Salir</button>
+                    
+                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
                 </div>
             </div>
         </div>
@@ -106,7 +105,7 @@ function getPreviewGroupHTML() {
 }
 
 // ==========================================
-// 2. RENDER
+// 2. RENDER PRINCIPAL
 // ==========================================
 
 export function renderToolbar() {
@@ -153,7 +152,7 @@ function updateContentVisibility() {
 }
 
 // ==========================================
-// 3. EVENTOS
+// 3. BINDING DE EVENTOS
 // ==========================================
 function bindEvents() {
     window.changeMode = (mode) => {
@@ -167,6 +166,9 @@ function bindEvents() {
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar actual e iniciar nueva?")) return;
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
+        $("#patientForm").classList.remove('hidden');
+        // Usamos una función del patient.js si es necesario para limpiar visualmente
+        // pero resetStory en engine ya limpió los datos
         flash('Nueva historia iniciada');
         renderToolbar(); 
     });
@@ -174,7 +176,11 @@ function bindEvents() {
     $("#btnClose")?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     
     $("#btnCloseStory")?.addEventListener('click', () => {
-        if(confirm("¿Guardar y cerrar?")) { saveCurrentHistory(); resetStory(); renderToolbar(); }
+        if(confirm("¿Guardar y cerrar?")) { 
+            saveCurrentHistory(); 
+            resetStory(); 
+            renderToolbar(); 
+        }
     });
     
     $("#btnOpen")?.addEventListener('click', () => { 
@@ -221,13 +227,14 @@ function bindEvents() {
     if(av && mn) {
         av.addEventListener('click', (e) => { e.stopPropagation(); mn.classList.toggle('hidden'); });
         document.addEventListener('click', (e) => { if(!mn.classList.contains('hidden') && !mn.contains(e.target) && !av.contains(e.target)) mn.classList.add('hidden'); });
+        
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
         $("#btnLogout")?.addEventListener('click', () => location.reload());
         
-        // Botones extra
-        $("#btnUserProfile")?.addEventListener('click', () => flash("Perfil (Próximamente)"));
-        $("#btnToggleTheme")?.addEventListener('click', () => flash("Tema (Próximamente)"));
-        $("#btnToggleLayout")?.addEventListener('click', () => flash("Layout (Próximamente)"));
+        // Botones nuevos
+        $("#btnUserProfile")?.addEventListener('click', () => flash("Configuración de Perfil (Futuro)"));
+        $("#btnToggleTheme")?.addEventListener('click', () => flash("Cambiar Tema (Futuro)"));
+        $("#btnToggleLayout")?.addEventListener('click', () => flash("Cambiar Layout (Futuro)"));
     }
 }
 
