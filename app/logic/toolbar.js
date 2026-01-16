@@ -9,19 +9,92 @@ import { buildRecipeHTML } from 'recipe';
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
+// === PLANTILLA HTML DE LA BARRA (RENDERIZADO DINÁMICO) ===
+const TOOLBAR_TEMPLATE = `
+<div class="toolbar-wrapper">
+  <div class="toolbar">
+    
+    <div class="toolbar-section-left">
+        <div class="logo">
+          <div class="main">CIMA</div>
+          <div class="subtitle">ORL v2.5</div>
+        </div>
+        
+        <button id="btnNew" class="toolbar-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i> <span class="d-none-mobile">Nueva</span></button>
+        <button id="btnOpen" class="toolbar-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i> <span class="d-none-mobile">Abrir</span></button>
+        <button id="btnClose" class="toolbar-btn" title="Guardar Cambios"><i class="bi bi-save"></i> <span class="d-none-mobile">Guardar</span></button>
+        
+        <div class="v-sep"></div>
+
+        <button id="btnAddConsulta" class="toolbar-btn"><i class="bi bi-plus-circle-dotted"></i> Consulta</button>
+        <button id="btnDeleteLast" class="toolbar-btn text-danger" title="Borrar Última"><i class="bi bi-trash"></i></button>
+        
+        <div class="v-sep"></div>
+
+        <button id="btnCloseStory" class="toolbar-btn btn-close-story">
+            <i class="bi bi-x-lg"></i> Cerrar HC
+        </button>
+    </div>
+    
+    <div class="toolbar-section-right">
+        <button class="toolbar-btn" style="opacity:0.6;" title="Agenda (Futuro)"><i class="bi bi-calendar-week"></i></button>
+        <button class="toolbar-btn" style="opacity:0.6;" title="Facturación (Futuro)"><i class="bi bi-receipt"></i></button>
+        
+        <div class="v-sep"></div>
+
+        <div class="user-menu-container">
+            <button id="btnUserAvatar" class="avatar-btn">DR</button>
+            
+            <div id="userDropdown" class="user-dropdown hidden">
+                <div class="dropdown-header">
+                    <h4>Dr. Usuario</h4>
+                    <p>Configuración General</p>
+                </div>
+                
+                <button id="btnChangeWallpaper" class="dropdown-item">
+                    <i class="bi bi-card-image"></i> Cambiar Fondo
+                </button>
+
+                <div class="dropdown-item smart-switch" id="btnThemeSwitch">
+                    <span style="display:flex; gap:10px;"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
+                    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                </div>
+                
+                <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+                
+                <button class="dropdown-item" style="color:#ef4444;">
+                    <i class="bi bi-power"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+`;
+
 export function initToolbarEvents() {
     
-    // 1. Nueva Historia
+    // 1. INYECCIÓN DEL HTML (RENDER)
+    const mountPoint = document.getElementById('toolbar-mount-point');
+    if (mountPoint) {
+        mountPoint.innerHTML = TOOLBAR_TEMPLATE;
+    } else {
+        console.error("No se encontró #toolbar-mount-point en index.html");
+        return;
+    }
+
+    // 2. ASIGNACIÓN DE EVENTOS (LISTENERS)
+    // Nueva Historia
     $("#btnNew")?.addEventListener('click', () => {
         if (!confirm('¿Iniciar nueva historia? Asegúrese de haber guardado cambios.')) return;
         resetStory();
         flash('Historia limpia iniciada.');
     });
 
-    // 2. Guardar Historia
+    // Guardar Historia
     $("#btnClose")?.addEventListener('click', saveCurrentHistory);
 
-    // 2.1 Cerrar Historia
+    // Cerrar Historia
     $("#btnCloseStory")?.addEventListener('click', () => {
         if(confirm("¿Desea guardar y cerrar la historia actual?")) {
             saveCurrentHistory();
@@ -30,7 +103,7 @@ export function initToolbarEvents() {
         }
     });
 
-    // 3. Consultas
+    // Consultas
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
     $("#btnDeleteLast")?.addEventListener('click', () => {
         const container = $("#visitsContainer");
@@ -44,10 +117,10 @@ export function initToolbarEvents() {
         }
     });
 
-    // 4. Buscar
+    // Buscar
     $("#btnOpen")?.addEventListener('click', openSearchModal);
 
-    // 5. MENÚ DE USUARIO & WALLPAPER
+    // MENÚ DE USUARIO & WALLPAPER
     const btnAvatar = $("#btnUserAvatar");
     const dropdown = $("#userDropdown");
 
@@ -65,7 +138,7 @@ export function initToolbarEvents() {
             }
         });
         
-        // BOTÓN CAMBIAR FONDO (Nuevo)
+        // BOTÓN CAMBIAR FONDO
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => {
             e.stopPropagation(); // Evita que se cierre el menú
             rotateWallpaper();
