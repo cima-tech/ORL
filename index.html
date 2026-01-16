@@ -1,45 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CIMA — Sistema ORL</title>
+    
+    <link rel="stylesheet" href="app/styles/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+</head>
+<body>
+
+<div id="ui-mount-point"></div>
+
+<div class="container">
+  
+  <div id="patientForm" class="card hidden">
+    <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
+      <div style="flex:1; display:flex; align-items:center; gap:20px;">
+        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--primary);"></i>
+        <div>
+            <div style="display:flex; gap:12px; align-items:baseline;">
+                <h3 id="patient-header-name" style="margin:0; font-size:1.4rem; color:white;">Nuevo Paciente</h3>
+                <span id="patient-age-display" class="badge" style="background:var(--accent); color:black; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.75rem;">-- años</span>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">
+                <span id="patient-doc-info">Doc: ---</span> • <span id="patient-internal-id">ID: ---</span>
+            </div>
+        </div>
+      </div>
+      <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
+    </div>
+    <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);"></div>
+  </div> 
+
+  <div id="visitsContainer" class="hidden"></div>
+
+  <div id="previewShell" class="preview-shell hidden">
+    <div id="docPreview"></div>
+  </div>
+
+</div> 
+
+<script type="importmap">
+{
+  "imports": {
+    "brain": "./app/logic/brain.js",
+    "toolbar": "./app/logic/toolbar.js",
+    "engine": "./app/logic/engine.js",
+    "patient": "./app/services/consultation/models/ORL-001/patient.js",
+    "consult": "./app/services/consultation/models/ORL-001/consult.js",
+    "informe": "./app/services/consultation/models/ORL-001/informe.js",
+    "recipe": "./app/services/consultation/models/ORL-001/recipe-indicaciones.js",
+    "export": "./app/services/consultation/models/ORL-001/export.js"
+  }
+}
+</script>
+
 <script type="module">
     import { $, loadUserConfig } from 'brain';
     import { initToolbarEvents } from 'toolbar';
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v4.0 - Reactive UI Init...");
+        console.log("CIMA ORL v4.1 - Reactive Init...");
+        
+        // 1. Cargar Configuración y Fondo
         await loadUserConfig();
         
-        // 1. Render inicial (Barra limpia)
+        // 2. Dibujar la Interfaz (Toolbar Flotante)
         initToolbarEvents(); 
         
-        // NO iniciamos paciente. Pantalla vacía.
-        // initializeNewPatient(); 
+        // NOTA: NO inicializamos el paciente aquí. El sistema arranca vacío.
+        // initializeNewPatient(); <--- Eliminado intencionalmente
 
+        // 4. Conexiones Globales (Helpers para onclicks en HTML inyectado)
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
 
-        // ... Listeners igual que antes ...
+        // 5. Listeners de la Ficha (Glue Code para reactividad interna del formulario)
+        // Usamos un observer o chequeo porque el form puede estar oculto o recrearse
         const formContainer = document.getElementById('patientForm');
-        formContainer.addEventListener('change', (e) => {
-            if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
-            if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) calcularCampos();
-            if(e.target.type === 'checkbox') toggleConditionalFields();
-        });
+        if(formContainer) {
+            formContainer.addEventListener('change', (e) => {
+                if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
+                if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) calcularCampos();
+                if(e.target.type === 'checkbox') toggleConditionalFields();
+            });
+        }
         
-        document.getElementById('visitsContainer').addEventListener('click', (e) => {
-            // ... logica toggle visit ...
-            const btn = e.target.closest('.visit-toggle-btn');
-            if(btn) {
-                const card = btn.closest('.visit-card');
-                card.querySelector('.visit-body').classList.toggle('hidden');
-                const icon = btn.querySelector('i');
-                icon.classList.toggle('bi-chevron-right');
-                icon.classList.toggle('bi-chevron-down');
-            }
-            if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
-            if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
-        });
-        toggleConditionalFields();
+        // Delegación de eventos para las tarjetas de visita
+        const visits = document.getElementById('visitsContainer');
+        if(visits) {
+            visits.addEventListener('click', (e) => {
+                const btn = e.target.closest('.visit-toggle-btn');
+                if(btn) {
+                    const card = btn.closest('.visit-card');
+                    card.querySelector('.visit-body').classList.toggle('hidden');
+                    const icon = btn.querySelector('i');
+                    icon.classList.toggle('bi-chevron-right');
+                    icon.classList.toggle('bi-chevron-down');
+                }
+                // Botones internos de la tarjeta (Imprimir/Recipe)
+                // Nota: toolbar.js define window.openDocGlobal
+                if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
+                if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
+            });
+        }
     });
 </script>
+
 </body>
 </html>
