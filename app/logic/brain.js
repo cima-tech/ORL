@@ -7,21 +7,19 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    // --- ESTADOS REACTIVOS DE LA INTERFAZ ---
+    // --- ESTADOS REACTIVOS ---
     UI: {
-        currentMode: 'CONSULTATION', // Modos: DASHBOARD, CONSULTATION, AGENDA, BILLING
-        isStoryOpen: false,          // True = Hay paciente cargado (Nueva o Abierta)
-        isPreviewMode: false         // True = Estamos viendo un documento
+        currentMode: 'CONSULTATION', 
+        isStoryOpen: false,          
+        isPreviewMode: false         
     },
 
-    // UI States previos
     currentPreviewCard: null, 
     currentPreviewDoc: null,
     currentShareCard: null,
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Usuario
     currentUser: {
         profile: {
             id: "u-001",
@@ -38,7 +36,7 @@ export const STATE = {
     }
 };
 
-// --- WALLPAPERS SYSTEM ---
+// --- WALLPAPERS ---
 const WALLPAPERS = [
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", 
@@ -103,4 +101,37 @@ function injectToastStyles() {
     const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
-export function fmtDate(isoString) { if (!isoString) return ""; const date = new Date(isoString); if (isNaN(date)) return isoString; return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+// --- UTILIDADES DE FECHA Y EDAD (RESTAURADAS) ---
+
+export function getLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
+export function fmtDate(isoString) { 
+    if (!isoString) return ""; 
+    const date = new Date(isoString); 
+    if (isNaN(date)) return isoString; 
+    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); 
+}
+
+export function fmtDateTime(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (isNaN(date)) return isoString;
+    return date.toLocaleString('es-VE', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
+}
+
+export function calcAge(dateString) {
+    if (!dateString) return "";
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age >= 0 ? age : 0;
+}
