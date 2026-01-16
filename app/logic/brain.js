@@ -6,6 +6,7 @@ export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
+    patientUUID: 1000,
     
     // ESTADOS DE LA INTERFAZ
     UI: {
@@ -20,19 +21,18 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
+    // Configuración Inicial (Fallback)
     currentUser: {
         profile: {
             id: "u-001",
-            name: "Dr. Usuario",
-            title_line_1: "Médico Especialista",
+            name: "Usuario",
+            title_line_1: "Médico",
             phones: []
         },
-        assets: {
-            header_path: "./app/user/u001/layout/header.png",
-            footer_path: "./app/user/u001/layout/footer.png",
-            signature_path: "./app/user/u001/layout/firma.png",
-            stamp_path: "./app/user/u001/layout/sello.png"
-        }
+        preferences: {
+            default_model: "ORL-001" // Fallback default
+        },
+        assets: {}
     }
 };
 
@@ -66,10 +66,12 @@ export function rotateWallpaper() {
     };
 }
 
-// --- CONFIGURACIÓN ---
+// --- CONFIGURACIÓN & ARRANQUE ---
+// Importamos dinámicamente el loader para evitar ciclos circulares estáticos
 export async function loadUserConfig() {
     injectToastStyles(); 
     initWallpaperSystem(); 
+    
     try {
         const response = await fetch('./app/user/u001/user.json');
         if (response.ok) {
@@ -78,10 +80,18 @@ export async function loadUserConfig() {
                 ...STATE.currentUser, 
                 ...config, 
                 assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
-                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } 
+                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) },
+                preferences: { ...STATE.currentUser.preferences, ...(config.preferences || {}) }
             };
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.warn("No se pudo cargar user.json, usando defaults.", e); 
+    }
+
+    // AQUI OCURRE LA MAGIA DE LA FASE 1
+    // Importamos el loader aquí para garantizar que STATE ya tiene la config del usuario
+    const { loadServiceModules } = await import('./service_loader.js');
+    await loadServiceModules();
 }
 
 // --- NOTIFICACIONES ---
@@ -108,7 +118,7 @@ function injectToastStyles() {
     const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
-// --- UTILIDADES DE FECHA Y EDAD (CRÍTICAS PARA CONSULT.JS) ---
+// --- UTILIDADES DE FECHA Y EDAD ---
 
 export function getLocalDateTime() {
     const now = new Date();
