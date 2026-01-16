@@ -1,15 +1,16 @@
 // app/logic/engine.js
 
-import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
-import { initializeNewPatient, getPatientData, loadPatientDataToDOM } from 'patient';
-import { createVisitCard } from 'consult'; 
+import { $, $$, flash, showErr, STATE } from 'brain';
+import { ActiveModel } from 'service_loader'; // INYECCIÓN DE DEPENDENCIAS
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
 // --- ORQUESTACIÓN DE DATOS ---
 
 export function saveCurrentHistory() {
-    const patientData = getPatientData();
+    // Usamos el servicio dinámico de Paciente
+    const patientData = ActiveModel.patient.getPatientData();
+    
     if (!patientData.documento_numero || !patientData.primer_nombre) { 
         showErr('Faltan datos obligatorios (Doc o Nombre).'); return false; 
     }
@@ -31,7 +32,8 @@ export function saveCurrentHistory() {
             dx: card.querySelector('.txt-dx')?.value,
             recipe: card.querySelector('.txt-recipe')?.value,
             indicaciones: card.querySelector('.txt-indicaciones')?.value,
-            plan: card.querySelector('.txt-plan')?.value
+            plan: card.querySelector('.txt-plan')?.value,
+            // Guardamos campos específicos del modelo dinámico si es necesario en el futuro
         };
     });
 
@@ -52,15 +54,17 @@ export function saveCurrentHistory() {
 
 export function loadHistoryRecord(record) {
     resetStory(); 
-    loadPatientDataToDOM(record.patient); 
+    
+    // Usamos el servicio dinámico de Paciente
+    ActiveModel.patient.loadPatientDataToDOM(record.patient); 
 
     const container = $("#visitsContainer");
-    
-    // Corrección visual: Aseguramos que el contenedor sea visible al cargar
     container.classList.remove('hidden');
 
     [...(record.visits || [])].reverse().forEach(v => {
-        const card = createVisitCard(v.type || 'Sucesiva');
+        // Usamos el servicio dinámico de Consultas
+        const card = ActiveModel.consult.createVisitCard(v.type || 'Sucesiva');
+        
         const setVal = (sel, val) => { const el = card.querySelector(sel); if(el) el.value = val || ''; };
         
         setVal('.visit-date', v.date);
@@ -99,14 +103,13 @@ export function handleAddConsulta() {
     }
 
     const container = $("#visitsContainer");
-    
-    // CORRECCIÓN CRÍTICA: Hacer visible el contenedor de consultas
     container.classList.remove('hidden');
 
     const existingCards = container.querySelectorAll('.visit-card');
     const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
     
-    const newCard = createVisitCard(type);
+    // CREACIÓN DINÁMICA
+    const newCard = ActiveModel.consult.createVisitCard(type);
     
     if (type === 'Sucesiva' && existingCards.length > 0) {
         const lastCard = existingCards[0];
@@ -121,6 +124,13 @@ export function handleAddConsulta() {
         if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
         flash('Consulta sucesiva creada (Datos heredados)');
     } else {
+        // HERENCIA INTELIGENTE DESDE EL PACIENTE (FASE 1 REQUISITO)
+        // Intentamos leer datos del form paciente para pre-llenar la 1ra consulta
+        const pAntPers = ActiveModel.patient.getPatientData().otros_antecedentes; // Ejemplo simple
+        if(pAntPers) {
+            const eaInput = newCard.querySelector('.txt-antecedentes-personales');
+            if(eaInput) eaInput.value = pAntPers;
+        }
         flash('Primera consulta creada');
     }
 
@@ -129,11 +139,13 @@ export function handleAddConsulta() {
 }
 
 export function resetStory() {
-    initializeNewPatient();
+    // Inicialización dinámica
+    ActiveModel.patient.initializeNewPatient();
+    
     const container = $("#visitsContainer");
     if(container) {
         container.innerHTML = '';
-        container.classList.add('hidden'); // Ocultar al resetear
+        container.classList.add('hidden');
     }
     
     STATE.visitIdCounter = 0;
