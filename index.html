@@ -63,27 +63,23 @@
 
 <script type="module">
     import { $, loadUserConfig } from 'brain';
-    import { initUIAndEvents } from 'toolbar'; // Ahora importamos la función "Renderizadora"
+    import { initToolbarEvents } from 'toolbar'; // Nota: En el V3 lo llamamos initToolbarEvents, no initUIAndEvents para mantener compatibilidad
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v3.0 - Modular Architecture Init...");
-        
-        // 1. Cargar Configuración
+        console.log("CIMA ORL v3.0 Init...");
         await loadUserConfig();
         
-        // 2. Renderizar UI y Conectar Motor
-        initUIAndEvents(); 
+        // Renderizar Barra y Eventos
+        initToolbarEvents(); 
         
-        // 3. Inicializar Formularios
         initializeNewPatient();
 
-        // 4. Bindings Globales
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
-        
-        // Listeners específicos del formulario (Podrían ir en patient.js pero aquí están bien como glue-code)
+
+        // Glue Code
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
@@ -97,19 +93,14 @@
                 const card = btn.closest('.visit-card');
                 card.querySelector('.visit-body').classList.toggle('hidden');
                 const icon = btn.querySelector('i');
-                if(icon.classList.contains('bi-chevron-right')) {
-                    icon.classList.remove('bi-chevron-right'); icon.classList.add('bi-chevron-down');
-                } else {
-                    icon.classList.remove('bi-chevron-down'); icon.classList.add('bi-chevron-right');
-                }
+                icon.classList.toggle('bi-chevron-right');
+                icon.classList.toggle('bi-chevron-down');
             }
             if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
             if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
         });
-        
         toggleConditionalFields();
     });
 </script>
-
 </body>
 </html>
