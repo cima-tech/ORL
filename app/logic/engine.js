@@ -51,12 +51,14 @@ export function saveCurrentHistory() {
 }
 
 export function loadHistoryRecord(record) {
-    resetStory(); // Limpia memoria
-    loadPatientDataToDOM(record.patient); // Carga header
+    resetStory(); 
+    loadPatientDataToDOM(record.patient); 
 
     const container = $("#visitsContainer");
     
-    // Invertimos para que visualmente la más reciente quede arriba
+    // Corrección visual: Aseguramos que el contenedor sea visible al cargar
+    container.classList.remove('hidden');
+
     [...(record.visits || [])].reverse().forEach(v => {
         const card = createVisitCard(v.type || 'Sucesiva');
         const setVal = (sel, val) => { const el = card.querySelector(sel); if(el) el.value = val || ''; };
@@ -80,7 +82,6 @@ export function loadHistoryRecord(record) {
         container.prepend(card);
     });
     
-    // Estado Crítico: Decimos que la historia está abierta para que el Toolbar reaccione
     STATE.UI.isStoryOpen = true; 
     flash('Historia cargada.');
 }
@@ -88,7 +89,6 @@ export function loadHistoryRecord(record) {
 // --- GESTIÓN DE CONSULTAS ---
 
 export function handleAddConsulta() {
-    // Si la historia no está abierta, no hacemos nada (protección)
     if(!STATE.UI.isStoryOpen) return;
 
     if (!$("#primer_nombre")?.value) {
@@ -100,7 +100,7 @@ export function handleAddConsulta() {
 
     const container = $("#visitsContainer");
     
-    // CORRECCIÓN BUG VISUAL: Asegurar que el contenedor sea visible
+    // CORRECCIÓN CRÍTICA: Hacer visible el contenedor de consultas
     container.classList.remove('hidden');
 
     const existingCards = container.querySelectorAll('.visit-card');
@@ -119,7 +119,7 @@ export function handleAddConsulta() {
         const prevDx = lastCard.querySelector('.txt-dx')?.value;
         const targetDx = newCard.querySelector('.txt-dx');
         if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
-        flash('Consulta sucesiva creada');
+        flash('Consulta sucesiva creada (Datos heredados)');
     } else {
         flash('Primera consulta creada');
     }
@@ -131,22 +131,22 @@ export function handleAddConsulta() {
 export function resetStory() {
     initializeNewPatient();
     const container = $("#visitsContainer");
-    if(container) container.innerHTML = '';
+    if(container) {
+        container.innerHTML = '';
+        container.classList.add('hidden'); // Ocultar al resetear
+    }
     
     STATE.visitIdCounter = 0;
     STATE.currentPreviewCard = null;
     STATE.currentPreviewDoc = null;
     
-    // Resetear Estados UI
     STATE.UI.isStoryOpen = false;
     STATE.UI.isPreviewMode = false;
 }
 
-// --- BÚSQUEDA ---
 export function getSearchResults(query) {
     let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     query = query.toLowerCase().trim();
-    
     return Object.values(db).filter(r => {
         const p = r.patient;
         return `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase().includes(query) || p.documento_numero.includes(query);
