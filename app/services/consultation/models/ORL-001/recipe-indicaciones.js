@@ -1,213 +1,90 @@
-// app/services/consultation/models/ORL-001/recipe-indicaciones.js
+// CORRECCIÓN: Imports limpios
+import { $, flash, showErr, fmtDate, STATE } from 'brain';
+// CORRECCIÓN: Imports relativos
+import { buildReportHTML } from './informe.js';
+import { buildRecipeHTML } from './recipe-indicaciones.js';
 
-// Imports limpios usando el Mapa
-import { $, STATE, fmtDate } from 'brain';
-import { CIMA_DATA } from 'consult';
-
-// ==========================================
-// 1. LÓGICA DE UI (DROPDOWNS EN CONSULTA)
-// ==========================================
-
-export function renderIndicacionesDropdowns(card) {
-    const container = card.querySelector('.indicaciones-dropdowns');
-    if (!container) return;
-    
-    container.innerHTML = ''; // Limpiar previos
-
-    // Buscar chips activos en la sección de receta
-    const activeChips = card.querySelectorAll('.recipe-chips-container .chip.on');
-    
-    if (activeChips.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; font-size:0.8em; padding:5px; font-style:italic;">Seleccione medicamentos arriba para ver opciones de dosis.</div>';
+export async function exportToPNG() {
+    if (!STATE.currentPreviewDoc || !STATE.currentPreviewCard) {
+        showErr('Primero genera un preview (Informe o Récipe)');
         return;
     }
 
-    // Agrupar por categoría
-    const medsByCategory = {};
-    activeChips.forEach(chip => {
-        // Buscamos el título del grupo (ej: Antibióticos)
-        const groupDiv = chip.closest('.recipe-chips-group');
-        const category = groupDiv ? groupDiv.dataset.group : 'Otros';
-        
-        if (!medsByCategory[category]) medsByCategory[category] = [];
-        medsByCategory[category].push(chip.textContent);
-    });
+    try {
+        // 1. Reconstruir el HTML limpio (sin inputs de edición) para la "foto"
+        const html = STATE.currentPreviewDoc === 'INF' 
+            ? buildReportHTML(STATE.currentPreviewCard) 
+            : buildRecipeHTML(STATE.currentPreviewCard);
 
-    // Generar Selectores
-    Object.entries(medsByCategory).forEach(([category, meds]) => {
-        const options = CIMA_DATA.INDICACIONES_OPTIONS[category] || CIMA_DATA.INDICACIONES_OPTIONS["Otros"];
-        
-        meds.forEach(med => {
-            const row = document.createElement('div');
-            row.style.marginBottom = '8px';
-            row.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-            row.style.paddingBottom = '5px';
-            
-            // Crear opciones del select
-            let optionsHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-            
-            row.innerHTML = `
-                <div style="font-weight:600; font-size:0.85em; color:#60a5fa; margin-bottom:2px;">${med}</div>
-                <select class="form-select indication-select" data-med="${med}" style="width:100%; font-size:0.8em;">
-                    ${optionsHTML}
-                    <option value="custom">-- Escribir manual --</option>
-                </select>
-            `;
-            container.appendChild(row);
-            
-            // Listener: Al cambiar la dosis, actualizar el texto grande
-            row.querySelector('select').addEventListener('change', () => syncIndicacionesText(card));
+        // 2. Crear contenedor temporal fuera de pantalla
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0px';
+        document.body.appendChild(tempDiv);
+
+        // 3. Renderizar con html2canvas
+        const docPage = tempDiv.querySelector('.doc-page');
+        // Esperamos que html2canvas esté cargado globalmente en index.html
+        if (typeof html2canvas === 'undefined') throw new Error("Librería gráfica no cargada");
+
+        const canvas = await html2canvas(docPage, {
+            scale: 2, // Alta resolución (Retina)
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false
         });
-    });
-    
-    // Sincronización inicial
-    syncIndicacionesText(card);
-}
 
-// Helper para construir el texto final desde los dropdowns
-function syncIndicacionesText(card) {
-    const selects = card.querySelectorAll('.indication-select');
-    let text = "";
-    
-    selects.forEach(sel => {
-        const med = sel.dataset.med;
-        const indicacion = sel.value === 'custom' ? '...' : sel.value;
-        text += `• ${med}:\n  ${indicacion}\n\n`;
-    });
-    
-    const txtInd = card.querySelector('.txt-indicaciones');
-    // Solo actualizamos si el usuario no ha editado manualmente el textarea grande
-    if (txtInd && !txtInd.dataset.userEdited) {
-        txtInd.value = text.trim();
-        updatePlanTratamiento(card, txtInd.value);
-    }
-}
+        // 4. Limpieza
+        document.body.removeChild(tempDiv);
 
-// ==========================================
-// 2. GENERADOR DE HTML (PREVIEW DOCUMENTO)
-// ==========================================
+        // 5. Nombrado del Archivo
+        const patientId = $("#documento_numero")?.value || 'Paciente';
+        const dateObj = new Date(STATE.currentPreviewCard.querySelector('.visit-date').value);
+        const ddmmyy = `${String(dateObj.getDate()).padStart(2, '0')}${String(dateObj.getMonth() + 1).padStart(2, '0')}${String(dateObj.getFullYear()).slice(-2)}`;
+        const docType = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
+        const filename = `CIMA-${patientId}-${docType}-${ddmmyy}.png`;
 
-export function buildRecipeHTML(card) {
-    // A. Datos del Paciente
-    const pNombre = [
-        $("#primer_nombre")?.value, $("#primer_apellido")?.value
-    ].filter(Boolean).join(' ');
-    
-    const doc = $("#documento_numero")?.value || '—';
-    const dateISO = card.querySelector('.visit-date').value;
-    const date = fmtDate(dateISO);
-    
-    // B. Contenido Médico
-    const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
-    const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
-    
-    // C. Configuración Visual
-    const assets = STATE.currentUser?.assets || {};
-    const hasSign = STATE.USE_SIG; // Estado del toggle de firma en toolbar
-    
-    // Imágenes (Con tamaños controlados)
-    const headerImg = assets.header_path ? `<img src="${assets.header_path}" style="width:100%; max-height:80px; object-fit:contain;">` : '';
-    const footerImg = assets.footer_path ? `<img src="${assets.footer_path}" style="width:100%; max-height:60px; object-fit:contain;">` : '';
-    
-    // Bloque de Firma (Específico con MPPS/CMM)
-    const firmaBlock = `
-        <div style="height:120px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin-top:auto;">
-            ${hasSign && assets.signature_path ? `<img src="${assets.signature_path}" style="position:absolute; bottom:40px; width:140px;">` : ''}
-            ${hasSign && assets.stamp_path ? `<img src="${assets.stamp_path}" style="position:absolute; bottom:40px; right:40px; width:90px;">` : ''}
+        // 6. Descarga
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
             
-            <div style="text-align:center; font-size:0.75rem; color:#000; line-height:1.2;">
-                <div style="font-weight:bold; font-size:0.9rem; border-top:1px solid #000; padding-top:4px; width:220px; margin:0 auto 2px auto;">
-                    Dra. Valentina González Yanez
-                </div>
-                Otorrinolaringología<br>
-                <span style="font-size:0.7rem;">MPPS=72004 CMM=18929</span>
-            </div>
-        </div>
-    `;
+            flash(`Documento descargado: ${filename}`);
+        }, 'image/png');
 
-    // D. Estructura HTML (Grid de 2 Columnas)
-    return `
-        <div class="doc-page doc-letter land" style="padding:30px 40px; display:grid; grid-template-columns: 1fr 1fr; gap:50px;">
-            
-            <div style="display:flex; flex-direction:column; height:100%; border-right:1px dashed #cbd5e1; padding-right:25px;">
-                <div style="text-align:center; margin-bottom:15px;">${headerImg}</div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;">
-                    <div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Rp.</div>
-                    <div style="font-size:0.85rem;">${date}</div>
-                </div>
-
-                <div style="font-size:0.95rem; margin-bottom:20px;">
-                    <b>Paciente:</b> ${pNombre} <br>
-                    <b>ID:</b> ${doc}
-                </div>
-
-                <div contenteditable="true" style="flex:1; font-family:'Courier New', monospace; font-size:1.1rem; line-height:1.5; outline:none; white-space:pre-line;">
-                    ${recipe}
-                </div>
-
-                ${firmaBlock}
-                <div style="text-align:center; margin-top:10px;">${footerImg}</div>
-            </div>
-
-            <div style="display:flex; flex-direction:column; height:100%; padding-left:10px;">
-                <div style="text-align:center; margin-bottom:15px;">${headerImg}</div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;">
-                    <div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Indicaciones</div>
-                    <div style="font-size:0.85rem;">${date}</div>
-                </div>
-
-                <div style="font-size:0.95rem; margin-bottom:20px;">
-                    <b>Paciente:</b> ${pNombre}
-                </div>
-
-                <div contenteditable="true" style="flex:1; font-family:'Segoe UI', sans-serif; font-size:1rem; line-height:1.4; outline:none; white-space:pre-line;">
-                    ${indicaciones}
-                </div>
-
-                ${firmaBlock}
-                <div style="text-align:center; margin-top:10px;">${footerImg}</div>
-            </div>
-
-        </div>
-    `;
-}
-
-// ==========================================
-// 3. LOGICA REACTIVA (COMPATIBILIDAD)
-// ==========================================
-
-export function updateRecipeTextbox(card) {
-    const activeChips = card.querySelectorAll('.recipe-chips-container .chip.on');
-    const selectedMeds = Array.from(activeChips).map(c => c.textContent);
-    
-    const txtRecipe = card.querySelector('.txt-recipe');
-    
-    if (txtRecipe && !txtRecipe.dataset.userEdited) {
-        txtRecipe.value = selectedMeds.join('\n');
+    } catch (err) {
+        showErr('Error exportando: ' + err.message);
+        console.error(err);
     }
 }
 
-export function updateIndicacionesSection(card) {
-    // Mantenemos esta función por compatibilidad, pero delegamos al render
-    // La lógica de generación de texto ahora vive en 'syncIndicacionesText' 
-    // y se activa vía dropdowns.
+export function shareViaWhatsApp() {
+    const card = STATE.currentShareCard || STATE.currentPreviewCard;
+    if (!card) { showErr('No hay consulta seleccionada'); return; }
+
+    const phone = $("#tel_principal")?.value || '';
+    const pNombre = $("#primer_nombre")?.value || 'Paciente';
+    const fecha = fmtDate(card.querySelector('.visit-date')?.value);
     
-    // Si queremos generar un texto base inicial sin dropdowns (fallback):
-    /* const txtInd = card.querySelector('.txt-indicaciones');
-    if (txtInd && !txtInd.dataset.userEdited && !card.querySelector('.indication-select')) {
-        // Lógica antigua de generación simple si no hay dropdowns
+    // Mensaje pre-formateado
+    const mensaje = `Hola ${pNombre}, adjunto enviamos los documentos de su consulta médica del día ${fecha}.\n\nAtte. ${STATE.currentUser?.profile?.name || 'Su Doctor'}`;
+    
+    // Limpiar teléfono (solo números)
+    const phoneClean = phone.replace(/[^0-9]/g, '');
+    
+    if (phoneClean) {
+        const url = `https://wa.me/${phoneClean}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    } else {
+        showErr('El paciente no tiene número telefónico registrado');
     }
-    */
 }
-
-function updatePlanTratamiento(card, indicacionesText) {
-    const txtPlan = card.querySelector('.txt-plan');
-    if (!txtPlan || txtPlan.dataset.userEdited === '1') return;
-    
-    const contacto = "\n\nNOTA DE SEGURIDAD:\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas a los teléfonos de contacto o acudir a la Emergencia.";
-    
-    txtPlan.value = indicacionesText + contacto;
-}
-
