@@ -15,7 +15,7 @@
 </head>
 <body>
 
-<div id="toolbar-mount-point"></div>
+<div id="ui-mount-point"></div>
 
 <div class="container">
   
@@ -40,57 +40,18 @@
 
   <div id="visitsContainer"></div>
 
-  <div id="previewBar" class="hidden">
-    <div style="display:flex; gap:15px; align-items:center;">
-        <i class="bi bi-zoom-out" style="color:var(--text-muted)"></i>
-        <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:100px;">
-        <span id="zoomVal" style="color:var(--accent); font-size:0.85rem; font-weight:600; width:40px;">70%</span>
-        <button id="btnToggleSign" class="toolbar-btn" style="border:1px solid rgba(255,255,255,0.2);"><i class="bi bi-pen"></i> Firmar</button>
-    </div>
-    <div style="display:flex; gap:10px; margin-left:20px; padding-left:20px; border-left:1px solid rgba(255,255,255,0.1);">
-        <button id="btnRefresh" class="toolbar-btn"><i class="bi bi-arrow-clockwise"></i></button>
-        <button id="btnOpenExport" class="toolbar-btn" style="background:var(--success); color:white; border:none;"><i class="bi bi-share-fill"></i> Exportar</button>
-    </div>
-  </div>
-
   <div id="previewShell" class="preview-shell hidden">
     <div id="docPreview"></div>
   </div>
 
 </div> 
 
-<div id="searchModal" class="modal-overlay">
-  <div class="modal-box glass">
-    <h3 style="color:var(--accent); margin-bottom:15px; font-weight:300;">Buscar Paciente</h3>
-    <input id="searchValue" class="form-input" placeholder="Escriba nombre o cédula..." style="margin-bottom:15px; padding:12px;">
-    <div id="searchResultsList" style="max-height:300px; overflow-y:auto; margin-bottom:15px;"></div>
-    <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
-      <button id="btnCancelSearch" class="toolbar-btn">Cancelar</button>
-      <button id="btnDoSearch" class="toolbar-btn" style="background:var(--primary); color:white;">Buscar</button>
-    </div>
-  </div>
-</div>
-
-<div id="exportModal" class="modal-overlay">
-  <div class="modal-box glass">
-    <h3 style="color:var(--accent); text-align:center; margin-bottom:5px;">Compartir Documento</h3>
-    <p id="exportFileName" style="text-align:center; color:var(--text-muted); font-family:monospace; margin-bottom:25px;"></p>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-        <button id="btnShareWA" class="toolbar-btn" style="background:#25D366; color:white; justify-content:center;"><i class="bi bi-whatsapp"></i> WhatsApp</button>
-        <button id="btnShareMail" class="toolbar-btn" style="background:#EA4335; color:white; justify-content:center;"><i class="bi bi-envelope-fill"></i> Email</button>
-        <button id="btnDownload" class="toolbar-btn" style="background:var(--primary); color:white; grid-column:span 2; justify-content:center; padding:12px;"><i class="bi bi-download"></i> Descargar Imagen</button>
-    </div>
-    <div style="text-align:right; margin-top:20px;">
-        <button id="btnCloseExport" class="toolbar-btn">Cerrar</button>
-    </div>
-  </div>
-</div>
-
 <script type="importmap">
 {
   "imports": {
     "brain": "./app/logic/brain.js",
     "toolbar": "./app/logic/toolbar.js",
+    "engine": "./app/logic/engine.js",
     "patient": "./app/services/consultation/models/ORL-001/patient.js",
     "consult": "./app/services/consultation/models/ORL-001/consult.js",
     "informe": "./app/services/consultation/models/ORL-001/informe.js",
@@ -102,20 +63,27 @@
 
 <script type="module">
     import { $, loadUserConfig } from 'brain';
-    import { initToolbarEvents } from 'toolbar';
+    import { initUIAndEvents } from 'toolbar'; // Ahora importamos la función "Renderizadora"
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v2.5 - Frost Glass Init...");
+        console.log("CIMA ORL v3.0 - Modular Architecture Init...");
+        
+        // 1. Cargar Configuración
         await loadUserConfig();
-        initToolbarEvents(); // Ahora esto inyectará y activará la barra
+        
+        // 2. Renderizar UI y Conectar Motor
+        initUIAndEvents(); 
+        
+        // 3. Inicializar Formularios
         initializeNewPatient();
 
+        // 4. Bindings Globales
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
-        window.openDocGlobal = (kind, id) => console.log("Init Pending..."); 
-
+        
+        // Listeners específicos del formulario (Podrían ir en patient.js pero aquí están bien como glue-code)
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
