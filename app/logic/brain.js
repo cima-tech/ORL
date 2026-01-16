@@ -7,11 +7,11 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    // --- NUEVO: ESTADOS REACTIVOS DE LA INTERFAZ ---
+    // --- ESTADOS REACTIVOS DE LA INTERFAZ ---
     UI: {
         currentMode: 'CONSULTATION', // Modos: DASHBOARD, CONSULTATION, AGENDA, BILLING
         isStoryOpen: false,          // True = Hay paciente cargado (Nueva o Abierta)
-        isPreviewMode: false         // True = Estamos viendo un documento para imprimir
+        isPreviewMode: false         // True = Estamos viendo un documento
     },
 
     // UI States previos
@@ -68,7 +68,6 @@ export function rotateWallpaper() {
     };
 }
 
-// --- CONFIGURACIÓN ---
 export async function loadUserConfig() {
     injectToastStyles(); 
     initWallpaperSystem(); 
@@ -76,18 +75,11 @@ export async function loadUserConfig() {
         const response = await fetch('./app/user/u001/user.json');
         if (response.ok) {
             const config = await response.json();
-            STATE.currentUser = { 
-                ...STATE.currentUser, 
-                ...config, 
-                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
-                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } 
-            };
-            // La actualización UI se hará al renderizar el toolbar
+            STATE.currentUser = { ...STATE.currentUser, ...config, assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } };
         }
     } catch (e) { console.error(e); }
 }
 
-// --- NOTIFICACIONES ---
 let timeoutHandle;
 export function flash(msg, isError = false) {
     let el = document.getElementById("err");
@@ -111,10 +103,4 @@ function injectToastStyles() {
     const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
-// --- FECHAS ---
-export function fmtDate(isoString) { 
-    if (!isoString) return ""; 
-    const date = new Date(isoString); 
-    if (isNaN(date)) return isoString; 
-    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); 
-}
+export function fmtDate(isoString) { if (!isoString) return ""; const date = new Date(isoString); if (isNaN(date)) return isoString; return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
