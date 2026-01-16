@@ -18,7 +18,6 @@
 <div id="ui-mount-point"></div>
 
 <div class="container">
-  
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
       <div style="flex:1; display:flex; align-items:center; gap:20px;">
@@ -38,7 +37,7 @@
     <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);"></div>
   </div> 
 
-  <div id="visitsContainer"></div>
+  <div id="visitsContainer" class="hidden"></div>
 
   <div id="previewShell" class="preview-shell hidden">
     <div id="docPreview"></div>
@@ -63,23 +62,24 @@
 
 <script type="module">
     import { $, loadUserConfig } from 'brain';
-    import { initToolbarEvents } from 'toolbar'; // Nota: En el V3 lo llamamos initToolbarEvents, no initUIAndEvents para mantener compatibilidad
+    import { initToolbarEvents } from 'toolbar';
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v3.0 Init...");
+        console.log("CIMA ORL v4.0 - Reactive UI Init...");
         await loadUserConfig();
         
-        // Renderizar Barra y Eventos
+        // Render UI Inicial (Barra limpia)
         initToolbarEvents(); 
         
+        // Inicializamos form en memoria, pero está oculto por CSS (.hidden)
         initializeNewPatient();
 
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
 
-        // Glue Code
+        // Listeners
         const formContainer = document.getElementById('patientForm');
         formContainer.addEventListener('change', (e) => {
             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
