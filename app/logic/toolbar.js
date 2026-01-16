@@ -4,22 +4,22 @@ import { $, STATE, rotateWallpaper, flash, showErr, fmtDate } from 'brain';
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
-// Engine Logic
-import { saveCurrentHistory, resetStory, handleAddConsulta, loadHistoryRecord, getSearchResults } from './engine.js'; 
+// Importamos Engine
+import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
 
 // ==========================================
-// 1. GENERADORES DE HTML (CONDICIONALES)
+// 1. GENERADORES DE HTML (UI REACTIVA)
 // ==========================================
 
 function getNavGroupHTML() {
-    // Función helper para estilo activo
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' : '';
     
-    // Iniciales usuario
+    // Iniciales
     const user = STATE.currentUser.profile;
     const parts = user.name.trim().split(" ");
     const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0,2);
 
+    // NOTA: Todos los botones tienen onclick para cambiar el modo, aunque solo CONSULTATION haga algo real por ahora.
     return `
     <div class="toolbar-group">
         <div class="icon-row">
@@ -38,12 +38,15 @@ function getNavGroupHTML() {
                 
                 <div id="userDropdown" class="user-dropdown hidden">
                     <div class="dropdown-header"><h4>${user.name}</h4><p>Administrador</p></div>
-                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button>
+                    
+                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración Cuenta</button>
                     <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
-                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Tema</button>
-                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Layout</button>
+                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Alternar Tema</button>
+                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Toolbar / Sidebar</button>
+                    
                     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Salir</button>
+                    
+                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
                 </div>
             </div>
         </div>
@@ -53,8 +56,8 @@ function getNavGroupHTML() {
 }
 
 function getHistoryGroupHTML() {
-    // Botones base: Nueva / Abrir.
-    // Botones extra: Guardar / Cerrar (SOLO SI HAY HISTORIA ABIERTA)
+    // Grupo Historia: Aparece en modo CONSULTATION
+    // Guardar/Cerrar solo si isStoryOpen = true
     return `
     <div class="toolbar-group">
         <div class="icon-row">
@@ -71,7 +74,7 @@ function getHistoryGroupHTML() {
 }
 
 function getConsultToolsHTML() {
-    // Este grupo SOLO aparece si hay historia abierta Y NO estamos en preview
+    // Grupo Consulta: Solo si hay historia abierta y NO preview
     if (!STATE.UI.isStoryOpen || STATE.UI.isPreviewMode) return '';
     
     return `
@@ -87,7 +90,7 @@ function getConsultToolsHTML() {
 }
 
 function getPreviewGroupHTML() {
-    // Este grupo reemplaza a consulta si estamos en PREVIEW MODE
+    // Grupo Preview: Solo en modo Preview
     if (!STATE.UI.isPreviewMode) return '';
 
     const signColor = STATE.USE_SIG ? 'var(--accent)' : 'white';
@@ -122,7 +125,7 @@ export function renderToolbar() {
     const mountPoint = document.getElementById('ui-mount-point');
     if (!mountPoint) return;
 
-    // Actualizar VISIBILIDAD DE CONTENIDO según el modo y estado
+    // Actualizar Visibilidad de Contenidos (Formularios, etc)
     updateContentVisibility();
 
     let html = `<div class="toolbar-container"><div class="floating-toolbar">`;
@@ -132,19 +135,18 @@ export function renderToolbar() {
         html += getHistoryGroupHTML();
         html += getConsultToolsHTML();
         html += getPreviewGroupHTML();
-        
-        // Separador antes de navegación si hay algo a la izquierda
         html += `<div class="v-divider"></div>`;
     }
 
-    // Navegación (Siempre al final/derecha)
+    // Navegación (Siempre)
     html += getNavGroupHTML();
 
     html += `</div></div>`;
-    html += getModalsHTML(); // Modales ocultos
+    html += getModalsHTML(); // Inyectar modales
 
     mountPoint.innerHTML = html;
 
+    // Re-bind eventos
     bindEvents();
 }
 
@@ -153,7 +155,7 @@ function updateContentVisibility() {
     const visits = $("#visitsContainer");
     const preview = $("#previewShell");
 
-    // 1. Ocultar todo por defecto
+    // 1. Ocultar todo
     if(form) form.classList.add('hidden');
     if(visits) visits.classList.add('hidden');
     if(preview) preview.classList.add('hidden');
@@ -165,10 +167,8 @@ function updateContentVisibility() {
             visits?.classList.remove('hidden');
         }
         if (STATE.UI.isPreviewMode) {
+            // En preview, mostramos el shell
             preview?.classList.remove('hidden');
-            // En preview, a veces queremos ocultar visitas para limpiar visualmente, 
-            // pero dejémoslas ocultas o visibles según prefieras. 
-            // Tu requerimiento: "solo en esta vista se podrian ver el grupo de las erramientas"
         }
     }
 }
@@ -177,22 +177,23 @@ function updateContentVisibility() {
 // 3. BINDING DE EVENTOS
 // ==========================================
 function bindEvents() {
-    // Cambio de Modo Global
     window.changeMode = (mode) => {
         STATE.UI.currentMode = mode;
-        // Si cambiamos de modo, salimos de preview
         STATE.UI.isPreviewMode = false;
         renderToolbar();
         flash(`Modo: ${mode}`);
     };
 
-    // --- Historia ---
+    // Historia
     $("#btnNew")?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar actual e iniciar nueva?")) return;
         resetStory(); 
-        STATE.UI.isStoryOpen = true; // Activar
+        STATE.UI.isStoryOpen = true; 
+        $("#patientForm").classList.remove('hidden');
+        // Aseguramos que la ficha se inicialice con patient.js si es necesario (generalmente ya está en DOM)
+        initializeNewPatient(); // Re-inyecta el HTML del form limpio
         flash('Nueva historia iniciada');
-        renderToolbar(); // Redibujar para que aparezcan botones de consulta
+        renderToolbar(); 
     });
 
     $("#btnClose")?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
@@ -200,26 +201,21 @@ function bindEvents() {
     $("#btnCloseStory")?.addEventListener('click', () => {
         if(confirm("¿Guardar y cerrar?")) { 
             saveCurrentHistory(); 
-            resetStory(); // Esto pone isStoryOpen = false
-            renderToolbar(); // Redibujar limpia
+            resetStory(); 
+            renderToolbar(); 
         }
     });
     
-    // Abrir (Modal)
-    $("#btnOpen")?.addEventListener('click', () => { 
-        $("#searchModal")?.classList.add('active'); 
-        $("#searchValue")?.focus(); 
-        $("#searchResultsList").innerHTML=''; 
-    });
+    $("#btnOpen")?.addEventListener('click', () => { $("#searchModal")?.classList.add('active'); $("#searchValue")?.focus(); $("#searchResultsList").innerHTML=''; });
 
-    // --- Consulta ---
+    // Consulta
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
     $("#btnDeleteLast")?.addEventListener('click', () => { 
         const c = $("#visitsContainer"); 
         if(c?.firstElementChild && confirm('¿Quitar última consulta?')) { c.firstElementChild.remove(); flash('Eliminada'); } 
     });
 
-    // --- Preview ---
+    // Preview
     $("#btnExitPreview")?.addEventListener('click', () => {
         STATE.UI.isPreviewMode = false;
         STATE.currentPreviewDoc = null;
@@ -232,7 +228,7 @@ function bindEvents() {
         $("#docPreview").style.transform = `scale(${e.target.value / 100})`;
     });
 
-    // --- Export / Modals ---
+    // Modales Export
     $("#btnOpenExport")?.addEventListener('click', () => {
         const fname = $("#documento_numero")?.value || 'paciente';
         const type = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
@@ -244,26 +240,28 @@ function bindEvents() {
     $("#btnDownload")?.addEventListener('click', () => { exportToPNG(); $("#exportModal").classList.remove('active'); });
     $("#btnShareWA")?.addEventListener('click', shareViaWhatsApp);
 
-    // Search Logic (Conectada al Engine)
+    // Search Logic
     $("#btnCancelSearch")?.addEventListener('click', () => $("#searchModal")?.classList.remove('active'));
-    $("#searchValue")?.addEventListener('keypress', (e) => { if (e.key === 'Enter') runSearch(); });
     $("#btnDoSearch")?.addEventListener('click', runSearch);
+    $("#searchValue")?.addEventListener('keypress', (e) => { if (e.key === 'Enter') runSearch(); });
 
-    // --- Menú Usuario ---
+    // Menú Usuario
     const av = $("#btnUserAvatar"); const mn = $("#userDropdown");
     if(av && mn) {
         av.addEventListener('click', (e) => { e.stopPropagation(); mn.classList.toggle('hidden'); });
         document.addEventListener('click', (e) => { if(!mn.classList.contains('hidden') && !mn.contains(e.target) && !av.contains(e.target)) mn.classList.add('hidden'); });
+        
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
         $("#btnLogout")?.addEventListener('click', () => location.reload());
-        // Placeholders de botones nuevos
-        $("#btnUserProfile")?.addEventListener('click', () => flash("Perfil (Próximamente)"));
-        $("#btnToggleTheme")?.addEventListener('click', () => flash("Tema (Próximamente)"));
-        $("#btnToggleLayout")?.addEventListener('click', () => flash("Layout (Próximamente)"));
+        
+        // Botones nuevos
+        $("#btnUserProfile")?.addEventListener('click', () => flash("Configuración de Perfil (Futuro)"));
+        $("#btnToggleTheme")?.addEventListener('click', () => flash("Cambiar Tema (Futuro)"));
+        $("#btnToggleLayout")?.addEventListener('click', () => flash("Cambiar Layout (Futuro)"));
     }
 }
 
-// Wrapper de Búsqueda para UI
+// Helpers
 function runSearch() {
     const q = $("#searchValue")?.value;
     if(!q) return;
@@ -271,9 +269,7 @@ function runSearch() {
     const list = $("#searchResultsList");
     list.innerHTML = '';
     
-    if(results.length === 0) {
-        list.innerHTML = '<div style="padding:10px;text-align:center;color:#94a3b8">Sin resultados</div>'; return;
-    }
+    if(results.length === 0) { list.innerHTML = '<div style="padding:10px;text-align:center;color:#94a3b8">Sin resultados</div>'; return; }
 
     results.forEach(m => {
         const div = document.createElement('div');
@@ -282,10 +278,9 @@ function runSearch() {
         div.innerHTML = `<div style="color:var(--accent);font-weight:bold">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div><div style="font-size:0.8rem;color:var(--text-muted)">${m.patient.documento_numero} | ${fmtDate(m.lastUpdated)}</div>`;
         
         div.onclick = () => {
-            loadHistoryRecord(m); // Engine carga datos
-            // Toolbar reacciona: cerramos modal y redibujamos porque isStoryOpen es true
+            loadHistoryRecord(m); // Engine carga y pone isStoryOpen=true
             $("#searchModal").classList.remove('active');
-            renderToolbar();
+            renderToolbar(); // Redibujar
         };
         list.appendChild(div);
     });
@@ -304,26 +299,24 @@ function refreshPreview() {
     }
 }
 
+import { initializeNewPatient } from 'patient'; // Necesitamos re-importarlo aquí para el btnNew
+
 // INICIALIZADOR EXPORTADO
 export function initToolbarEvents() {
-    renderToolbar(); // Primer renderizado (Limpio)
+    renderToolbar(); 
 }
 
-// Interceptor Global para Preview
+// Interceptor Global
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
-    
-    // Activar modo preview
     STATE.UI.isPreviewMode = true; 
     
-    // Generar
     let html = kind === 'INF' ? buildReportHTML(card) : buildRecipeHTML(card);
     const preview = $("#docPreview");
     if(preview) preview.innerHTML = html;
     
-    // Redibujar toolbar (Ahora aparecerán herramientas de preview)
     renderToolbar();
 };
