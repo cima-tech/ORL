@@ -1,5 +1,6 @@
 import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
-import { updateRecipeTextbox, renderIndicacionesDropdowns } from 'recipe';
+// CORRECCIÓN: Import relativo
+import { updateRecipeTextbox, renderIndicacionesDropdowns } from './recipe-indicaciones.js';
 
 // ==========================================
 // 1. DATA (CONFIGURACIÓN MÉDICA)
