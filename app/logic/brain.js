@@ -1,26 +1,33 @@
 // app/logic/brain.js
 
 // ==========================================
-// 1. UTILIDADES DOM
+// 1. DOM UTILS
 // ==========================================
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 // ==========================================
-// 2. ESTADO GLOBAL (STATE)
+// 2. GLOBAL STATE
 // ==========================================
 export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    // UI States
+    // --- NEW: UI STATE MANAGEMENT ---
+    UI: {
+        currentMode: 'CONSULTATION', // Options: 'DASHBOARD', 'CONSULTATION', 'AGENDA'
+        isStoryOpen: false,          // True when a patient file is active (New or Opened)
+        isPreviewMode: false         // True when viewing a document (Report/Recipe)
+    },
+
+    // Legacy UI States
     currentPreviewCard: null, 
     currentPreviewDoc: null,
     currentShareCard: null,
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Usuario (Default)
+    // User Config
     currentUser: {
         profile: {
             id: "u-001",
@@ -38,37 +45,30 @@ export const STATE = {
 };
 
 // ==========================================
-// 3. SISTEMA DE WALLPAPERS (Tipo Google)
+// 3. WALLPAPER SYSTEM
 // ==========================================
 const WALLPAPERS = [
-    // Selección de Paisajes Alta Calidad (Unsplash) - Tonos Fríos/Naturales
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop", // Montañas Azules
-    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", // Tierra/Espacio
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=3540&auto=format&fit=crop", // Niebla Montana
-    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=3748&auto=format&fit=crop", // Bosque Niebla
-    "https://images.unsplash.com/photo-1501854140884-074cf2b21d25?q=80&w=3544&auto=format&fit=crop", // Lago Oscuro
-    "https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=2664&auto=format&fit=crop", // Picos Nevados
-    "https://images.unsplash.com/photo-1534274988754-0d46e80b3580?q=80&w=3000&auto=format&fit=crop"  // Flores azules abstractas
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", 
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=3540&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=3748&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1501854140884-074cf2b21d25?q=80&w=3544&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=2664&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1534274988754-0d46e80b3580?q=80&w=3000&auto=format&fit=crop"
 ];
 
 function initWallpaperSystem() {
     let currentWP = localStorage.getItem('CIMA_WALLPAPER_URL');
-    
     if (!currentWP) {
-        // Primera vez: elegir uno al azar
         const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
         currentWP = WALLPAPERS[randomIndex];
     }
-    
     document.body.style.backgroundImage = `url('${currentWP}')`;
 }
 
 export function rotateWallpaper() {
-    // Función llamada desde el botón "Cambiar Fondo"
     const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
     const newWP = WALLPAPERS[randomIndex];
-    
-    // Pre-cargar imagen para evitar parpadeo negro
     const img = new Image();
     img.src = newWP;
     img.onload = () => {
@@ -79,15 +79,14 @@ export function rotateWallpaper() {
 }
 
 // ==========================================
-// 4. CARGA DE CONFIGURACIÓN
+// 4. CONFIG LOADER
 // ==========================================
 export async function loadUserConfig() {
-    injectToastStyles(); // Estilos CSS para alertas
-    initWallpaperSystem(); // Fondo
+    injectToastStyles();
+    initWallpaperSystem();
 
     try {
         const response = await fetch('./app/user/u001/user.json');
-        
         if (response.ok) {
             const config = await response.json();
             STATE.currentUser = { 
@@ -97,54 +96,27 @@ export async function loadUserConfig() {
                 profile: { ...STATE.currentUser.profile, ...(config.profile || {}) }
             };
             console.log("Config cargada.");
-            updateGlobalUI();
+            // UI Update is handled by toolbar render
         } else {
             console.warn("User defaults.");
-            updateGlobalUI();
         }
     } catch (e) {
         console.error("Error config:", e);
     }
 }
 
-function updateGlobalUI() {
-    const user = STATE.currentUser.profile;
-    
-    // Avatar Initials
-    const btnAvatar = $("#btnUserAvatar");
-    if(btnAvatar) {
-        const parts = user.name.trim().split(" ");
-        let initials = "DR";
-        if (parts.length >= 2) initials = parts[0][0] + parts[1][0];
-        else if (parts.length === 1) initials = parts[0].substring(0, 2);
-        btnAvatar.textContent = initials.toUpperCase();
-    }
-
-    // Dropdown Info
-    const dropHeaderName = $("#userDropdown h4");
-    if(dropHeaderName) dropHeaderName.textContent = user.name;
-    
-    const dropHeaderTitle = $("#userDropdown p");
-    if(dropHeaderTitle) dropHeaderTitle.textContent = user.title_line_1;
-}
-
 // ==========================================
-// 5. NOTIFICACIONES (TOAST)
+// 5. TOAST & UTILS
 // ==========================================
 let timeoutHandle;
 
 export function flash(msg, isError = false) {
     let el = document.getElementById("err");
-    if (!el) {
-        el = document.createElement("div");
-        el.id = "err";
-        document.body.appendChild(el);
-    }
+    if (!el) { el = document.createElement("div"); el.id = "err"; document.body.appendChild(el); }
     
     clearTimeout(timeoutHandle);
     
     el.textContent = msg;
-    // Borde de color según tipo
     el.style.borderLeft = isError ? "4px solid #ef4444" : "4px solid #10b981";
     el.style.color = isError ? "#fca5a5" : "#fff";
     
@@ -160,45 +132,17 @@ export function flash(msg, isError = false) {
     }, 3000);
 }
 
-export function showErr(msg) {
-    console.error(msg);
-    flash(msg, true);
-}
+export function showErr(msg) { console.error(msg); flash(msg, true); }
 
-// Inyección de estilos CSS para el Toast (para no ensuciar main.css)
 function injectToastStyles() {
     const styleId = "toast-styles";
     if (document.getElementById(styleId)) return;
-
-    const css = `
-        #err {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translate(-50%, -20px);
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            color: white;
-            font-size: 0.9rem;
-            z-index: 9999;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            border: 1px solid rgba(255,255,255,0.1);
-            min-width: 300px;
-            text-align: center;
-        }
-    `;
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.appendChild(document.createTextNode(css));
-    document.head.appendChild(style);
+    const css = `#err { display: none; position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; font-size: 0.9rem; z-index: 9999; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); border: 1px solid rgba(255,255,255,0.1); min-width: 300px; text-align: center; }`;
+    const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
 // ==========================================
-// 6. FECHAS
+// 6. DATES
 // ==========================================
 export function getLocalDateTime() {
     const now = new Date();
@@ -210,19 +154,14 @@ export function fmtDate(isoString) {
     if (!isoString) return "";
     const date = new Date(isoString);
     if (isNaN(date)) return isoString;
-    return date.toLocaleDateString('es-VE', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-    });
+    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function fmtDateTime(isoString) {
     if (!isoString) return "";
     const date = new Date(isoString);
     if (isNaN(date)) return isoString;
-    return date.toLocaleString('es-VE', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
+    return date.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 export function calcAge(dateString) {
