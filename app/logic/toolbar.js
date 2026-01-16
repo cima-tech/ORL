@@ -4,22 +4,22 @@ import { $, STATE, rotateWallpaper, flash, showErr, fmtDate } from 'brain';
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
-// Importamos Engine
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
 
 // ==========================================
-// 1. GENERADORES DE HTML (UI REACTIVA)
+// 1. GENERADORES DE HTML
 // ==========================================
 
 function getNavGroupHTML() {
-    const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' : '';
+    // Estilo activo para indicar dónde estamos
+    const activeStyle = (mode) => STATE.UI.currentMode === mode 
+        ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' 
+        : ''; // Ya no usamos opacity:0.6 para los inactivos, se verán full color
     
-    // Iniciales
     const user = STATE.currentUser.profile;
     const parts = user.name.trim().split(" ");
     const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0,2);
 
-    // NOTA: Todos los botones tienen onclick para cambiar el modo, aunque solo CONSULTATION haga algo real por ahora.
     return `
     <div class="toolbar-group">
         <div class="icon-row">
@@ -38,15 +38,12 @@ function getNavGroupHTML() {
                 
                 <div id="userDropdown" class="user-dropdown hidden">
                     <div class="dropdown-header"><h4>${user.name}</h4><p>Administrador</p></div>
-                    
-                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración Cuenta</button>
+                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button>
                     <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
-                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Alternar Tema</button>
-                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Toolbar / Sidebar</button>
-                    
+                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Tema</button>
+                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Layout</button>
                     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-                    
-                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Salir</button>
                 </div>
             </div>
         </div>
@@ -56,8 +53,6 @@ function getNavGroupHTML() {
 }
 
 function getHistoryGroupHTML() {
-    // Grupo Historia: Aparece en modo CONSULTATION
-    // Guardar/Cerrar solo si isStoryOpen = true
     return `
     <div class="toolbar-group">
         <div class="icon-row">
@@ -74,9 +69,7 @@ function getHistoryGroupHTML() {
 }
 
 function getConsultToolsHTML() {
-    // Grupo Consulta: Solo si hay historia abierta y NO preview
     if (!STATE.UI.isStoryOpen || STATE.UI.isPreviewMode) return '';
-    
     return `
     <div class="v-divider"></div>
     <div class="toolbar-group animate-fade">
@@ -90,12 +83,9 @@ function getConsultToolsHTML() {
 }
 
 function getPreviewGroupHTML() {
-    // Grupo Preview: Solo en modo Preview
     if (!STATE.UI.isPreviewMode) return '';
-
     const signColor = STATE.USE_SIG ? 'var(--accent)' : 'white';
     const signIcon = STATE.USE_SIG ? 'bi-pen-fill' : 'bi-pen';
-
     return `
     <div class="v-divider"></div>
     <div class="toolbar-group animate-fade" style="background:rgba(16, 185, 129, 0.1); border-radius:12px; padding:0 10px;">
@@ -104,12 +94,10 @@ function getPreviewGroupHTML() {
                 <input type="range" id="zoomRange" min="40" max="130" step="5" value="70" style="width:60px; height:4px;">
                 <span id="zoomVal" style="font-size:0.6rem; opacity:0.8;">70%</span>
             </div>
-            
             <button id="btnToggleSign" class="icon-btn" title="Firmar" style="color:${signColor}"><i class="bi ${signIcon}"></i></button>
             <div style="width:1px; height:20px; background:rgba(255,255,255,0.2);"></div>
             <button id="btnRefresh" class="icon-btn" title="Actualizar"><i class="bi bi-arrow-clockwise"></i></button>
             <button id="btnOpenExport" class="icon-btn" title="Exportar" style="background:var(--success); border-color:var(--success);"><i class="bi bi-share-fill"></i></button>
-            
             <button id="btnExitPreview" class="icon-btn" title="Cerrar Preview" style="margin-left:5px; background:rgba(255,255,255,0.1);"><i class="bi bi-x"></i></button>
         </div>
         <span class="group-label" style="color:var(--success);">Vista Previa</span>
@@ -118,19 +106,17 @@ function getPreviewGroupHTML() {
 }
 
 // ==========================================
-// 2. RENDER PRINCIPAL
+// 2. RENDER
 // ==========================================
 
 export function renderToolbar() {
     const mountPoint = document.getElementById('ui-mount-point');
     if (!mountPoint) return;
 
-    // Actualizar Visibilidad de Contenidos (Formularios, etc)
     updateContentVisibility();
 
     let html = `<div class="toolbar-container"><div class="floating-toolbar">`;
 
-    // LÓGICA DE VISUALIZACIÓN DE GRUPOS
     if (STATE.UI.currentMode === 'CONSULTATION') {
         html += getHistoryGroupHTML();
         html += getConsultToolsHTML();
@@ -138,15 +124,11 @@ export function renderToolbar() {
         html += `<div class="v-divider"></div>`;
     }
 
-    // Navegación (Siempre)
     html += getNavGroupHTML();
-
     html += `</div></div>`;
-    html += getModalsHTML(); // Inyectar modales
+    html += getModalsHTML();
 
     mountPoint.innerHTML = html;
-
-    // Re-bind eventos
     bindEvents();
 }
 
@@ -155,26 +137,23 @@ function updateContentVisibility() {
     const visits = $("#visitsContainer");
     const preview = $("#previewShell");
 
-    // 1. Ocultar todo
     if(form) form.classList.add('hidden');
     if(visits) visits.classList.add('hidden');
     if(preview) preview.classList.add('hidden');
 
-    // 2. Mostrar según estado
     if (STATE.UI.currentMode === 'CONSULTATION') {
         if (STATE.UI.isStoryOpen) {
             form?.classList.remove('hidden');
             visits?.classList.remove('hidden');
         }
         if (STATE.UI.isPreviewMode) {
-            // En preview, mostramos el shell
             preview?.classList.remove('hidden');
         }
     }
 }
 
 // ==========================================
-// 3. BINDING DE EVENTOS
+// 3. EVENTOS
 // ==========================================
 function bindEvents() {
     window.changeMode = (mode) => {
@@ -184,14 +163,10 @@ function bindEvents() {
         flash(`Modo: ${mode}`);
     };
 
-    // Historia
     $("#btnNew")?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar actual e iniciar nueva?")) return;
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
-        $("#patientForm").classList.remove('hidden');
-        // Aseguramos que la ficha se inicialice con patient.js si es necesario (generalmente ya está en DOM)
-        initializeNewPatient(); // Re-inyecta el HTML del form limpio
         flash('Nueva historia iniciada');
         renderToolbar(); 
     });
@@ -199,23 +174,21 @@ function bindEvents() {
     $("#btnClose")?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     
     $("#btnCloseStory")?.addEventListener('click', () => {
-        if(confirm("¿Guardar y cerrar?")) { 
-            saveCurrentHistory(); 
-            resetStory(); 
-            renderToolbar(); 
-        }
+        if(confirm("¿Guardar y cerrar?")) { saveCurrentHistory(); resetStory(); renderToolbar(); }
     });
     
-    $("#btnOpen")?.addEventListener('click', () => { $("#searchModal")?.classList.add('active'); $("#searchValue")?.focus(); $("#searchResultsList").innerHTML=''; });
+    $("#btnOpen")?.addEventListener('click', () => { 
+        $("#searchModal")?.classList.add('active'); 
+        $("#searchValue")?.focus(); 
+        $("#searchResultsList").innerHTML=''; 
+    });
 
-    // Consulta
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
     $("#btnDeleteLast")?.addEventListener('click', () => { 
         const c = $("#visitsContainer"); 
         if(c?.firstElementChild && confirm('¿Quitar última consulta?')) { c.firstElementChild.remove(); flash('Eliminada'); } 
     });
 
-    // Preview
     $("#btnExitPreview")?.addEventListener('click', () => {
         STATE.UI.isPreviewMode = false;
         STATE.currentPreviewDoc = null;
@@ -228,8 +201,8 @@ function bindEvents() {
         $("#docPreview").style.transform = `scale(${e.target.value / 100})`;
     });
 
-    // Modales Export
     $("#btnOpenExport")?.addEventListener('click', () => {
+        if (!STATE.currentPreviewDoc) { showErr("Genere documento primero"); return; }
         const fname = $("#documento_numero")?.value || 'paciente';
         const type = STATE.currentPreviewDoc === 'INF' ? 'INFORME' : 'RECIPE';
         STATE.exportFilename = `CIMA_${fname}_${type}.png`;
@@ -240,47 +213,40 @@ function bindEvents() {
     $("#btnDownload")?.addEventListener('click', () => { exportToPNG(); $("#exportModal").classList.remove('active'); });
     $("#btnShareWA")?.addEventListener('click', shareViaWhatsApp);
 
-    // Search Logic
     $("#btnCancelSearch")?.addEventListener('click', () => $("#searchModal")?.classList.remove('active'));
     $("#btnDoSearch")?.addEventListener('click', runSearch);
     $("#searchValue")?.addEventListener('keypress', (e) => { if (e.key === 'Enter') runSearch(); });
 
-    // Menú Usuario
     const av = $("#btnUserAvatar"); const mn = $("#userDropdown");
     if(av && mn) {
         av.addEventListener('click', (e) => { e.stopPropagation(); mn.classList.toggle('hidden'); });
         document.addEventListener('click', (e) => { if(!mn.classList.contains('hidden') && !mn.contains(e.target) && !av.contains(e.target)) mn.classList.add('hidden'); });
-        
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
         $("#btnLogout")?.addEventListener('click', () => location.reload());
         
-        // Botones nuevos
-        $("#btnUserProfile")?.addEventListener('click', () => flash("Configuración de Perfil (Futuro)"));
-        $("#btnToggleTheme")?.addEventListener('click', () => flash("Cambiar Tema (Futuro)"));
-        $("#btnToggleLayout")?.addEventListener('click', () => flash("Cambiar Layout (Futuro)"));
+        // Botones extra
+        $("#btnUserProfile")?.addEventListener('click', () => flash("Perfil (Próximamente)"));
+        $("#btnToggleTheme")?.addEventListener('click', () => flash("Tema (Próximamente)"));
+        $("#btnToggleLayout")?.addEventListener('click', () => flash("Layout (Próximamente)"));
     }
 }
 
-// Helpers
 function runSearch() {
     const q = $("#searchValue")?.value;
     if(!q) return;
     const results = getSearchResults(q);
     const list = $("#searchResultsList");
     list.innerHTML = '';
-    
     if(results.length === 0) { list.innerHTML = '<div style="padding:10px;text-align:center;color:#94a3b8">Sin resultados</div>'; return; }
-
     results.forEach(m => {
         const div = document.createElement('div');
         div.className = "dropdown-item"; 
         div.style.cssText = 'flex-direction:column; align-items:flex-start; border-bottom:1px solid rgba(255,255,255,0.1);';
         div.innerHTML = `<div style="color:var(--accent);font-weight:bold">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div><div style="font-size:0.8rem;color:var(--text-muted)">${m.patient.documento_numero} | ${fmtDate(m.lastUpdated)}</div>`;
-        
         div.onclick = () => {
-            loadHistoryRecord(m); // Engine carga y pone isStoryOpen=true
+            loadHistoryRecord(m); 
             $("#searchModal").classList.remove('active');
-            renderToolbar(); // Redibujar
+            renderToolbar();
         };
         list.appendChild(div);
     });
@@ -299,24 +265,16 @@ function refreshPreview() {
     }
 }
 
-import { initializeNewPatient } from 'patient'; // Necesitamos re-importarlo aquí para el btnNew
+export function initToolbarEvents() { renderToolbar(); }
 
-// INICIALIZADOR EXPORTADO
-export function initToolbarEvents() {
-    renderToolbar(); 
-}
-
-// Interceptor Global
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
     STATE.UI.isPreviewMode = true; 
-    
     let html = kind === 'INF' ? buildReportHTML(card) : buildRecipeHTML(card);
     const preview = $("#docPreview");
     if(preview) preview.innerHTML = html;
-    
     renderToolbar();
 };
