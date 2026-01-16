@@ -1,0 +1,23 @@
+{
+  "ORL-001": {
+    "name": "Otorrinolaringología General",
+    "version": "4.2",
+    "base_path": "./app/services/consultation/models/ORL-001",
+    "modules": {
+      "patient": "patient.js",
+      "consult": "consult.js",
+      "recipe": "recipe-indicaciones.js",
+      "informe": "informe.js",
+      "export": "export.js"
+    }
+  },
+  "CARDIO-001": {
+    "name": "Cardiología Adultos",
+    "version": "1.0",
+    "base_path": "./app/services/consultation/models/CARDIO-001",
+    "modules": {
+      "patient": "patient.js",
+      "consult": "consult.js"
+    }
+  }
+}
