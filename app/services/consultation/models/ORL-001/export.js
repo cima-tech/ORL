@@ -1,7 +1,8 @@
 // CORRECCIÓN: Imports limpios
 import { $, flash, showErr, fmtDate, STATE } from 'brain';
-import { buildReportHTML } from 'informe';
-import { buildRecipeHTML } from 'recipe';
+// CORRECCIÓN: Imports relativos
+import { buildReportHTML } from './informe.js';
+import { buildRecipeHTML } from './recipe-indicaciones.js';
 
 export async function exportToPNG() {
     if (!STATE.currentPreviewDoc || !STATE.currentPreviewCard) {
