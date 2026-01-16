@@ -13,11 +13,11 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    // --- NUEVO: ESTADOS DE LA INTERFAZ ---
+    // --- NUEVO: ESTADO DE LA INTERFAZ (V4.0) ---
     UI: {
-        currentMode: 'CONSULTATION', // 'DASHBOARD', 'CONSULTATION', 'AGENDA', 'BILLING'
-        isStoryOpen: false,          // ¿Hay un paciente cargado en pantalla?
-        isPreviewMode: false         // ¿Estamos viendo un documento (Preview)?
+        currentMode: 'CONSULTATION', // 'DASHBOARD', 'PACIENTES', 'AGENDA', 'BILLING', 'CONSULTATION'
+        isStoryOpen: false,          // True si se ha creado 'Nueva' o cargado 'Abrir'
+        isPreviewMode: false         // True si estamos viendo el documento
     },
 
     // UI States previos
@@ -27,7 +27,7 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Usuario
+    // Configuración Usuario (Default)
     currentUser: {
         profile: {
             id: "u-001",
@@ -45,7 +45,7 @@ export const STATE = {
 };
 
 // ==========================================
-// 3. SISTEMA DE WALLPAPERS
+// 3. SISTEMA DE WALLPAPERS (Tipo Google)
 // ==========================================
 const WALLPAPERS = [
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop",
@@ -69,7 +69,6 @@ function initWallpaperSystem() {
 export function rotateWallpaper() {
     const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
     const newWP = WALLPAPERS[randomIndex];
-    
     const img = new Image();
     img.src = newWP;
     img.onload = () => {
@@ -84,7 +83,7 @@ export function rotateWallpaper() {
 // ==========================================
 export async function loadUserConfig() {
     injectToastStyles();
-    initWallpaperSystem();
+    initWallpaperSystem(); 
 
     try {
         const response = await fetch('./app/user/u001/user.json');
@@ -118,13 +117,10 @@ export function flash(msg, isError = false) {
         el.id = "err";
         document.body.appendChild(el);
     }
-    
     clearTimeout(timeoutHandle);
-    
     el.textContent = msg;
     el.style.borderLeft = isError ? "4px solid #ef4444" : "4px solid #10b981";
     el.style.color = isError ? "#fca5a5" : "#fff";
-    
     el.classList.add('active');
     el.style.display = 'block';
     el.style.opacity = '1';
@@ -145,7 +141,6 @@ export function showErr(msg) {
 function injectToastStyles() {
     const styleId = "toast-styles";
     if (document.getElementById(styleId)) return;
-
     const css = `
         #err {
             display: none;
@@ -186,19 +181,14 @@ export function fmtDate(isoString) {
     if (!isoString) return "";
     const date = new Date(isoString);
     if (isNaN(date)) return isoString;
-    return date.toLocaleDateString('es-VE', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-    });
+    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function fmtDateTime(isoString) {
     if (!isoString) return "";
     const date = new Date(isoString);
     if (isNaN(date)) return isoString;
-    return date.toLocaleString('es-VE', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
+    return date.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 export function calcAge(dateString) {
