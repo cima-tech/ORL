@@ -13,9 +13,11 @@
     "theme": "dark",
     "default_zoom": 60,
     "primary_color": "#3b82f6",
-    "use_digital_signature_default": true
+    "use_digital_signature_default": true,
+    "default_model": "ORL-001"
   },
   "assets": {
+    "avatar_path": "./app/user/u001/layout/avatar.png",
     "header_path": "./app/user/u001/layout/header.png",
     "footer_path": "./app/user/u001/layout/footer.png",
     "signature_path": "./app/user/u001/layout/signature.png",
