@@ -67,24 +67,18 @@
     import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v4.1 - Reactive Init...");
+        console.log("CIMA ORL v4.2 Final - Init...");
         
-        // 1. Cargar Configuración y Fondo
         await loadUserConfig();
-        
-        // 2. Dibujar la Interfaz (Toolbar Flotante)
         initToolbarEvents(); 
         
-        // NOTA: NO inicializamos el paciente aquí. El sistema arranca vacío.
-        // initializeNewPatient(); <--- Eliminado intencionalmente
+        // initializeNewPatient(); // <--- ELIMINADO para arrancar limpio.
 
-        // 4. Conexiones Globales (Helpers para onclicks en HTML inyectado)
         window.togglePatientDetailsGlobal = togglePatientDetails;
         window.updatePatientHeaderGlobal = updatePatientHeader;
         window.$ = $;
 
-        // 5. Listeners de la Ficha (Glue Code para reactividad interna del formulario)
-        // Usamos un observer o chequeo porque el form puede estar oculto o recrearse
+        // Listeners Condicionales
         const formContainer = document.getElementById('patientForm');
         if(formContainer) {
             formContainer.addEventListener('change', (e) => {
@@ -94,7 +88,6 @@
             });
         }
         
-        // Delegación de eventos para las tarjetas de visita
         const visits = document.getElementById('visitsContainer');
         if(visits) {
             visits.addEventListener('click', (e) => {
@@ -106,12 +99,12 @@
                     icon.classList.toggle('bi-chevron-right');
                     icon.classList.toggle('bi-chevron-down');
                 }
-                // Botones internos de la tarjeta (Imprimir/Recipe)
-                // Nota: toolbar.js define window.openDocGlobal
                 if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
                 if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
             });
         }
+        
+        toggleConditionalFields();
     });
 </script>
 
