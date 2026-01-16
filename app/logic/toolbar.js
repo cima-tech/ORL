@@ -4,11 +4,11 @@ import { $, STATE, rotateWallpaper, flash, showErr } from 'brain';
 import { exportToPNG, shareViaWhatsApp } from 'export';
 import { buildReportHTML } from 'informe';
 import { buildRecipeHTML } from 'recipe';
-// Importamos la Lógica del Engine (que creamos en el paso anterior)
+// Importamos la Lógica del Engine
 import { saveCurrentHistory, resetStory, handleAddConsulta, executeSearch } from './engine.js'; 
 
 // ==========================================
-// 1. PLANTILLA MAESTRA DEL TOOLBAR (V3.0)
+// 1. PLANTILLA MAESTRA DEL TOOLBAR (V3.1)
 // ==========================================
 
 const HTML_TOP_TOOLBAR = `
@@ -30,7 +30,7 @@ const HTML_TOP_TOOLBAR = `
     <div class="toolbar-group">
         <div class="icon-row">
             <button id="btnAddConsulta" class="icon-btn" title="Agregar Consulta"><i class="bi bi-plus-lg"></i></button>
-            <button id="btnDeleteLast" class="icon-btn" title="Eliminar Última"><i class="bi bi-trash"></i></button>
+            <button id="btnDeleteLast" class="icon-btn" title="Quitar Última"><i class="bi bi-dash-lg"></i></button>
         </div>
         <span class="group-label">Consulta</span>
     </div>
@@ -53,9 +53,32 @@ const HTML_TOP_TOOLBAR = `
                 <button id="btnUserAvatar" class="avatar-circle">DR</button>
                 
                 <div id="userDropdown" class="user-dropdown hidden">
-                    <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-card-image"></i> Cambiar Fondo</button>
+                    <div class="dropdown-header">
+                        <h4>Dr. Usuario</h4>
+                        <p>Administrador</p>
+                    </div>
+
+                    <button id="btnUserProfile" class="dropdown-item">
+                        <i class="bi bi-person-gear"></i> Configuración Cuenta
+                    </button>
+
+                    <button id="btnChangeWallpaper" class="dropdown-item">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Fondo
+                    </button>
+
+                    <button id="btnToggleTheme" class="dropdown-item">
+                        <i class="bi bi-palette"></i> Tema: <span id="lblThemeName" style="margin-left:4px; font-size:0.8em; opacity:0.7;">Dark</span>
+                    </button>
+
+                    <button id="btnToggleLayout" class="dropdown-item">
+                        <i class="bi bi-layout-sidebar-inset"></i> Toolbar / Sidebar
+                    </button>
+
                     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-                    <button class="dropdown-item" style="color:#ef4444;"><i class="bi bi-power"></i> Cerrar Sesión</button>
+                    
+                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                    </button>
                 </div>
             </div>
         </div>
@@ -134,7 +157,7 @@ export function initToolbarEvents() {
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
     $("#btnDeleteLast")?.addEventListener('click', () => { 
         const c = $("#visitsContainer"); 
-        if(c?.firstElementChild && confirm('¿Borrar última?')) { c.firstElementChild.remove(); flash('Eliminada'); } 
+        if(c?.firstElementChild && confirm('¿Borrar última consulta?')) { c.firstElementChild.remove(); flash('Eliminada'); } 
     });
 
     $("#btnOpen")?.addEventListener('click', () => { $("#searchModal")?.classList.add('active'); $("#searchValue")?.focus(); $("#searchResultsList").innerHTML=''; });
@@ -167,15 +190,38 @@ export function initToolbarEvents() {
         $("#docPreview").style.transform = `scale(${e.target.value / 100})`;
     });
 
-    // Menú Usuario
+    // --- MENÚ DE USUARIO (Lógica Nueva) ---
     const avatar = $("#btnUserAvatar");
     const menu = $("#userDropdown");
+    
     if(avatar && menu) {
         avatar.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
+        
+        // Cerrar al hacer click fuera
         document.addEventListener('click', (e) => { 
             if(!menu.classList.contains('hidden') && !menu.contains(e.target) && !avatar.contains(e.target)) menu.classList.add('hidden'); 
         });
+
+        // Eventos del Menú
+        $("#btnUserProfile")?.addEventListener('click', () => flash("Abriendo configuración... (Demo)"));
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
+        
+        // Lógica de Temas (Placeholder)
+        $("#btnToggleTheme")?.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            // Aquí iría la lógica real de cambio de tema
+            flash("Cambiando modo visual..."); 
+        });
+
+        // Lógica de Layout (Placeholder)
+        $("#btnToggleLayout")?.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            flash("Alternando Toolbar/Sidebar..."); 
+        });
+
+        $("#btnLogout")?.addEventListener('click', () => {
+            if(confirm("¿Cerrar sesión actual?")) location.reload(); 
+        });
     }
 }
 
