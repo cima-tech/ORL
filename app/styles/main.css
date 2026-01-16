@@ -1,252 +1,170 @@
 /* =========================================
-   1. CORE & RESET (Estilo "Frost Glass")
+   1. CORE & RESET
    ========================================= */
 :root {
-  /* Paleta Médica/Tecnológica (Azules y Cyans) */
-  --primary: #0ea5e9;       /* Sky Blue 500 */
-  --primary-dark: #0284c7;  /* Sky Blue 600 */
-  --accent: #22d3ee;        /* Cyan 400 */
-  
-  --text-main: #f8fafc;     /* Slate 50 */
-  --text-muted: #cbd5e1;    /* Slate 300 */
-  --danger: #ef4444;
-  --success: #10b981;
-
-  /* Variables del Motor Glass */
-  --glass-bg: rgba(15, 23, 42, 0.60);     /* Base oscura semi-transparente */
+  --primary: #0ea5e9;       /* Sky Blue */
+  --accent: #22d3ee;        /* Cyan */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(15, 23, 42, 0.75); 
   --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-highlight: rgba(255, 255, 255, 0.20);
-  --blur-strength: 20px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0f172a; /* Fondo base por si falla la imagen */
   color: var(--text-main);
   min-height: 100vh;
   font-size: 14px;
-  overflow-x: hidden;
-
-  /* PROPIEDADES DEL WALLPAPER ROTATIVO */
-  background-color: #0f172a; /* Fallback */
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed; /* Parallax */
-  background-repeat: no-repeat;
-  transition: background-image 0.5s ease-in-out;
 }
 
-/* Capa de oscurecimiento (Overlay) para legibilidad */
+/* Overlay para oscurecer el wallpaper */
 body::before {
     content: ''; position: fixed; inset: 0;
-    background: rgba(15, 23, 42, 0.35); /* Filtro oscuro sobre la foto */
+    background: rgba(15, 23, 42, 0.4); 
     z-index: -1; pointer-events: none;
 }
 
 .hidden { display: none !important; }
 
-/* CLASE MAESTRA GLASS (Paneles, Tarjetas, Modales) */
-.glass, .card, .modal-box, .visit-card {
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
-  backdrop-filter: blur(var(--blur-strength));
-  -webkit-backdrop-filter: blur(var(--blur-strength));
-  border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-highlight); /* Luz cenital */
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
-}
-
 /* =========================================
-   2. TOOLBAR FLOTANTE
+   2. TOOLBAR FLOTANTE (NUEVO DISEÑO)
    ========================================= */
-.toolbar-wrapper {
-  position: sticky; top: 0; z-index: 1000;
-  padding: 15px 24px;
-  /* Barra superior más transparente */
-  background: rgba(15, 23, 42, 0.3); 
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+.toolbar-container {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 2000;
+  display: flex; justify-content: center;
+  width: auto;
 }
 
-.toolbar {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%; max-width: 1600px; margin: 0 auto;
+.floating-toolbar {
+  display: flex; align-items: center; gap: 20px;
+  background: rgba(15, 23, 42, 0.6); /* Vidrio oscuro */
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 10px 30px;
+  border-radius: 24px; /* Bordes muy redondos */
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
 }
 
-.toolbar-section-left, .toolbar-section-right { display: flex; align-items: center; gap: 15px; }
-
-/* Logo */
-.logo { 
-    display: flex; flex-direction: column; padding-right: 20px; 
-    border-right: 1px solid rgba(255,255,255,0.15); 
-}
-.logo .main { 
-    font-size: 1.4rem; font-weight: 800; color: white; 
-    text-shadow: 0 0 15px rgba(14, 165, 233, 0.5); letter-spacing: 1px; line-height: 1;
-}
-.logo .subtitle { 
-    font-size: 0.65rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px;
+/* Grupos y Etiquetas */
+.toolbar-group {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 
-/* Botones Toolbar (Estilo Píldora de Vidrio) */
-.toolbar-btn {
-  background: rgba(255, 255, 255, 0.05);
+.icon-row {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.group-label {
+  font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 600; opacity: 0.8;
+}
+
+/* Separador Vertical */
+.v-divider {
+  width: 1px; height: 35px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Botones Icono Grande */
+.icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 12px;
   border: 1px solid transparent;
-  color: #e2e8f0; 
-  padding: 8px 18px; border-radius: 50px; /* Bordes redondos completos */
-  cursor: pointer; display: flex; gap: 8px; align-items: center;
-  font-size: 0.85rem; font-weight: 500; transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.05);
+  color: white; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
-.toolbar-btn:hover {
+.icon-btn:hover {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  box-shadow: 0 0 15px rgba(255,255,255,0.1);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  color: var(--accent);
 }
 
-.btn-close-story {
-    background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #fca5a5;
-}
-.btn-close-story:hover {
-    background: var(--danger); border-color: var(--danger); color: white;
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-}
+/* Botón Especial "Cerrar" */
+.btn-close-app:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 
-.v-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.15); margin: 0 5px; }
+/* Notificación Badge */
+.badge-dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px; background: #ef4444;
+  border-radius: 50%; box-shadow: 0 0 5px #ef4444;
+}
 
 /* Avatar */
-.avatar-btn {
-    width: 40px; height: 40px; border-radius: 50%;
-    background: linear-gradient(135deg, #0ea5e9, #2563eb);
-    color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.3);
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
-    transition: transform 0.2s; font-size: 0.85rem;
+.avatar-circle {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer; transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
 }
-.avatar-btn:hover { transform: scale(1.1); border-color: white; }
+.avatar-circle:hover { transform: scale(1.1); border-color: white; }
 
-/* =========================================
-   3. MENÚ USUARIO & DROPDOWNS
-   ========================================= */
-.user-menu-container { position: relative; }
-
+/* Menú Dropdown */
+.user-menu-wrapper { position: relative; }
 .user-dropdown {
-    position: absolute; right: 0; top: 60px; width: 260px;
-    background: rgba(11, 15, 25, 0.85); /* Fondo oscuro profundo */
-    backdrop-filter: blur(30px);
-    border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
-    border-radius: 16px; padding: 10px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    display: flex; flex-direction: column; gap: 4px; z-index: 2000;
+    position: absolute; top: 55px; right: 0; width: 220px;
+    background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 8px; display: flex; flex-direction: column; gap: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
-
-.dropdown-header { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 4px; }
-.dropdown-header h4 { color: white; font-size: 0.95rem; font-weight: 600; }
-.dropdown-header p { color: var(--text-muted); font-size: 0.75rem; }
-
 .dropdown-item {
-    padding: 10px 12px; border-radius: 10px; color: var(--text-muted);
-    background: transparent; border: none; cursor: pointer; text-align: left;
-    display: flex; align-items: center; gap: 12px; transition: all 0.2s;
-    font-size: 0.9rem;
+    padding: 10px; border-radius: 8px; color: #cbd5e1; background: transparent; border: none;
+    display: flex; gap: 10px; align-items: center; cursor: pointer; text-align: left; width: 100%;
 }
-.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; padding-left: 16px; }
-
-.smart-switch { justify-content: space-between; }
-.toggle-track { width: 40px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 20px; position: relative; }
-.toggle-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.3s; }
+.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
 
 /* =========================================
-   4. LAYOUT & FORMULARIOS
+   3. CONTENEDOR PRINCIPAL
    ========================================= */
-.container { max-width: 1200px; margin: 40px auto; padding: 0 25px; padding-bottom: 150px; }
-
-/* Header Ficha Paciente */
-.patient-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding-bottom: 5px; }
-.patient-toggle-btn {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; cursor: pointer;
-}
-.patient-toggle-btn:hover { background: white; color: var(--primary); transform: rotate(180deg); }
-
-/* Inputs "Ghost" */
-.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; align-items: end; }
-.span-1 { grid-column: span 1; } .span-2 { grid-column: span 2; } .span-4 { grid-column: span 4; }
-
-.form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; margin-left: 4px; }
-.form-input, .form-select {
-  width: 100%; height: 38px; padding: 0 14px; font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.2); 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px; color: white; transition: all 0.2s;
-}
-.form-input:focus {
-  background: rgba(0, 0, 0, 0.4); border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+.container { 
+    max-width: 1200px; margin: 100px auto 40px auto; /* Margin top alto para no chocar con toolbar */
+    padding: 0 20px; 
 }
 
-/* Checkboxes Personalizados */
-input[type="checkbox"] {
-    appearance: none; -webkit-appearance: none;
-    width: 18px; height: 18px; background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.3); border-radius: 5px;
-    cursor: pointer; margin-right: 8px; position: relative; top: 3px;
+/* Ficha y Visitas (Estilos mantenidos y limpiados) */
+.card, .visit-card {
+  background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+  padding: 25px; margin-bottom: 20px;
 }
-input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
-input[type="checkbox"]:checked::after { content: '✔'; position: absolute; left: 3px; top: -3px; color: black; font-weight: bold; font-size: 12px; }
+.visit-card { border-left: 4px solid var(--primary); }
 
-/* =========================================
-   5. TARJETAS & PREVIEW
-   ========================================= */
-.visit-card { margin-top: 25px; border-left: 4px solid var(--primary); overflow: hidden; }
-.visit-header { background: rgba(255,255,255,0.03); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.visit-body { padding: 20px; }
-
-/* Barra de Preview (Flotante Abajo) */
-#previewBar {
-    position: fixed; bottom: 30px; right: 50%; transform: translateX(50%);
-    background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 50px;
-    padding: 10px 30px; display: flex; align-items: center; gap: 20px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.5); z-index: 2000; width: auto;
-    animation: slideUp 0.4s ease-out;
+.patient-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.patient-toggle-btn { 
+    width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); 
+    border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; 
 }
-@keyframes slideUp { from { transform: translate(50%, 100px); opacity: 0; } to { transform: translate(50%, 0); opacity: 1; } }
 
-.preview-shell {
-    position: fixed; top: 90px; left: 50%; transform: translateX(-50%);
-    width: 850px; height: calc(100vh - 200px); overflow: auto; z-index: 1999;
-    border-radius: 12px; display: flex; justify-content: center; padding-top: 30px;
-    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+/* Inputs */
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+.span-4 { grid-column: span 4; } .span-2 { grid-column: span 2; }
+
+.form-input {
+  width: 100%; height: 38px; padding: 0 12px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; color: white;
 }
-#docPreview { background: white; color: black; transform-origin: top center; transition: transform 0.2s; box-shadow: 0 0 50px black; }
+.form-input:focus { border-color: var(--accent); outline: none; background: rgba(0,0,0,0.5); }
 
-/* Estilos Papel (Mantenidos) */
-.doc-page { position: relative; overflow: hidden; background: white; color: black; }
-.doc-letter { width: 21.59cm; height: 27.94cm; }
-.doc-header { position: absolute; top: 0.7cm; width: 100%; text-align: center; }
-.doc-footer { position: absolute; bottom: 0.5cm; width: 100%; text-align: center; }
-.doc-wrap { padding: 3.5cm 1cm 2.5cm 1.5cm; font-family: 'Segoe UI', sans-serif; font-size: 11pt; line-height: 1.3; }
-
-/* Modales */
-.modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000;
-    display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
-}
+/* Modales y Preview Bar */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none; justify-content: center; align-items: center; }
 .modal-overlay.active { display: flex; }
-.modal-box { padding: 30px; width: 450px; }
+.modal-box { background: #1e293b; padding: 30px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .form-grid { grid-template-columns: repeat(2, 1fr); }
-  .span-4, .span-2 { grid-column: span 2; }
-  .toolbar { flex-direction: column; gap: 10px; }
-  #previewBar { width: 95%; right: 2.5%; transform: none; bottom: 10px; justify-content: center; border-radius: 16px; flex-wrap: wrap; }
+#previewBar {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px);
+    padding: 10px 25px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.15);
+    display: flex; gap: 20px; align-items: center; z-index: 2000;
 }
