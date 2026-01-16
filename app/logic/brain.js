@@ -7,7 +7,7 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    // --- ESTADOS REACTIVOS ---
+    // ESTADOS DE LA INTERFAZ
     UI: {
         currentMode: 'CONSULTATION', 
         isStoryOpen: false,          
@@ -36,7 +36,7 @@ export const STATE = {
     }
 };
 
-// --- WALLPAPERS ---
+// --- WALLPAPERS SYSTEM ---
 const WALLPAPERS = [
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", 
@@ -66,6 +66,7 @@ export function rotateWallpaper() {
     };
 }
 
+// --- CONFIGURACIÓN ---
 export async function loadUserConfig() {
     injectToastStyles(); 
     initWallpaperSystem(); 
@@ -73,11 +74,17 @@ export async function loadUserConfig() {
         const response = await fetch('./app/user/u001/user.json');
         if (response.ok) {
             const config = await response.json();
-            STATE.currentUser = { ...STATE.currentUser, ...config, assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } };
+            STATE.currentUser = { 
+                ...STATE.currentUser, 
+                ...config, 
+                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
+                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } 
+            };
         }
     } catch (e) { console.error(e); }
 }
 
+// --- NOTIFICACIONES ---
 let timeoutHandle;
 export function flash(msg, isError = false) {
     let el = document.getElementById("err");
@@ -101,7 +108,7 @@ function injectToastStyles() {
     const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
-// --- UTILIDADES DE FECHA Y EDAD (RESTAURADAS) ---
+// --- UTILIDADES DE FECHA Y EDAD (CRÍTICAS PARA CONSULT.JS) ---
 
 export function getLocalDateTime() {
     const now = new Date();
@@ -120,10 +127,7 @@ export function fmtDateTime(isoString) {
     if (!isoString) return "";
     const date = new Date(isoString);
     if (isNaN(date)) return isoString;
-    return date.toLocaleString('es-VE', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
+    return date.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 export function calcAge(dateString) {
