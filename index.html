@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CIMA — Sistema ORL</title>
+    <title>CIMA — Sistema Clínico Modular</title>
     
     <link rel="stylesheet" href="app/styles/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -52,11 +52,8 @@
     "brain": "./app/logic/brain.js",
     "toolbar": "./app/logic/toolbar.js",
     "engine": "./app/logic/engine.js",
-    "patient": "./app/services/consultation/models/ORL-001/patient.js",
-    "consult": "./app/services/consultation/models/ORL-001/consult.js",
-    "informe": "./app/services/consultation/models/ORL-001/informe.js",
-    "recipe": "./app/services/consultation/models/ORL-001/recipe-indicaciones.js",
-    "export": "./app/services/consultation/models/ORL-001/export.js"
+    "service_loader": "./app/logic/service_loader.js",
+    "export_core": "./app/logic/export_core.js" 
   }
 }
 </script>
@@ -64,27 +61,37 @@
 <script type="module">
     import { $, loadUserConfig } from 'brain';
     import { initToolbarEvents } from 'toolbar';
-    import { initializeNewPatient, togglePatientDetails, updatePatientHeader, calcularCampos, toggleConditionalFields } from 'patient';
+    import { ActiveModel } from 'service_loader';
 
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v4.2 Final - Init...");
+        console.log("CIMA ORL v4.2 - Arrancando Loader...");
         
+        // 1. Cargar config de usuario y Servicios Dinámicos
         await loadUserConfig();
+        
+        // 2. Inicializar Toolbar (ahora que los servicios están cargados)
         initToolbarEvents(); 
         
-        // initializeNewPatient(); // <--- ELIMINADO para arrancar limpio.
-
-        window.togglePatientDetailsGlobal = togglePatientDetails;
-        window.updatePatientHeaderGlobal = updatePatientHeader;
+        // 3. Exponer funciones globales que el HTML necesita para eventos onclick
         window.$ = $;
-
+        
+        // Helpers globales que dependen del modelo cargado dinámicamente
+        window.togglePatientDetailsGlobal = () => {
+            if(ActiveModel.patient) ActiveModel.patient.togglePatientDetails();
+        };
+        window.updatePatientHeaderGlobal = () => {
+            if(ActiveModel.patient) ActiveModel.patient.updatePatientHeader();
+        };
+        
         // Listeners Condicionales
         const formContainer = document.getElementById('patientForm');
         if(formContainer) {
             formContainer.addEventListener('change', (e) => {
-                if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) updatePatientHeader();
-                if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) calcularCampos();
-                if(e.target.type === 'checkbox') toggleConditionalFields();
+                if(ActiveModel.patient) {
+                     if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) ActiveModel.patient.updatePatientHeader();
+                     if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) ActiveModel.patient.calcularCampos();
+                     if(e.target.type === 'checkbox') ActiveModel.patient.toggleConditionalFields();
+                }
             });
         }
         
@@ -103,8 +110,6 @@
                 if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
             });
         }
-        
-        toggleConditionalFields();
     });
 </script>
 
