@@ -19,13 +19,13 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Base (Esqueleto vacío basado en tu JSON)
+    // Configuración Base (Esqueleto seguro para evitar 'undefined')
     currentUser: {
         profile: {
             id: "guest",
             role: "guest",
             username: "guest",
-            title: "Dr(a).",
+            title: "",
             firstname: "Usuario",
             lastname: "",
             title_line_1: "",
@@ -50,14 +50,14 @@ export const STATE = {
 export async function loadUserConfig(configPath) {
     injectToastStyles(); 
     
-    // Si no nos pasan path (caso dev), intentamos default
+    // Si no nos pasan path (caso dev), usamos el default
     const path = configPath || './app/user/u001/user.json';
 
     try {
         const response = await fetch(path);
         if (response.ok) {
             const config = await response.json();
-            // Merge profundo
+            // Merge profundo para no borrar keys del state base
             STATE.currentUser = { ...STATE.currentUser, ...config };
             console.log(`[Brain] Perfil cargado: ${STATE.currentUser.profile.username}`);
             
