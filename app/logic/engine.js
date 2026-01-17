@@ -1,12 +1,12 @@
 // app/logic/engine.js
 
 import { $, $$, flash, showErr, STATE } from 'brain';
-import { ServiceLoader } from './service_loader.js'; // <--- ÚNICO IMPORT DE LÓGICA
+import { ServiceLoader } from './service_loader.js';
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
 export function saveCurrentHistory() {
-    // Obtenemos el servicio de paciente cargado dinámicamente
+    // Obtenemos el servicio cargado dinámicamente
     const PatientService = ServiceLoader.get('patient');
     
     const patientData = PatientService.getPatientData();
@@ -95,9 +95,7 @@ export function handleAddConsulta() {
         return;
     }
 
-    // Obtenemos la fábrica del modelo actual
     const ConsultService = ServiceLoader.get('consult'); 
-    
     const container = $("#visitsContainer");
     container.classList.remove('hidden');
 
@@ -106,9 +104,9 @@ export function handleAddConsulta() {
     
     const newCard = ConsultService.createVisitCard(type);
     
-    // LÓGICA DE HERENCIA MEJORADA
+    // Lógica de Herencia
     if (type === 'Primera') {
-        // Heredar de la FICHA (Patient Form) a la 1ra consulta
+        // Heredar de la FICHA (Patient Form)
         const antPersFicha = $("#antecedentes_personales")?.value || "";
         const antFamFicha = $("#antecedentes_familiares")?.value || "";
         
@@ -118,10 +116,10 @@ export function handleAddConsulta() {
         if(targetPers) targetPers.value = antPersFicha;
         if(targetFam) targetFam.value = antFamFicha;
         
-        flash('Primera consulta (Datos heredados de ficha)');
+        flash('Primera consulta (Datos de ficha heredados)');
 
     } else if (type === 'Sucesiva' && existingCards.length > 0) {
-        // Heredar de la ANTERIOR consulta
+        // Heredar de la ANTERIOR
         const lastCard = existingCards[0];
         const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
         fieldsToCopy.forEach(sel => {
@@ -133,7 +131,7 @@ export function handleAddConsulta() {
         const targetDx = newCard.querySelector('.txt-dx');
         if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
         
-        flash('Consulta sucesiva (Datos heredados de anterior)');
+        flash('Consulta sucesiva (Datos previos heredados)');
     }
 
     container.insertBefore(newCard, container.firstChild);
@@ -141,7 +139,6 @@ export function handleAddConsulta() {
 }
 
 export function resetStory() {
-    // Usamos el servicio dinámico para reiniciar la ficha
     const PatientService = ServiceLoader.get('patient');
     PatientService.initializeNewPatient();
     
