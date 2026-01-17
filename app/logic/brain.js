@@ -19,7 +19,7 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Base (Esqueleto seguro para evitar 'undefined')
+    // Configuración Base (Esqueleto ROBUSTO para evitar 'undefined')
     currentUser: {
         profile: {
             id: "guest",
@@ -48,8 +48,6 @@ export const STATE = {
 
 // --- CONFIGURACIÓN ---
 export async function loadUserConfig(configPath) {
-    injectToastStyles(); 
-    
     // Si no nos pasan path (caso dev), usamos el default
     const path = configPath || './app/user/u001/user.json';
 
@@ -59,7 +57,9 @@ export async function loadUserConfig(configPath) {
             const config = await response.json();
             // Merge profundo para no borrar keys del state base
             STATE.currentUser = { ...STATE.currentUser, ...config };
-            console.log(`[Brain] Perfil cargado: ${STATE.currentUser.profile.username}`);
+            
+            // Log al nuevo Drawer
+            log(`[Brain] Perfil cargado: ${STATE.currentUser.profile.username}`);
             
             // Aplicar preferencias visuales inmediatas
             initWallpaperSystem();
@@ -69,7 +69,7 @@ export async function loadUserConfig(configPath) {
         }
     } catch (e) { 
         console.error("[Brain] Error fatal cargando usuario:", e); 
-        showErr("Error cargando perfil de usuario.");
+        log("Error cargando perfil de usuario.", true);
         return false;
     }
 }
@@ -94,32 +94,70 @@ export function rotateWallpaper() {
     img.onload = () => {
         document.body.style.backgroundImage = `url('${newWP}')`;
         localStorage.setItem('CIMA_WALLPAPER_URL', newWP);
-        flash("Fondo actualizado", false);
+        log("Fondo actualizado");
     };
 }
 
-// --- UTILS ---
-let timeoutHandle;
+// --- SISTEMA DE LOGS (CONSOLE DRAWER) ---
+// Reemplaza al sistema de "Toast" anterior
+export function log(msg, isError = false) {
+    console.log(msg); // Mantener salida en devtools por si acaso
+    
+    const drawer = document.getElementById('consoleContent');
+    if (!drawer) return; // Si el DOM no está listo aún
+    
+    const time = new Date().toLocaleTimeString();
+    const color = isError ? '#ef4444' : '#33ff00'; // Rojo o Verde Hacker
+    
+    const line = document.createElement('div');
+    line.className = 'console-line';
+    line.innerHTML = `<span class="console-ts">[${time}]</span> <span style="color:${color}">${msg}</span>`;
+    
+    // Insertar al principio (lo más nuevo arriba)
+    drawer.prepend(line); 
+}
+
+export function showErr(msg) { 
+    log(msg, true); 
+    // Opcional: alert(msg) si es algo catastrófico que detiene la ejecución
+}
+
+// Mantuvimos esta función vieja por compatibilidad, pero ahora redirige a log
 export function flash(msg, isError = false) {
-    let el = document.getElementById("err");
-    if (!el) { el = document.createElement("div"); el.id = "err"; document.body.appendChild(el); }
-    clearTimeout(timeoutHandle);
-    el.textContent = msg;
-    el.style.borderLeft = isError ? "4px solid #ef4444" : "4px solid #10b981";
-    el.style.color = isError ? "#fca5a5" : "#fff";
-    el.classList.add('active'); el.style.display = 'block';
-    timeoutHandle = setTimeout(() => { el.style.display = 'none'; }, 3000);
-}
-export function showErr(msg) { console.error(msg); flash(msg, true); }
-
-function injectToastStyles() {
-    if (document.getElementById("toast-styles")) return;
-    const css = `#err { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; font-size: 0.9rem; z-index: 9999; border: 1px solid rgba(255,255,255,0.1); min-width: 300px; text-align: center; }`;
-    const style = document.createElement('style'); style.id = "toast-styles"; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
+    log(msg, isError);
 }
 
-// Utils de Fecha
-export function getLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
-export function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-export function fmtDateTime(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); }
-export function calcAge(str) { if (!str) return ""; const t = new Date(), b = new Date(str); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return a >= 0 ? a : 0; }
+// --- UTILIDADES DE FECHA Y EDAD (RESTAURADAS COMPLETAS) ---
+
+export function getLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
+export function fmtDate(isoString) { 
+    if (!isoString) return ""; 
+    const date = new Date(isoString); 
+    if (isNaN(date)) return isoString; 
+    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); 
+}
+
+export function fmtDateTime(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (isNaN(date)) return isoString;
+    return date.toLocaleString('es-VE', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
+}
+
+export function calcAge(dateString) {
+    if (!dateString) return "";
+    const today = new Date();
+    const birthDate = new Date(dateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    return age >= 0 ? age : 0;
+}
