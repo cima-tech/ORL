@@ -1,9 +1,9 @@
 // app/logic/toolbar.js
 
 import { $, STATE, rotateWallpaper, flash, showErr, fmtDate } from 'brain';
-import { exportToPNG, shareViaWhatsApp } from 'export';
-import { buildReportHTML } from 'informe';
-import { buildRecipeHTML } from 'recipe';
+// CORRECCIÓN CRÍTICA: Eliminamos imports estáticos de 'export', 'informe', 'recipe'
+// Usamos el cargador dinámico
+import { ActiveModel } from 'service_loader'; 
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
 
 // ==========================================
@@ -19,6 +19,11 @@ function getNavGroupHTML() {
     const user = STATE.currentUser.profile;
     const parts = user.name.trim().split(" ");
     const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0,2);
+    
+    // Avatar logic
+    const assets = STATE.currentUser.assets || {};
+    const avatarImg = assets.avatar_path ? `<img src="${assets.avatar_path}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : initials.toUpperCase();
+    const avatarClass = assets.avatar_path ? "avatar-circle image-mode" : "avatar-circle";
 
     return `
     <div class="toolbar-group">
@@ -30,15 +35,14 @@ function getNavGroupHTML() {
             <button class="icon-btn" title="Inbox" style="position:relative;"><i class="bi bi-inbox"></i><span class="badge-dot"></span></button>
             
             <div class="user-menu-wrapper">
-                <button id="btnUserAvatar" class="avatar-circle">${initials.toUpperCase()}</button>
+                <button id="btnUserAvatar" class="${avatarClass}">${avatarImg}</button>
                 
                 <div id="userDropdown" class="user-dropdown hidden">
-                    <div class="dropdown-header"><h4>${user.name}</h4><p>Administrador</p></div>
+                    <div class="dropdown-header"><h4>${user.name}</h4><p>${user.role || 'Usuario'}</p></div>
                     
                     <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración Cuenta</button>
                     <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
                     <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Alternar Tema</button>
-                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Toolbar / Sidebar</button>
                     
                     <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
                     
@@ -167,8 +171,6 @@ function bindEvents() {
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
         $("#patientForm").classList.remove('hidden');
-        // Usamos una función del patient.js si es necesario para limpiar visualmente
-        // pero resetStory en engine ya limpió los datos
         flash('Nueva historia iniciada');
         renderToolbar(); 
     });
@@ -207,6 +209,7 @@ function bindEvents() {
         $("#docPreview").style.transform = `scale(${e.target.value / 100})`;
     });
 
+    // --- MANEJO DE EXPORTACIÓN DINÁMICO ---
     $("#btnOpenExport")?.addEventListener('click', () => {
         if (!STATE.currentPreviewDoc) { showErr("Genere documento primero"); return; }
         const fname = $("#documento_numero")?.value || 'paciente';
@@ -215,9 +218,22 @@ function bindEvents() {
         $("#exportFileName").textContent = STATE.exportFilename;
         $("#exportModal").classList.add('active');
     });
+
     $("#btnCloseExport")?.addEventListener('click', () => $("#exportModal")?.classList.remove('active'));
-    $("#btnDownload")?.addEventListener('click', () => { exportToPNG(); $("#exportModal").classList.remove('active'); });
-    $("#btnShareWA")?.addEventListener('click', shareViaWhatsApp);
+    
+    // Llamadas al ActiveModel.export
+    $("#btnDownload")?.addEventListener('click', () => { 
+        if(ActiveModel.export) {
+            ActiveModel.export.exportToPNG(); 
+            $("#exportModal").classList.remove('active'); 
+        } else {
+            showErr("Módulo de exportación no cargado");
+        }
+    });
+    
+    $("#btnShareWA")?.addEventListener('click', () => {
+        if(ActiveModel.export) ActiveModel.export.shareViaWhatsApp();
+    });
 
     $("#btnCancelSearch")?.addEventListener('click', () => $("#searchModal")?.classList.remove('active'));
     $("#btnDoSearch")?.addEventListener('click', runSearch);
@@ -231,10 +247,8 @@ function bindEvents() {
         $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
         $("#btnLogout")?.addEventListener('click', () => location.reload());
         
-        // Botones nuevos
         $("#btnUserProfile")?.addEventListener('click', () => flash("Configuración de Perfil (Futuro)"));
         $("#btnToggleTheme")?.addEventListener('click', () => flash("Cambiar Tema (Futuro)"));
-        $("#btnToggleLayout")?.addEventListener('click', () => flash("Cambiar Layout (Futuro)"));
     }
 }
 
@@ -274,13 +288,29 @@ function refreshPreview() {
 
 export function initToolbarEvents() { renderToolbar(); }
 
+// --- GENERACIÓN DE DOCUMENTOS (DINÁMICA) ---
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId);
     if(!card) return;
+    
+    // Verificamos que los módulos estén cargados
+    if (!ActiveModel.informe || !ActiveModel.recipe) {
+        showErr("Los módulos de reporte/récipe no se han cargado aún.");
+        return;
+    }
+
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
     STATE.UI.isPreviewMode = true; 
-    let html = kind === 'INF' ? buildReportHTML(card) : buildRecipeHTML(card);
+    
+    // Llamada Dinámica
+    let html = '';
+    if (kind === 'INF') {
+        html = ActiveModel.informe.buildReportHTML(card);
+    } else {
+        html = ActiveModel.recipe.buildRecipeHTML(card);
+    }
+    
     const preview = $("#docPreview");
     if(preview) preview.innerHTML = html;
     renderToolbar();
