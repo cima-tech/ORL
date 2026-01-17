@@ -22,7 +22,6 @@
             <p>Sistema Clínico Integral</p>
         </div>
         <div class="login-content">
-            <p class="login-prompt">Seleccione un usuario:</p>
             <div id="user-list-container" class="user-list"></div>
         </div>
         <div class="login-footer"></div>
@@ -59,8 +58,8 @@
 </div> 
 
 <div id="consoleDrawer">
-    <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid var(--primary); padding-bottom:5px;">
-        <span>SYSTEM LOG (Ctrl+Shift+L)</span>
+    <div class="console-header">
+        <span>SYSTEM LOG</span>
         <span style="cursor:pointer;" onclick="document.getElementById('consoleDrawer').classList.remove('open')">▼</span>
     </div>
     <div id="consoleContent"></div>
@@ -81,7 +80,7 @@
 <script type="module">
     import { StartManager } from 'start';
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("CIMA ORL v5.1 - UX Ready...");
+        console.log("CIMA ORL v5.2 - Booting...");
         StartManager.init();
     });
 </script>
