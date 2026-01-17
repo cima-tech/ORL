@@ -2,8 +2,11 @@
   {
     "id": "u001",
     "username": "tudraorl",
-    "name": "Dra. Valentina Gonzalez",
+    "name": "Valentina González",
     "role": "doctor",
+    "Title": "Dra.",
+    "Specialty": "Otorrinolaringologia",
+    "avatar": "./app/user/u001/layout/avatar.png",
     "config_path": "./app/user/u001/user.json"
   }
 ]
