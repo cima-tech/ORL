@@ -1,9 +1,9 @@
 // app/logic/start.js
-import { $, flash, loadUserConfig } from 'brain';
+import { $, flash, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
 
-// Referencias para uso interno
+// Referencias a servicios que se cargarán después
 let PatientService = null;
 
 export const StartManager = {
@@ -13,12 +13,13 @@ export const StartManager = {
         if(loginScreen) loginScreen.classList.remove('hidden');
 
         try {
+            // Cargar lista de usuarios
             const response = await fetch('./app/catalog/users.json');
             const users = await response.json();
             this.renderUserList(users);
         } catch (e) {
             console.error(e);
-            flash("Error cargando usuarios", true);
+            flash("Error cargando lista de usuarios", true);
         }
     },
 
@@ -27,7 +28,7 @@ export const StartManager = {
         if(!list) return;
         
         list.innerHTML = users.map(u => `
-            <div class="user-card animate-fade" onclick="window.attemptLogin('${u.config_path}')">
+            <div class="user-card animate-fade" onclick="window.prepareLogin('${u.config_path}')">
                 <div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>
                 <div class="user-info">
                     <h3>${u.name}</h3>
@@ -39,26 +40,60 @@ export const StartManager = {
     }
 };
 
-window.attemptLogin = async (configPath) => {
+// 1. Preparar Login (Cargar config pero no iniciar aún)
+window.prepareLogin = async (configPath) => {
+    try {
+        // Cargamos la config para ver si tiene password
+        const userLoaded = await loadUserConfig(configPath);
+        if (!userLoaded) throw new Error("No se pudo leer la configuración del usuario");
+
+        const profile = STATE.currentUser.profile;
+
+        if (profile.password) {
+            // Si tiene password, pedirlo
+            const pwd = prompt(`Ingrese contraseña para ${profile.username}:`);
+            if (pwd === profile.password) {
+                // Contraseña correcta
+                finishLogin();
+            } else {
+                flash("Contraseña incorrecta", true);
+            }
+        } else {
+            // Si no tiene password, pasar directo
+            finishLogin();
+        }
+
+    } catch (e) {
+        console.error(e);
+        flash(e.message, true);
+    }
+};
+
+// 2. Finalizar Login (Cargar Servicios y UI)
+async function finishLogin() {
     const loginScreen = document.getElementById('login-screen');
     if(loginScreen) loginScreen.classList.add('loading');
-    
+
     try {
-        const userLoaded = await loadUserConfig(configPath);
-        if (!userLoaded) throw new Error("Error cargando perfil");
-
+        console.log("Iniciando carga de servicios...");
+        
+        // Cargar Servicios (Cartucho ORL)
         const servicesLoaded = await ServiceLoader.init();
-        if (!servicesLoaded) throw new Error("Error cargando servicios");
+        if (!servicesLoaded) throw new Error("Error crítico cargando servicios médicos");
 
+        // Iniciar UI
         initToolbarEvents();
 
+        // Hooks Globales
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
         window.$ = $;
 
+        // Listeners
         attachGlobalListeners();
 
+        // Ocultar Login
         setTimeout(() => {
             if(loginScreen) {
                 loginScreen.style.opacity = '0';
@@ -72,7 +107,7 @@ window.attemptLogin = async (configPath) => {
         flash(e.message, true);
         if(loginScreen) loginScreen.classList.remove('loading');
     }
-};
+}
 
 function attachGlobalListeners() {
     const formContainer = document.getElementById('patientForm');
