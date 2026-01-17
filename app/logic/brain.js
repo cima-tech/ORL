@@ -6,9 +6,8 @@ export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
-    patientUUID: 1000,
     
-    // ESTADOS DE LA INTERFAZ
+    // UI State
     UI: {
         currentMode: 'CONSULTATION', 
         isStoryOpen: false,          
@@ -17,40 +16,48 @@ export const STATE = {
 
     currentPreviewCard: null, 
     currentPreviewDoc: null,
-    currentShareCard: null,
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Inicial (Fallback)
+    // Configuración Base (Se sobrescribe al cargar user.json)
     currentUser: {
-        profile: {
-            id: "u-001",
-            name: "Usuario",
-            title_line_1: "Médico",
-            phones: []
-        },
-        preferences: {
-            default_model: "ORL-001" // Fallback default
-        },
+        profile: { id: "guest", name: "Invitado" },
+        preferences: { default_model: "ORL-001" }, // Fallback
         assets: {}
     }
 };
 
-// --- WALLPAPERS SYSTEM ---
+// --- CONFIGURACIÓN ---
+export async function loadUserConfig() {
+    injectToastStyles(); 
+    initWallpaperSystem(); 
+    try {
+        // En Fase 2, esta ruta vendrá del login. Por ahora hardcodeamos u001.
+        const response = await fetch('./app/user/u001/user.json');
+        if (response.ok) {
+            const config = await response.json();
+            // Merge profundo seguro
+            STATE.currentUser = { 
+                ...STATE.currentUser, 
+                ...config,
+                preferences: { ...STATE.currentUser.preferences, ...(config.preferences || {}) },
+                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
+                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } 
+            };
+            console.log(`[Brain] Configuración cargada. Modelo preferido: ${STATE.currentUser.preferences.default_model}`);
+        }
+    } catch (e) { console.error("[Brain] Error cargando config:", e); }
+}
+
+// --- WALLPAPERS ---
 const WALLPAPERS = [
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop", 
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=3540&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=3748&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1501854140884-074cf2b21d25?q=80&w=3544&auto=format&fit=crop"
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3544&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=3540&auto=format&fit=crop"
 ];
 
 function initWallpaperSystem() {
-    let currentWP = localStorage.getItem('CIMA_WALLPAPER_URL');
-    if (!currentWP) {
-        const randomIndex = Math.floor(Math.random() * WALLPAPERS.length);
-        currentWP = WALLPAPERS[randomIndex];
-    }
+    let currentWP = localStorage.getItem('CIMA_WALLPAPER_URL') || WALLPAPERS[0];
     document.body.style.backgroundImage = `url('${currentWP}')`;
 }
 
@@ -66,35 +73,7 @@ export function rotateWallpaper() {
     };
 }
 
-// --- CONFIGURACIÓN & ARRANQUE ---
-// Importamos dinámicamente el loader para evitar ciclos circulares estáticos
-export async function loadUserConfig() {
-    injectToastStyles(); 
-    initWallpaperSystem(); 
-    
-    try {
-        const response = await fetch('./app/user/u001/user.json');
-        if (response.ok) {
-            const config = await response.json();
-            STATE.currentUser = { 
-                ...STATE.currentUser, 
-                ...config, 
-                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
-                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) },
-                preferences: { ...STATE.currentUser.preferences, ...(config.preferences || {}) }
-            };
-        }
-    } catch (e) { 
-        console.warn("No se pudo cargar user.json, usando defaults.", e); 
-    }
-
-    // AQUI OCURRE LA MAGIA DE LA FASE 1
-    // Importamos el loader aquí para garantizar que STATE ya tiene la config del usuario
-    const { loadServiceModules } = await import('./service_loader.js');
-    await loadServiceModules();
-}
-
-// --- NOTIFICACIONES ---
+// --- UTILS ---
 let timeoutHandle;
 export function flash(msg, isError = false) {
     let el = document.getElementById("err");
@@ -103,49 +82,18 @@ export function flash(msg, isError = false) {
     el.textContent = msg;
     el.style.borderLeft = isError ? "4px solid #ef4444" : "4px solid #10b981";
     el.style.color = isError ? "#fca5a5" : "#fff";
-    el.classList.add('active'); el.style.display = 'block'; el.style.opacity = '1'; el.style.transform = 'translate(-50%, 0)';
-    timeoutHandle = setTimeout(() => {
-        el.style.opacity = '0'; el.style.transform = 'translate(-50%, -20px)';
-        setTimeout(() => { el.style.display = 'none'; }, 300);
-    }, 3000);
+    el.classList.add('active'); el.style.display = 'block';
+    timeoutHandle = setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 export function showErr(msg) { console.error(msg); flash(msg, true); }
 
 function injectToastStyles() {
-    const styleId = "toast-styles";
-    if (document.getElementById(styleId)) return;
-    const css = `#err { display: none; position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; font-size: 0.9rem; z-index: 9999; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); border: 1px solid rgba(255,255,255,0.1); min-width: 300px; text-align: center; }`;
-    const style = document.createElement('style'); style.id = styleId; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
+    if (document.getElementById("toast-styles")) return;
+    const css = `#err { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; font-size: 0.9rem; z-index: 9999; border: 1px solid rgba(255,255,255,0.1); min-width: 300px; text-align: center; }`;
+    const style = document.createElement('style'); style.id = "toast-styles"; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
-// --- UTILIDADES DE FECHA Y EDAD ---
-
-export function getLocalDateTime() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    return now.toISOString().slice(0, 16);
-}
-
-export function fmtDate(isoString) { 
-    if (!isoString) return ""; 
-    const date = new Date(isoString); 
-    if (isNaN(date)) return isoString; 
-    return date.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); 
-}
-
-export function fmtDateTime(isoString) {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    if (isNaN(date)) return isoString;
-    return date.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-}
-
-export function calcAge(dateString) {
-    if (!dateString) return "";
-    const today = new Date();
-    const birthDate = new Date(dateString);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-    return age >= 0 ? age : 0;
-}
+export function getLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
+export function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+export function fmtDateTime(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); }
+export function calcAge(str) { if (!str) return ""; const t = new Date(), b = new Date(str); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return a >= 0 ? a : 0; }
