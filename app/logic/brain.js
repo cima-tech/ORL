@@ -19,34 +19,59 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Base (Se sobrescribe al cargar user.json)
+    // Configuración Base (Esqueleto vacío basado en tu JSON)
     currentUser: {
-        profile: { id: "guest", name: "Invitado" },
-        preferences: { default_model: "ORL-001" }, // Fallback
-        assets: {}
+        profile: {
+            id: "guest",
+            role: "guest",
+            username: "guest",
+            title: "Dr(a).",
+            firstname: "Usuario",
+            lastname: "",
+            title_line_1: "",
+            contact: {},
+            location: ""
+        },
+        professional: {},
+        institution: {},
+        preferences: {
+            theme: "dark",
+            default_model: "ORL-001" // Fallback crítico
+        },
+        assets: {
+            avatar_path: "",
+            header_path: "",
+            footer_path: ""
+        }
     }
 };
 
 // --- CONFIGURACIÓN ---
-export async function loadUserConfig() {
+export async function loadUserConfig(configPath) {
     injectToastStyles(); 
-    initWallpaperSystem(); 
+    
+    // Si no nos pasan path (caso dev), intentamos default
+    const path = configPath || './app/user/u001/user.json';
+
     try {
-        // En Fase 2, esta ruta vendrá del login. Por ahora hardcodeamos u001.
-        const response = await fetch('./app/user/u001/user.json');
+        const response = await fetch(path);
         if (response.ok) {
             const config = await response.json();
-            // Merge profundo seguro
-            STATE.currentUser = { 
-                ...STATE.currentUser, 
-                ...config,
-                preferences: { ...STATE.currentUser.preferences, ...(config.preferences || {}) },
-                assets: { ...STATE.currentUser.assets, ...(config.assets || {}) }, 
-                profile: { ...STATE.currentUser.profile, ...(config.profile || {}) } 
-            };
-            console.log(`[Brain] Configuración cargada. Modelo preferido: ${STATE.currentUser.preferences.default_model}`);
+            // Merge profundo
+            STATE.currentUser = { ...STATE.currentUser, ...config };
+            console.log(`[Brain] Perfil cargado: ${STATE.currentUser.profile.username}`);
+            
+            // Aplicar preferencias visuales inmediatas
+            initWallpaperSystem();
+            return true;
+        } else {
+            throw new Error("Archivo de usuario no encontrado");
         }
-    } catch (e) { console.error("[Brain] Error cargando config:", e); }
+    } catch (e) { 
+        console.error("[Brain] Error fatal cargando usuario:", e); 
+        showErr("Error cargando perfil de usuario.");
+        return false;
+    }
 }
 
 // --- WALLPAPERS ---
@@ -93,6 +118,7 @@ function injectToastStyles() {
     const style = document.createElement('style'); style.id = "toast-styles"; style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
 }
 
+// Utils de Fecha
 export function getLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
 export function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
 export function fmtDateTime(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); }
