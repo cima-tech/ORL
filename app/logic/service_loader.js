@@ -14,12 +14,12 @@ export const ServiceLoader = {
     async init() {
         try {
             // 1. Obtener ID del modelo
+            // Usamos optional chaining por si preferences no está listo
             const modelId = STATE.currentUser?.preferences?.default_model;
             
             if (!modelId) throw new Error("El usuario no tiene un 'default_model' configurado.");
 
-            // 2. Cargar catálogo
-            // Usamos ruta absoluta relativa a la raíz para el JSON también por seguridad
+            // 2. Cargar catálogo (Usando ruta absoluta para evitar conflictos)
             const catalogUrl = new URL('./app/catalog/models.json', document.baseURI).href;
             const response = await fetch(catalogUrl);
             
@@ -31,19 +31,19 @@ export const ServiceLoader = {
             if (!modelConfig) throw new Error(`Modelo '${modelId}' no existe en el catálogo.`);
             if (!modelConfig.path) throw new Error(`El modelo '${modelId}' no tiene una ruta (path) definida.`);
 
-            // 4. CALCULAR RUTA ABSOLUTA (EL FIX)
-            // Esto convierte "./app/services..." en "https://tusitio.com/ORL/app/services..."
-            // ignorando que este script está metido dentro de /app/logic/
+            // 4. CALCULAR RUTA ABSOLUTA
+            // Esto asegura que la ruta sea correcta sin importar dónde esté este script
             const basePath = new URL(modelConfig.path, document.baseURI).href;
 
-            console.log(`[ServiceLoader] Importando desde: ${basePath}`);
+            console.log(`[ServiceLoader] Importando módulos desde: ${basePath}`);
 
-            // 5. Importar Módulos usando la ruta absoluta
+            // 5. Importar Módulos (CORRECCIÓN DE NOMBRE AQUÍ)
+            // recipe.js -> recipe-indicaciones.js
             const [modPatient, modConsult, modInforme, modRecipe, modExport] = await Promise.all([
                 import(`${basePath}/patient.js`),
                 import(`${basePath}/consult.js`),
                 import(`${basePath}/informe.js`),
-                import(`${basePath}/recipe.js`),
+                import(`${basePath}/recipe-indicaciones.js`), // <--- NOMBRE CORREGIDO
                 import(`${basePath}/export.js`)
             ]);
 
