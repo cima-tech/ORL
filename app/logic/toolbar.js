@@ -1,194 +1,228 @@
-// app/logic/toolbar.js
-import { $, STATE, rotateWallpaper, log, fmtDate } from 'brain';
-import { ServiceLoader } from './service_loader.js'; 
-import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
-
-function getNavGroupHTML() {
-    const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' : '';
-    
-    const p = STATE.currentUser.profile;
-    const fullName = `${p.title} ${p.firstname} ${p.lastname}`;
-    const subLine = p.title_line_1 || p.role;
-    const initials = p.firstname ? p.firstname[0] + (p.lastname ? p.lastname[0] : '') : "DR";
-    
-    const avatarStyle = p.assets?.avatar_path 
-        ? `background-image: url('${p.assets.avatar_path}'); background-size: cover; color: transparent;` 
-        : '';
-
-    return `
-    <div class="toolbar-group">
-        <div class="icon-row">
-            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
-            <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
-            <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
-            <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
-            <button class="icon-btn" title="Inbox" style="position:relative;"><i class="bi bi-inbox"></i><span class="badge-dot"></span></button>
-            
-            <div class="user-menu-wrapper">
-                <button id="btnUserAvatar" class="avatar-circle" style="${avatarStyle}">${initials.toUpperCase()}</button>
-                <div id="userDropdown" class="user-dropdown hidden">
-                    <div class="dropdown-header">
-                        <h4>${fullName}</h4>
-                        <p>${subLine}</p>
-                        <p style="font-size:0.7rem; opacity:0.5;">@${p.username}</p>
-                    </div>
-                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button>
-                    <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
-                    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
-                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
-                </div>
-            </div>
-        </div>
-        <span class="group-label">Navegación</span>
-    </div>`;
+/* =========================================
+   1. CORE & VARIABLES
+   ========================================= */
+:root {
+  --primary: #0ea5e9;       /* Sky Blue */
+  --accent: #22d3ee;        /* Cyan */
+  --success: #10b981;       /* Emerald */
+  --danger: #ef4444;        /* Red */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
-function getPreviewGroupHTML() {
-    if (!STATE.UI.isPreviewMode) return '';
-    const signColor = STATE.USE_SIG ? 'var(--accent)' : 'white';
-    
-    // Botones Toggle Documento
-    const btnInfClass = STATE.currentPreviewDoc === 'INF' ? 'background:var(--primary); color:white;' : 'opacity:0.7;';
-    const btnRpClass = STATE.currentPreviewDoc === 'RP' ? 'background:var(--primary); color:white;' : 'opacity:0.7;';
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
-    return `
-    <div class="v-divider"></div>
-    <div class="toolbar-group animate-fade" style="background:rgba(15, 23, 42, 0.6); border-radius:12px; padding:0 10px;">
-        <div class="icon-row">
-            <div style="display:flex; gap:5px;">
-                <button onclick="window.switchDocType('INF')" class="icon-btn" style="font-size:0.8rem; width:auto; padding:0 12px; ${btnInfClass}">Informe</button>
-                <button onclick="window.switchDocType('RP')" class="icon-btn" style="font-size:0.8rem; width:auto; padding:0 12px; ${btnRpClass}">Récipe</button>
-            </div>
-            
-            <div style="width:1px; height:20px; background:rgba(255,255,255,0.2); margin:0 5px;"></div>
-
-            <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-                <input type="range" id="zoomRange" min="40" max="130" step="5" value="85" style="width:60px; height:4px;">
-            </div>
-            <button id="btnToggleSign" class="icon-btn" title="Firmar" style="color:${signColor}"><i class="bi bi-pen-fill"></i></button>
-            <button id="btnOpenExport" class="icon-btn" title="Exportar" style="background:var(--success);"><i class="bi bi-share-fill"></i></button>
-            <button id="btnExitPreview" class="icon-btn" title="Cerrar"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <span class="group-label" style="color:var(--success);">Vista Previa</span>
-    </div>
-    `;
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background-color: #0f172a; 
+  background-size: cover; background-position: center; background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh; font-size: 14px; overflow-x: hidden;
 }
 
-function getHistoryGroupHTML() {
-    return `<div class="toolbar-group"><div class="icon-row"><button id="btnNew" class="icon-btn" title="Nueva Historia"><i class="bi bi-file-earmark-plus"></i></button><button id="btnOpen" class="icon-btn" title="Abrir Historia"><i class="bi bi-folder2-open"></i></button>${STATE.UI.isStoryOpen ? `<button id="btnClose" class="icon-btn" title="Guardar"><i class="bi bi-floppy"></i></button><button id="btnCloseStory" class="icon-btn btn-close-app" title="Cerrar HC"><i class="bi bi-x-lg"></i></button>` : ''}</div><span class="group-label">Historia</span></div>`;
-}
-function getConsultToolsHTML() {
-    if (!STATE.UI.isStoryOpen || STATE.UI.isPreviewMode) return '';
-    return `<div class="v-divider"></div><div class="toolbar-group animate-fade"><div class="icon-row"><button id="btnAddConsulta" class="icon-btn" title="Agregar Consulta"><i class="bi bi-plus-lg"></i></button><button id="btnDeleteLast" class="icon-btn" title="Quitar Última"><i class="bi bi-dash-lg"></i></button></div><span class="group-label">Consulta</span></div>`;
+body::before {
+    content: ''; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.6); z-index: -1; pointer-events: none;
 }
 
-export function renderToolbar() {
-    const mountPoint = document.getElementById('ui-mount-point');
-    if (!mountPoint) return;
-    
-    // Toggle Visibilidad
-    const previewShell = document.getElementById('previewShell');
-    if (STATE.UI.isPreviewMode) {
-        previewShell.classList.remove('hidden');
-        document.getElementById('patientForm').classList.add('hidden'); 
-        document.getElementById('visitsContainer').classList.add('hidden');
-    } else {
-        previewShell.classList.add('hidden');
-        if (STATE.UI.isStoryOpen && STATE.UI.currentMode === 'CONSULTATION') {
-            document.getElementById('patientForm').classList.remove('hidden');
-            document.getElementById('visitsContainer').classList.remove('hidden');
-        }
-    }
+.hidden { display: none !important; }
 
-    let html = `<div class="toolbar-container"><div class="floating-toolbar">`;
-    if (STATE.UI.currentMode === 'CONSULTATION') {
-        html += getHistoryGroupHTML();
-        html += getConsultToolsHTML();
-        html += getPreviewGroupHTML();
-        html += `<div class="v-divider"></div>`;
-    }
-    html += getNavGroupHTML();
-    html += `</div></div>`;
-    
-    // Inyectar Modales
-    html += `<div id="searchModal" class="modal-overlay"><div class="modal-box glass"><h3 style="color:var(--accent);margin-bottom:15px">Buscar</h3><input id="searchValue" class="form-input" placeholder="Nombre..." style="margin-bottom:15px;padding:12px"><div id="searchResultsList" style="max-height:300px;overflow:auto;margin-bottom:15px"></div><div style="text-align:right;display:flex;gap:10px;justify-content:flex-end"><button id="btnCancelSearch" class="icon-btn" style="width:auto;padding:0 15px;font-size:0.9rem">Cancelar</button><button id="btnDoSearch" class="icon-btn" style="width:auto;padding:0 15px;font-size:0.9rem;background:var(--primary)">Buscar</button></div></div></div><div id="exportModal" class="modal-overlay"><div class="modal-box glass"><h3 style="color:var(--accent);text-align:center;margin-bottom:5px">Compartir</h3><p id="exportFileName" style="text-align:center;color:#94a3b8;margin-bottom:25px;font-family:monospace"></p><div style="display:grid;grid-template-columns:1fr 1fr;gap:15px"><button id="btnShareWA" class="icon-btn" style="width:100%;background:#25D366;gap:8px;font-size:0.9rem"><i class="bi bi-whatsapp"></i> WhatsApp</button><button id="btnShareMail" class="icon-btn" style="width:100%;background:#EA4335;gap:8px;font-size:0.9rem"><i class="bi bi-envelope-fill"></i> Email</button><button id="btnDownload" class="icon-btn" style="width:100%;background:var(--primary);grid-column:span 2;gap:8px;font-size:0.9rem"><i class="bi bi-download"></i> Descargar</button></div><div style="text-align:right;margin-top:20px"><button id="btnCloseExport" class="icon-btn" style="width:auto;padding:0 15px;font-size:0.8rem">Cerrar</button></div></div></div>`;
+/* =========================================
+   2. LOGIN SCREEN (Integrado y Limpio)
+   ========================================= */
+.login-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0f172a; 
+    background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop');
+    background-size: cover; background-position: center;
+    display: flex; justify-content: center; align-items: center;
+}
+.login-overlay::before { content: ''; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); }
 
-    mountPoint.innerHTML = html;
-    bindEvents();
+.login-box {
+    width: 100%; max-width: 380px; 
+    background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 30px; position: relative; z-index: 10;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
-function bindEvents() {
-    window.changeMode = (mode) => { STATE.UI.currentMode = mode; STATE.UI.isPreviewMode = false; renderToolbar(); };
-    window.switchDocType = (type) => { 
-        if(STATE.currentPreviewCard) window.openDocGlobal(type, STATE.currentPreviewCard.id); 
-    };
+.login-header { text-align: center; margin-bottom: 25px; }
+.logo-big { 
+    font-size: 2.5rem; font-weight: 800; letter-spacing: 2px; color: white;
+    text-shadow: 0 0 20px var(--primary);
+}
+.login-header p { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
-    $("#btnNew")?.addEventListener('click', () => { 
-        if(STATE.UI.isStoryOpen && !confirm("¿Cerrar actual?")) return;
-        resetStory(); STATE.UI.isStoryOpen = true; 
-        ServiceLoader.get('patient').initializeNewPatient(); renderToolbar(); 
-    });
-    
-    $("#btnClose")?.addEventListener('click', () => { if(saveCurrentHistory()) log('Guardado'); });
-    $("#btnCloseStory")?.addEventListener('click', () => { if(confirm("¿Guardar y cerrar?")) { saveCurrentHistory(); resetStory(); renderToolbar(); } });
-    $("#btnOpen")?.addEventListener('click', () => { $("#searchModal")?.classList.add('active'); $("#searchValue")?.focus(); $("#searchResultsList").innerHTML=''; });
-    $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
-    $("#btnDeleteLast")?.addEventListener('click', () => { const c = document.getElementById("visitsContainer"); if(c?.firstElementChild && confirm('¿Quitar última?')) { c.firstElementChild.remove(); log('Eliminada'); } });
-    $("#btnExitPreview")?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; STATE.currentPreviewDoc = null; renderToolbar(); });
-    $("#btnToggleSign")?.addEventListener('click', () => { STATE.USE_SIG = !STATE.USE_SIG; refreshPreview(); renderToolbar(); });
-    $("#btnRefresh")?.addEventListener('click', refreshPreview);
-    $("#zoomRange")?.addEventListener('input', (e) => { $("#zoomVal").textContent = e.target.value + '%'; $("#docPreview").style.transform = `scale(${e.target.value / 100})`; });
-    
-    $("#btnOpenExport")?.addEventListener('click', () => { $("#exportModal").classList.add('active'); });
-    $("#btnCloseExport")?.addEventListener('click', () => $("#exportModal")?.classList.remove('active'); );
-    $("#btnDownload")?.addEventListener('click', () => { ServiceLoader.get('export').exportToPNG(); $("#exportModal").classList.remove('active'); });
-    
-    const av = $("#btnUserAvatar"); const mn = $("#userDropdown");
-    if(av && mn) {
-        av.addEventListener('click', (e) => { e.stopPropagation(); mn.classList.toggle('hidden'); });
-        document.addEventListener('click', (e) => { if(!mn.classList.contains('hidden') && !mn.contains(e.target) && !av.contains(e.target)) mn.classList.add('hidden'); });
-        $("#btnChangeWallpaper")?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
-        $("#btnLogout")?.addEventListener('click', () => location.reload());
-    }
-    
-    $("#btnCancelSearch")?.addEventListener('click', () => $("#searchModal")?.classList.remove('active'); );
-    $("#btnDoSearch")?.addEventListener('click', runSearch);
-    $("#searchValue")?.addEventListener('keypress', (e) => { if (e.key === 'Enter') runSearch(); });
+/* Tarjeta de Usuario en Login */
+.user-list { display: flex; flex-direction: column; gap: 10px; }
+
+.user-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 12px; cursor: pointer;
+    transition: all 0.2s ease;
+}
+.user-card:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
+
+.user-card-header { display: flex; align-items: center; gap: 15px; }
+
+.user-avatar-lg {
+    width: 42px; height: 42px; border-radius: 50%; 
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: white; font-size: 1rem;
+    background-size: cover; background-position: center;
 }
 
-function runSearch() {
-    const q = $("#searchValue")?.value;
-    if(!q) return;
-    const results = getSearchResults(q);
-    const list = $("#searchResultsList");
-    list.innerHTML = '';
-    if(results.length === 0) { list.innerHTML = '<div style="padding:10px;text-align:center;color:#94a3b8">Sin resultados</div>'; return; }
-    results.forEach(m => {
-        const div = document.createElement('div');
-        div.className = "dropdown-item"; 
-        div.style.cssText = 'flex-direction:column; align-items:flex-start; border-bottom:1px solid rgba(255,255,255,0.1);';
-        div.innerHTML = `<div style="color:var(--accent);font-weight:bold">${m.patient.primer_nombre} ${m.patient.primer_apellido}</div><div style="font-size:0.8rem;color:var(--text-muted)">${m.patient.documento_numero} | ${fmtDate(m.lastUpdated)}</div>`;
-        div.onclick = () => { loadHistoryRecord(m); $("#searchModal").classList.remove('active'); renderToolbar(); };
-        list.appendChild(div);
-    });
+.user-info h3 { margin: 0; font-size: 0.95rem; color: white; }
+.user-info p { margin: 0; font-size: 0.75rem; color: var(--text-muted); }
+
+/* INPUT DE PASSWORD (DENTRO DE LA TARJETA) */
+.password-area {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);
+    animation: slideDown 0.2s ease;
+}
+.password-input {
+    width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--primary);
+    padding: 8px; border-radius: 6px; color: white; text-align: center;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =========================================
+   3. TOOLBAR FLOTANTE
+   ========================================= */
+.toolbar-container {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 2000; display: flex; justify-content: center; pointer-events: none;
 }
 
-function refreshPreview() {
-    if (STATE.currentPreviewDoc && STATE.currentPreviewCard) {
-        window.openDocGlobal(STATE.currentPreviewDoc, STATE.currentPreviewCard.id);
-    }
+.floating-toolbar {
+  pointer-events: auto; display: flex; align-items: center; gap: 20px;
+  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); padding: 8px 25px; border-radius: 50px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-export function initToolbarEvents() { renderToolbar(); }
+.toolbar-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.icon-row { display: flex; align-items: center; gap: 8px; }
+.group-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+.v-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.15); }
 
-window.openDocGlobal = function(kind, cardId) {
-    const card = document.getElementById(cardId);
-    if(!card) return;
-    STATE.currentPreviewCard = card;
-    STATE.currentPreviewDoc = kind;
-    STATE.UI.isPreviewMode = true; 
-    let html = kind === 'INF' ? ServiceLoader.get('informe').buildReportHTML(card) : ServiceLoader.get('recipe').buildRecipeHTML(card);
-    const preview = $("#docPreview");
-    if(preview) preview.innerHTML = html;
-    renderToolbar();
-};
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, 0.05); color: #cbd5e1; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: scale(1.05); }
+
+/* Avatar Toolbar */
+.avatar-circle {
+  width: 38px; height: 38px; border-radius: 50%; background-color: var(--primary);
+  background-size: cover; color: transparent; border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+}
+.user-dropdown {
+    position: absolute; top: 50px; right: 0; width: 220px;
+    background: #1e293b; border: 1px solid var(--glass-border); border-radius: 12px;
+    padding: 10px; display: flex; flex-direction: column; gap: 5px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.dropdown-item {
+    padding: 8px; border-radius: 6px; color: #cbd5e1; background: transparent; border: none;
+    text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;
+}
+.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+/* =========================================
+   4. CONTENEDOR PRINCIPAL
+   ========================================= */
+.container { max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px; }
+
+.card, .visit-card {
+  background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-radius: 16px;
+  padding: 25px; margin-bottom: 20px;
+}
+.visit-card { border-left: 4px solid var(--primary); }
+
+/* Inputs Corregidos */
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+.span-4 { grid-column: span 4; } .span-2 { grid-column: span 2; }
+
+.form-input {
+  width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+  color: white; font-family: inherit;
+}
+.form-input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+
+/* Checkbox Toggle Switch */
+.checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.checkbox-wrapper input { display: none; }
+.checkbox-visual {
+    width: 36px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 20px;
+    position: relative; transition: 0.3s; border: 1px solid rgba(255,255,255,0.2);
+}
+.checkbox-visual::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+    background: white; border-radius: 50%; transition: 0.3s;
+}
+.checkbox-wrapper input:checked + .checkbox-visual { background: var(--success); border-color: var(--success); }
+.checkbox-wrapper input:checked + .checkbox-visual::after { transform: translateX(16px); }
+.checkbox-wrapper input:disabled + .checkbox-visual { opacity: 0.6; cursor: not-allowed; }
+
+/* Chips */
+.chips-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.chip {
+    padding: 4px 12px; border-radius: 20px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2); font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+}
+.chip:hover { border-color: var(--primary); color: white; }
+.chip.active { background: rgba(14,165,233,0.2); border-color: var(--primary); color: var(--accent); }
+
+/* =========================================
+   5. PREVIEW & MODALS
+   ========================================= */
+/* Hoja de Papel */
+.preview-shell {
+    position: fixed; inset: 0; z-index: 1500; background: rgba(5, 10, 20, 0.95);
+    display: flex; justify-content: center; overflow-y: auto; padding: 100px 0;
+}
+#docPreview {
+    background: white; color: black; width: 21.59cm; min-height: 27.94cm;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+/* Modales (Fix: Ocultos por defecto) */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000;
+    display: none; /* <--- CRÍTICO */
+    justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+.modal-box {
+    background: #1e293b; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px;
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* =========================================
+   6. CONSOLE DRAWER (Mensajes)
+   ========================================= */
+#consoleDrawer {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 180px;
+    background: #0f172a; border-top: 1px solid var(--primary); z-index: 9999;
+    transform: translateY(100%); transition: transform 0.3s;
+    display: flex; flex-direction: column; font-family: monospace; font-size: 0.8rem;
+}
+#consoleDrawer.open { transform: translateY(0); }
+.console-header {
+    background: rgba(255,255,255,0.05); padding: 5px 15px; display: flex; justify-content: space-between;
+    color: var(--text-muted); font-size: 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+#consoleContent { flex: 1; overflow-y: auto; padding: 10px; color: #33ff00; }
+.console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
