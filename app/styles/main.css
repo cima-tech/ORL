@@ -22,6 +22,7 @@ body {
   background-size: cover; background-position: center; background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh; font-size: 14px; overflow-x: hidden;
+  transition: margin-left 0.3s ease; /* Transición suave para sidebar */
 }
 
 body::before {
@@ -37,7 +38,7 @@ body::before {
 /* Contenedor Base */
 #ui-mount-point {
     position: fixed; z-index: 2000;
-    pointer-events: none; /* Permite clicks a través de áreas vacías */
+    pointer-events: none; 
 }
 
 /* --- MODO TOOLBAR (TOP) --- */
@@ -58,6 +59,10 @@ body::before {
 .layout-toolbar .group-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; text-align: center; display: block; margin-top: 4px; }
 
 /* --- MODO SIDEBAR (LEFT) --- */
+/* Ajuste del Body cuando hay sidebar */
+body.has-sidebar { margin-left: 90px; }
+body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px auto; }
+
 .layout-sidebar {
     top: 0; left: 0; bottom: 0; width: 80px;
     display: flex; flex-direction: column; justify-content: center;
@@ -72,7 +77,7 @@ body::before {
 
 .layout-sidebar .v-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.15); margin: 5px 0; }
 .layout-sidebar .icon-row { display: flex; flex-direction: column; gap: 10px; }
-.layout-sidebar .group-label { display: none; } /* En sidebar ocultamos etiquetas para ahorrar espacio */
+.layout-sidebar .group-label { display: none; } 
 
 /* Botones Comunes */
 .icon-btn {
@@ -113,10 +118,7 @@ body::before {
    ========================================= */
 .container { 
     max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px;
-    transition: margin-left 0.3s; 
 }
-/* Ajuste de margen cuando hay Sidebar */
-body.has-sidebar .container { margin-left: 100px; max-width: calc(100% - 140px); }
 
 .card, .visit-card {
   background: var(--glass-bg); backdrop-filter: blur(20px);
@@ -178,20 +180,34 @@ body.has-sidebar .container { margin-left: 100px; max-width: calc(100% - 140px);
 
 /* Preview Simulado (Carta Pequeña) */
 .doc-simulated {
-    width: 216px; height: 279px; /* Escala 10% de carta real aprox para visualización */
+    width: 216px; height: 279px; /* Escala 10% de carta real aprox */
     background: white; color: black; position: relative;
     box-shadow: 0 0 30px rgba(0,0,0,0.5); transform: scale(1.5);
     display: flex; flex-direction: column; justify-content: space-between;
-    overflow: hidden; font-size: 4px; /* Texto ilegible simulado */
+    overflow: hidden; font-size: 4px; 
 }
 .doc-sim-header { height: 15%; background-size: contain; background-repeat: no-repeat; background-position: center; border-bottom: 1px dashed #ccc; }
 .doc-sim-body { flex: 1; padding: 10px; background: rgba(0,0,0,0.02); }
 .doc-sim-footer { height: 10%; background-size: contain; background-repeat: no-repeat; background-position: center; border-top: 1px dashed #ccc; }
 
+/* Modal Simple (Search/Export) */
+.modal-box {
+    background: #1e293b; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px;
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
 /* =========================================
    5. LOGIN & DRAWER
    ========================================= */
-/* (Estilos de Login y Drawer del V5.2 se mantienen igual, solo aseguro compatibilidad) */
+/* Login Integrado */
+.login-overlay { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; justify-content: center; align-items: center; }
+.login-box { width: 380px; background: rgba(30,41,59,0.9); padding: 40px; border-radius: 20px; border: 1px solid var(--glass-border); }
+.user-wrapper { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+.user-wrapper:hover { border-color: var(--primary); background: rgba(255,255,255,0.08); }
+.password-area { margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; animation: slideDown 0.2s; }
+.password-area.hidden { display: none; }
+
+/* Console Drawer */
 #consoleDrawer {
     position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
     background: #0f172a; border-top: 1px solid var(--primary); z-index: 10000;
@@ -201,8 +217,5 @@ body.has-sidebar .container { margin-left: 100px; max-width: calc(100% - 140px);
 #consoleDrawer.open { transform: translateY(0); }
 .console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 10px; }
 
-/* ... (Resto de estilos de login V5.2) ... */
-.login-overlay { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; justify-content: center; align-items: center; }
-.login-box { width: 380px; background: rgba(30,41,59,0.9); padding: 40px; border-radius: 20px; }
-.user-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
-.password-area.hidden { display: none; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
