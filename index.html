@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CIMA — Sistema ORL</title>
-    
     <link rel="stylesheet" href="app/styles/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -59,7 +58,7 @@
 
 <div id="consoleDrawer">
     <div class="console-header">
-        <span>SYSTEM LOG</span>
+        <span>SYSTEM LOG (Ctrl+Shift+L)</span>
         <span style="cursor:pointer;" onclick="document.getElementById('consoleDrawer').classList.remove('open')">▼</span>
     </div>
     <div id="consoleContent"></div>
@@ -80,7 +79,7 @@
 <script type="module">
     import { StartManager } from 'start';
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("CIMA ORL v5.2 - Booting...");
+        console.log("CIMA ORL v5.2 - System Ready");
         StartManager.init();
     });
 </script>
