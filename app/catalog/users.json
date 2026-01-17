@@ -1,0 +1,9 @@
+[
+  {
+    "id": "u001",
+    "username": "tudraorl",
+    "name": "Dra. Valentina Gonzalez",
+    "role": "doctor",
+    "config_path": "./app/user/u001/user.json"
+  }
+]
