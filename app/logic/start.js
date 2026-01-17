@@ -2,29 +2,23 @@
 import { $, flash, loadUserConfig } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
-import { ServiceLoader as SL } from 'service_loader'; // Alias para uso interno
 
-// Referencias a servicios que se cargarán después
+// Referencias para uso interno
 let PatientService = null;
 
 export const StartManager = {
     
     async init() {
-        // 1. Mostrar pantalla de carga/login
         const loginScreen = document.getElementById('login-screen');
         if(loginScreen) loginScreen.classList.remove('hidden');
 
         try {
-            // 2. Cargar lista de usuarios disponibles
             const response = await fetch('./app/catalog/users.json');
             const users = await response.json();
-            
-            // 3. Renderizar lista
             this.renderUserList(users);
-            
         } catch (e) {
             console.error(e);
-            flash("Error cargando lista de usuarios", true);
+            flash("Error cargando usuarios", true);
         }
     },
 
@@ -45,43 +39,33 @@ export const StartManager = {
     }
 };
 
-// Función global para el onclick del HTML
 window.attemptLogin = async (configPath) => {
     const loginScreen = document.getElementById('login-screen');
-    
-    // 1. Efecto visual
     if(loginScreen) loginScreen.classList.add('loading');
     
     try {
-        // 2. Cargar Brain (Configuración del usuario seleccionado)
         const userLoaded = await loadUserConfig(configPath);
         if (!userLoaded) throw new Error("Error cargando perfil");
 
-        // 3. Cargar Servicios (Cartucho ORL)
         const servicesLoaded = await ServiceLoader.init();
         if (!servicesLoaded) throw new Error("Error cargando servicios");
 
-        // 4. Iniciar UI (Toolbar)
         initToolbarEvents();
 
-        // 5. Hooks Globales (Patient Service ahora sí existe)
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
-        window.$ = $; // jQuery-like global
+        window.$ = $;
 
-        // 6. Listeners del DOM (Formulario)
         attachGlobalListeners();
 
-        // 7. Ocultar Login y Mostrar App
         setTimeout(() => {
             if(loginScreen) {
                 loginScreen.style.opacity = '0';
                 setTimeout(() => loginScreen.classList.add('hidden'), 500);
             }
-            // Inicializar checkboxes y otros estados
             PatientService.toggleConditionalFields();
-        }, 800); // Pequeño delay dramático
+        }, 800);
 
     } catch (e) {
         console.error(e);
@@ -101,7 +85,6 @@ function attachGlobalListeners() {
         });
     }
     
-    // Delegación Visitas
     const visits = document.getElementById('visitsContainer');
     if(visits) {
         visits.addEventListener('click', (e) => {
