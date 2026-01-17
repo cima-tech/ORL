@@ -12,7 +12,7 @@ export const STATE = {
         currentMode: 'CONSULTATION', 
         isStoryOpen: false,          
         isPreviewMode: false,
-        layout: 'toolbar' // 'toolbar' (top) | 'sidebar' (left)
+        layout: 'toolbar' // 'toolbar' | 'sidebar'
     },
 
     currentPreviewCard: null, 
@@ -20,7 +20,6 @@ export const STATE = {
     USE_SIG: true,
     exportFilename: '',
     
-    // Configuración Base
     currentUser: {
         profile: {
             id: "guest",
@@ -48,10 +47,6 @@ export async function loadUserConfig(configPath) {
         if (response.ok) {
             const config = await response.json();
             STATE.currentUser = { ...STATE.currentUser, ...config };
-            
-            // Cargar layout preferido si existiera (Feature futura) o default
-            // Por ahora default es toolbar
-            
             log(`Perfil cargado: ${STATE.currentUser.profile.username}`);
             initWallpaperSystem();
             return true;
@@ -81,6 +76,7 @@ export function rotateWallpaper() {
     };
 }
 
+// --- CONSOLE DRAWER ---
 export function log(msg, isError = false) {
     console.log(msg); 
     const drawer = document.getElementById('consoleContent');
@@ -96,6 +92,8 @@ export function log(msg, isError = false) {
 export function showErr(msg) { log(msg, true); }
 export function flash(msg, isError = false) { log(msg, isError); }
 
+// --- UTILS ---
+export function getLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
 export function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
 export function fmtDateTime(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); }
 export function calcAge(str) { if (!str) return ""; const t = new Date(), b = new Date(str); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return a >= 0 ? a : 0; }
