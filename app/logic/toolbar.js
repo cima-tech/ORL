@@ -1,34 +1,33 @@
 // app/logic/toolbar.js
-import { $, STATE, rotateWallpaper, log, fmtDate, flash } from 'brain';
+import { $, $$, STATE, rotateWallpaper, log, fmtDate, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js'; 
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
 
-/* ================= COMPONENTES DE UI ================= */
+/* ================= COMPONENTES UI ================= */
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
     const p = STATE.currentUser.profile;
     
-    // Normalización de Mayúsculas/Minúsculas del JSON
+    // Normalizar datos (Title vs title)
     const title = p.Title || p.title || "";
-    const specialty = p.Specialty || p.specialty || p.role;
-    const fullName = `${title} ${p.firstname} ${p.lastname}`;
+    const name = p.name || `${p.firstname} ${p.lastname}`;
+    const role = p.Specialty || p.role;
     
     const avatarStyle = p.assets?.avatar_path ? `background-image: url('${p.assets.avatar_path}'); color:transparent;` : '';
-    const initials = p.firstname ? p.firstname[0] : "U";
+    const initials = p.username ? p.username.substring(0,2).toUpperCase() : "U";
 
-    // Botones del menú de usuario
     const userMenu = `
     <div class="user-menu-wrapper">
         <button id="btnUserAvatar" class="avatar-circle" style="${avatarStyle}">${initials}</button>
         <div id="userDropdown" class="user-dropdown hidden">
             <div class="dropdown-header">
-                <h4>${fullName}</h4>
-                <p>${specialty}</p>
+                <h4>${title} ${name}</h4>
+                <p>${role}</p>
             </div>
             <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración</button>
             <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar"></i> Alternar Barra/Menú</button>
-            <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Cambiar Tema (WIP)</button>
+            <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Fondo</button>
             <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
             <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-power"></i> Salir</button>
         </div>
@@ -37,11 +36,13 @@ function getNavGroupHTML(isSidebar) {
     return `
     <div class="toolbar-group">
         <div class="icon-row">
-            ${isSidebar ? userMenu : ''} <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
+            ${isSidebar ? userMenu : ''} 
+            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
             <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
             <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
             <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
-            ${!isSidebar ? userMenu : ''} </div>
+            ${!isSidebar ? userMenu : ''} 
+        </div>
         ${!isSidebar ? '<span class="group-label">Navegación</span>' : ''}
     </div>`;
 }
@@ -73,17 +74,17 @@ function getPreviewGroupHTML() {
     </div>`;
 }
 
-/* ================= RENDERIZADO ADAPTATIVO ================= */
+/* ================= RENDER ================= */
 
 export function renderToolbar() {
     const mount = document.getElementById('ui-mount-point');
     if (!mount) return;
 
-    // 1. Manejo de Layout (Clases en Body)
+    // Body Class Layout
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
-    // 2. Control de Visibilidad de Capas
+    // Visibility
     const previewShell = document.getElementById('previewShell');
     const form = document.getElementById('patientForm');
     const visits = document.getElementById('visitsContainer');
@@ -100,21 +101,15 @@ export function renderToolbar() {
         }
     }
 
-    // 3. Construcción del HTML según el Layout
-    let html = '';
-    const containerClass = isSidebar ? 'layout-sidebar' : 'layout-toolbar';
-    
-    html += `<div class="toolbar-container ${containerClass}"><div class="floating-bar">`;
+    let html = `<div class="toolbar-container ${isSidebar ? 'layout-sidebar' : 'layout-toolbar'}"><div class="floating-bar">`;
 
     if (isSidebar) {
-        // ORDEN SIDEBAR: Nav (User) -> Preview -> Consulta -> Historia
         html += getNavGroupHTML(true);
         html += `<div class="v-divider"></div>`;
         html += getPreviewGroupHTML();
         html += getConsultToolsHTML();
         html += getHistoryGroupHTML();
     } else {
-        // ORDEN TOOLBAR: Historia -> Consulta -> Preview -> Nav (User)
         if (STATE.UI.currentMode === 'CONSULTATION') {
             html += getHistoryGroupHTML();
             html += getConsultToolsHTML();
@@ -125,63 +120,56 @@ export function renderToolbar() {
     }
 
     html += `</div></div>`;
-    
-    // Modales (Configuración y Exportar)
     html += getModalsHTML(); 
 
     mount.innerHTML = html;
     bindEvents();
 }
 
-/* ================= EVENTOS ================= */
-
 function bindEvents() {
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
-    // Layout Toggle Logic
+    // Layout Toggle
     $("#btnToggleLayout")?.addEventListener('click', (e) => {
         e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
-        flash(`Cambiado a modo ${STATE.UI.layout.toUpperCase()}`);
         renderToolbar();
     });
 
-    // Profile Settings Logic
+    // Profile Settings
     $("#btnUserProfile")?.addEventListener('click', (e) => {
         e.stopPropagation();
         openSettingsModal();
     });
 
-    // ... Listeners Standard (Copy from V5.1) ...
+    // ... (Standard Listeners V5.2) ...
     $("#btnNew")?.addEventListener('click', () => { if(STATE.UI.isStoryOpen && !confirm("¿Cerrar?")) return; resetStory(); STATE.UI.isStoryOpen = true; ServiceLoader.get('patient').initializeNewPatient(); renderToolbar(); });
     $("#btnClose")?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     $("#btnOpen")?.addEventListener('click', () => { $("#searchModal").classList.add('active'); $("#searchValue").focus(); $("#searchResultsList").innerHTML=''; });
     $("#btnCancelSearch")?.addEventListener('click', () => $("#searchModal").classList.remove('active'));
     $("#btnDoSearch")?.addEventListener('click', runSearch);
     $("#searchValue")?.addEventListener('keypress', (e)=>{if(e.key==='Enter') runSearch()});
-    
     $("#btnAddConsulta")?.addEventListener('click', handleAddConsulta);
     $("#btnDeleteLast")?.addEventListener('click', () => { if(confirm("¿Borrar?")) { $("#visitsContainer").firstChild?.remove(); }});
-    
     $("#btnExitPreview")?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
     $("#btnToggleSign")?.addEventListener('click', () => { STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); });
     
-    // User Menu Toggle
     const av=$("#btnUserAvatar"), mn=$("#userDropdown");
     if(av && mn) {
         av.onclick=(e)=>{e.stopPropagation(); mn.classList.toggle('hidden')};
         document.onclick=(e)=>{if(!mn.classList.contains('hidden') && !mn.contains(e.target) && !av.contains(e.target)) mn.classList.add('hidden')};
+        $("#btnChangeWallpaper")?.addEventListener('click', (e)=>{e.stopPropagation(); rotateWallpaper()});
+        $("#btnLogout")?.addEventListener('click', ()=>location.reload());
     }
     
-    // Modal Close buttons
     $$(".btn-close-modal").forEach(btn => btn.addEventListener('click', () => {
         $(".settings-modal")?.parentElement.classList.remove('active');
         $(".modal-box")?.parentElement.classList.remove('active');
     }));
 }
 
-/* ================= MODAL DE CONFIGURACIÓN ================= */
+/* ================= MODAL SETTINGS ================= */
 
 function openSettingsModal() {
     const p = STATE.currentUser.profile;
@@ -189,10 +177,9 @@ function openSettingsModal() {
     
     // Llenar campos
     $("#confName").value = p.name || "";
-    $("#confTitle").value = p.Title || "";
-    $("#confSpec").value = p.Specialty || "";
+    $("#confTitle").value = p.Title || p.title || "";
+    $("#confSpec").value = p.Specialty || p.specialty || "";
     $("#confPhone").value = p.contact?.phone || "";
-    $("#confEmail").value = p.contact?.email || "";
     
     // Preview Visual (Simulado)
     const prevHeader = $("#previewHeaderSim");
@@ -214,30 +201,27 @@ function getModalsHTML() {
                     <div class="form-group"><label>Título (Dr/Dra)</label><input id="confTitle" class="form-input"></div>
                     <div class="form-group"><label>Especialidad</label><input id="confSpec" class="form-input"></div>
                     <div class="form-group"><label>Teléfono</label><input id="confPhone" class="form-input"></div>
-                    <div class="form-group"><label>Email</label><input id="confEmail" class="form-input"></div>
                 </div>
                 <div style="margin-top:20px; text-align:right;">
-                    <button class="icon-btn btn-close-modal" style="width:auto; padding:0 20px; font-size:0.9rem;">Cancelar</button>
-                    <button class="icon-btn" style="width:auto; padding:0 20px; font-size:0.9rem; background:var(--primary);">Guardar (Sim)</button>
+                    <button class="icon-btn btn-close-modal" style="width:auto; padding:0 20px; font-size:0.9rem;">Cerrar</button>
                 </div>
             </div>
-            
             <div class="settings-preview-area">
-                <div class="settings-section-title" style="position:absolute; top:20px; left:20px;">Vista Previa Documentos</div>
+                <div class="settings-section-title" style="position:absolute; top:20px; left:20px;">Vista Previa</div>
                 <div class="doc-simulated">
                     <div id="previewHeaderSim" class="doc-sim-header"></div>
-                    <div class="doc-sim-body">
-                        Lorem ipsum dolor sit amet...
-                    </div>
+                    <div class="doc-sim-body"></div>
                     <div class="doc-sim-footer"></div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div id="exportModal" class="modal-overlay"><div class="modal-box glass"><h3 style="color:var(--accent);text-align:center;">Exportar</h3><p id="exportFileName" style="text-align:center;color:#94a3b8;font-family:monospace"></p><div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px"><button id="btnShareWA" class="icon-btn" style="width:100%;background:#25D366;font-size:0.9rem">WhatsApp</button><button id="btnShareMail" class="icon-btn" style="width:100%;background:#EA4335;font-size:0.9rem">Email</button><button id="btnDownload" class="icon-btn" style="width:100%;background:var(--primary);grid-column:span 2;font-size:0.9rem">Descargar</button></div><button id="btnCloseExport" class="icon-btn btn-close-modal" style="margin-top:20px;width:100%">Cerrar</button></div></div>
     `;
 }
 
-function runSearch() { /* (Igual a V5.1) */ }
+function runSearch() { /* (Igual V5.2) */ }
 export function initToolbarEvents() { renderToolbar(); }
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId); if(!card) return;
