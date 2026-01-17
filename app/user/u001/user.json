@@ -3,6 +3,7 @@
     "id": "u001",
     "role": "doctor",
     "username": "tudraorl",
+    "password": "astroyluna"
     "title": "Dra.",
     "firstname": "Valentina",
     "secondname": "",
@@ -94,5 +95,6 @@
     "stamp_path": "./app/user/u001/layout/stamp.png"
   }
 }
+
 
 
