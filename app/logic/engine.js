@@ -1,14 +1,12 @@
 // app/logic/engine.js
 
-import { $, $$, flash, showErr, STATE, fmtDate } from 'brain';
-import { ServiceLoader } from './service_loader.js'; // <--- NUEVO IMPORT ÚNICO
+import { $, $$, flash, showErr, STATE } from 'brain';
+import { ServiceLoader } from './service_loader.js'; // <--- ÚNICO IMPORT DE LÓGICA
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
-// --- ORQUESTACIÓN DE DATOS ---
-
 export function saveCurrentHistory() {
-    // ACCESO DINÁMICO AL SERVICIO
+    // Obtenemos el servicio de paciente cargado dinámicamente
     const PatientService = ServiceLoader.get('patient');
     
     const patientData = PatientService.getPatientData();
@@ -46,9 +44,7 @@ export function saveCurrentHistory() {
         flash('Historia guardada exitosamente.');
         return true;
     } catch (e) { 
-        showErr('Error crítico: Almacenamiento local lleno.'); 
-        console.error(e); 
-        return false;
+        showErr('Error crítico: Almacenamiento local lleno.'); return false;
     }
 }
 
@@ -89,8 +85,6 @@ export function loadHistoryRecord(record) {
     flash('Historia cargada.');
 }
 
-// --- GESTIÓN DE CONSULTAS ---
-
 export function handleAddConsulta() {
     if(!STATE.UI.isStoryOpen) return;
 
@@ -101,7 +95,9 @@ export function handleAddConsulta() {
         return;
     }
 
-    const ConsultService = ServiceLoader.get('consult'); // <--- Dinámico
+    // Obtenemos la fábrica del modelo actual
+    const ConsultService = ServiceLoader.get('consult'); 
+    
     const container = $("#visitsContainer");
     container.classList.remove('hidden');
 
@@ -110,9 +106,9 @@ export function handleAddConsulta() {
     
     const newCard = ConsultService.createVisitCard(type);
     
-    // LOGICA DE HERENCIA (REQUERIMIENTO CUMPLIDO: 1ra Consulta hereda de Ficha)
+    // LÓGICA DE HERENCIA MEJORADA
     if (type === 'Primera') {
-        // Heredar de la FICHA (Patient Form)
+        // Heredar de la FICHA (Patient Form) a la 1ra consulta
         const antPersFicha = $("#antecedentes_personales")?.value || "";
         const antFamFicha = $("#antecedentes_familiares")?.value || "";
         
@@ -122,10 +118,10 @@ export function handleAddConsulta() {
         if(targetPers) targetPers.value = antPersFicha;
         if(targetFam) targetFam.value = antFamFicha;
         
-        flash('Primera consulta creada (Datos heredados de ficha)');
+        flash('Primera consulta (Datos heredados de ficha)');
 
     } else if (type === 'Sucesiva' && existingCards.length > 0) {
-        // Heredar de la ANTERIOR CONSULTA
+        // Heredar de la ANTERIOR consulta
         const lastCard = existingCards[0];
         const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
         fieldsToCopy.forEach(sel => {
@@ -137,7 +133,7 @@ export function handleAddConsulta() {
         const targetDx = newCard.querySelector('.txt-dx');
         if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
         
-        flash('Consulta sucesiva creada (Datos heredados de anterior)');
+        flash('Consulta sucesiva (Datos heredados de anterior)');
     }
 
     container.insertBefore(newCard, container.firstChild);
