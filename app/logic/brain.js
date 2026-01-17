@@ -1,18 +1,43 @@
+// app/logic/brain.js
+
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
-    UI: { currentMode: 'CONSULTATION', isStoryOpen: false, isPreviewMode: false },
+    
+    // UI State
+    UI: {
+        currentMode: 'CONSULTATION', 
+        isStoryOpen: false,          
+        isPreviewMode: false,
+        layout: 'toolbar' // 'toolbar' (top) | 'sidebar' (left)
+    },
+
     currentPreviewCard: null, 
     currentPreviewDoc: null,
     USE_SIG: true,
     exportFilename: '',
+    
+    // Configuración Base
     currentUser: {
-        profile: { id: "guest", username: "guest", title: "", firstname: "Usuario", lastname: "", role: "Invitado" },
-        preferences: { default_model: "ORL-001" },
-        assets: { avatar_path: "" }
+        profile: {
+            id: "guest",
+            role: "guest",
+            username: "guest",
+            title: "",
+            firstname: "Usuario",
+            lastname: "",
+            title_line_1: "",
+            contact: {},
+            location: ""
+        },
+        preferences: {
+            theme: "dark",
+            default_model: "ORL-001"
+        },
+        assets: { avatar_path: "", header_path: "", footer_path: "" }
     }
 };
 
@@ -23,10 +48,14 @@ export async function loadUserConfig(configPath) {
         if (response.ok) {
             const config = await response.json();
             STATE.currentUser = { ...STATE.currentUser, ...config };
+            
+            // Cargar layout preferido si existiera (Feature futura) o default
+            // Por ahora default es toolbar
+            
             log(`Perfil cargado: ${STATE.currentUser.profile.username}`);
             initWallpaperSystem();
             return true;
-        } else throw new Error("Configuración no encontrada");
+        } else throw new Error("Config not found");
     } catch (e) { 
         console.error(e); log("Error cargando perfil", true); return false; 
     }
@@ -52,12 +81,10 @@ export function rotateWallpaper() {
     };
 }
 
-// --- CONSOLE DRAWER ONLY ---
 export function log(msg, isError = false) {
     console.log(msg); 
     const drawer = document.getElementById('consoleContent');
     if (!drawer) return;
-    
     const time = new Date().toLocaleTimeString();
     const color = isError ? '#ef4444' : '#4ade80';
     const line = document.createElement('div');
@@ -69,8 +96,6 @@ export function log(msg, isError = false) {
 export function showErr(msg) { log(msg, true); }
 export function flash(msg, isError = false) { log(msg, isError); }
 
-// --- UTILS ---
-export function getLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
 export function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
 export function fmtDateTime(iso) { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }); }
 export function calcAge(str) { if (!str) return ""; const t = new Date(), b = new Date(str); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return a >= 0 ? a : 0; }
