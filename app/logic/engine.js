@@ -1,17 +1,13 @@
-// app/logic/engine.js
-
 import { $, $$, flash, showErr, STATE } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 
 const STORAGE_KEY = 'CIMA_DB_ORL_V2';
 
 export function saveCurrentHistory() {
-    // Obtenemos el servicio cargado dinámicamente
     const PatientService = ServiceLoader.get('patient');
-    
     const patientData = PatientService.getPatientData();
     if (!patientData.documento_numero || !patientData.primer_nombre) { 
-        showErr('Faltan datos obligatorios (Doc o Nombre).'); return false; 
+        showErr('Faltan datos obligatorios'); return false; 
     }
 
     const visits = Array.from($$('.visit-card')).map(card => {
@@ -36,16 +32,12 @@ export function saveCurrentHistory() {
     });
 
     const fullRecord = { patient: patientData, visits: visits, lastUpdated: new Date().toISOString() };
-    
     try {
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        flash('Historia guardada exitosamente.');
         return true;
-    } catch (e) { 
-        showErr('Error crítico: Almacenamiento local lleno.'); return false;
-    }
+    } catch (e) { showErr('Error guardando'); return false; }
 }
 
 export function loadHistoryRecord(record) {
@@ -54,9 +46,7 @@ export function loadHistoryRecord(record) {
 
     resetStory(); 
     PatientService.loadPatientDataToDOM(record.patient); 
-
-    const container = $("#visitsContainer");
-    container.classList.remove('hidden');
+    $("#visitsContainer").classList.remove('hidden');
 
     [...(record.visits || [])].reverse().forEach(v => {
         const card = ConsultService.createVisitCard(v.type || 'Sucesiva');
@@ -78,7 +68,7 @@ export function loadHistoryRecord(record) {
         setVal('.txt-indicaciones', v.indicaciones);
         setVal('.txt-plan', v.plan);
         
-        container.prepend(card);
+        $("#visitsContainer").prepend(card);
     });
     
     STATE.UI.isStoryOpen = true; 
@@ -87,71 +77,42 @@ export function loadHistoryRecord(record) {
 
 export function handleAddConsulta() {
     if(!STATE.UI.isStoryOpen) return;
-
-    if (!$("#primer_nombre")?.value) {
-        showErr('Ingrese el nombre del paciente primero.');
-        const input = $("#primer_nombre");
-        if(input) { input.focus(); input.classList.add('input-error'); setTimeout(()=>input.classList.remove('input-error'), 500); }
-        return;
-    }
+    if (!$("#primer_nombre")?.value) { showErr('Ingrese nombre primero'); return; }
 
     const ConsultService = ServiceLoader.get('consult'); 
-    const container = $("#visitsContainer");
-    container.classList.remove('hidden');
+    $("#visitsContainer").classList.remove('hidden');
 
-    const existingCards = container.querySelectorAll('.visit-card');
+    const existingCards = $("#visitsContainer").querySelectorAll('.visit-card');
     const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
-    
     const newCard = ConsultService.createVisitCard(type);
     
-    // Lógica de Herencia
     if (type === 'Primera') {
-        // Heredar de la FICHA (Patient Form)
-        const antPersFicha = $("#antecedentes_personales")?.value || "";
-        const antFamFicha = $("#antecedentes_familiares")?.value || "";
-        
-        const targetPers = newCard.querySelector('.txt-antecedentes-personales');
-        const targetFam = newCard.querySelector('.txt-antecedentes-familiares');
-        
-        if(targetPers) targetPers.value = antPersFicha;
-        if(targetFam) targetFam.value = antFamFicha;
-        
-        flash('Primera consulta (Datos de ficha heredados)');
-
+        const pVal = $("#antecedentes_personales")?.value || "";
+        const fVal = $("#antecedentes_familiares")?.value || "";
+        const tP = newCard.querySelector('.txt-antecedentes-personales');
+        const tF = newCard.querySelector('.txt-antecedentes-familiares');
+        if(tP) tP.value = pVal;
+        if(tF) tF.value = fVal;
+        flash('1ra Consulta creada');
     } else if (type === 'Sucesiva' && existingCards.length > 0) {
-        // Heredar de la ANTERIOR
-        const lastCard = existingCards[0];
-        const fieldsToCopy = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
-        fieldsToCopy.forEach(sel => {
-            const source = lastCard.querySelector(sel);
-            const target = newCard.querySelector(sel);
-            if(source && target) target.value = source.value;
+        const last = existingCards[0];
+        const fields = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
+        fields.forEach(sel => {
+            const src = last.querySelector(sel);
+            const tgt = newCard.querySelector(sel);
+            if(src && tgt) tgt.value = src.value;
         });
-        const prevDx = lastCard.querySelector('.txt-dx')?.value;
-        const targetDx = newCard.querySelector('.txt-dx');
-        if (prevDx && targetDx) targetDx.value = prevDx + " (Control)";
-        
-        flash('Consulta sucesiva (Datos previos heredados)');
+        flash('Consulta sucesiva');
     }
 
-    container.insertBefore(newCard, container.firstChild);
+    $("#visitsContainer").insertBefore(newCard, $("#visitsContainer").firstChild);
     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 export function resetStory() {
-    const PatientService = ServiceLoader.get('patient');
-    PatientService.initializeNewPatient();
-    
-    const container = $("#visitsContainer");
-    if(container) {
-        container.innerHTML = '';
-        container.classList.add('hidden');
-    }
-    
-    STATE.visitIdCounter = 0;
-    STATE.currentPreviewCard = null;
-    STATE.currentPreviewDoc = null;
-    
+    ServiceLoader.get('patient').initializeNewPatient();
+    $("#visitsContainer").innerHTML = '';
+    $("#visitsContainer").classList.add('hidden');
     STATE.UI.isStoryOpen = false;
     STATE.UI.isPreviewMode = false;
 }
