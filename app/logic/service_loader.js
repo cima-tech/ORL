@@ -1,66 +1,67 @@
-// app/logic/service_loader.js
-import { STATE, showErr, flash } from 'brain';
+import { STATE, showErr } from 'brain';
 
-// Contenedor de Servicios Activos (Proxy)
-export const ActiveModel = {
+// Singleton para almacenar los módulos cargados en memoria
+const LOADED_MODULES = {
     patient: null,
     consult: null,
-    recipe: null,
     informe: null,
-    export: null,
-    metadata: null
+    recipe: null,
+    export: null
 };
 
-export async function loadServiceModules() {
-    try {
-        // 1. Cargar Catálogo de Modelos
-        const modelsReq = await fetch('./app/logic/models.json');
-        if (!modelsReq.ok) throw new Error("No se pudo cargar models.json");
-        const modelsCatalog = await modelsReq.json();
+export const ServiceLoader = {
+    
+    async init() {
+        try {
+            // 1. Obtener el ID del modelo preferido del usuario
+            const modelId = STATE.currentUser.preferences.default_model || "ORL-001";
+            
+            // 2. Cargar el catálogo de modelos
+            const response = await fetch('./app/catalog/models.json');
+            if (!response.ok) throw new Error("No se pudo cargar el catálogo de modelos");
+            const catalog = await response.json();
+            
+            // 3. Validar existencia
+            const modelConfig = catalog[modelId];
+            if (!modelConfig) throw new Error(`Modelo ${modelId} no encontrado en el catálogo`);
+            
+            console.log(`[ServiceLoader] Cargando especialidad: ${modelConfig.name}...`);
 
-        // 2. Determinar Modelo del Usuario (Default ORL-001 si no existe en user.json)
-        const userModelId = STATE.currentUser?.preferences?.default_model || "ORL-001";
-        const modelConfig = modelsCatalog[userModelId];
+            // 4. IMPORTACIÓN DINÁMICA (La Magia)
+            // Usamos rutas relativas basadas en el path del JSON
+            const basePath = modelConfig.path;
 
-        if (!modelConfig) throw new Error(`Modelo no encontrado: ${userModelId}`);
+            // Cargamos todos los módulos del cartucho en paralelo
+            const [modPatient, modConsult, modInforme, modRecipe, modExport] = await Promise.all([
+                import(`${basePath}/patient.js`),
+                import(`${basePath}/consult.js`),
+                import(`${basePath}/informe.js`),
+                import(`${basePath}/recipe.js`),
+                import(`${basePath}/export.js`)
+            ]);
 
-        console.log(`[ServiceLoader] Cargando modelo: ${modelConfig.name} (${userModelId})...`);
+            // 5. Guardar referencias en memoria
+            LOADED_MODULES.patient = modPatient;
+            LOADED_MODULES.consult = modConsult;
+            LOADED_MODULES.informe = modInforme;
+            LOADED_MODULES.recipe = modRecipe;
+            LOADED_MODULES.export = modExport;
 
-        // 3. Importación Dinámica de Módulos (Webpack/ES6 friendly)
-        // Nota: Usamos rutas relativas construidas desde el base_path
-        
-        // A. Patient Service
-        if (modelConfig.modules.patient) {
-            ActiveModel.patient = await import(`${modelConfig.base_path}/${modelConfig.modules.patient}`);
+            console.log("[ServiceLoader] Módulos cargados exitosamente.");
+            return true;
+
+        } catch (e) {
+            console.error(e);
+            showErr(`Error crítico cargando módulos: ${e.message}`);
+            return false;
         }
+    },
 
-        // B. Recipe Service
-        if (modelConfig.modules.recipe) {
-            ActiveModel.recipe = await import(`${modelConfig.base_path}/${modelConfig.modules.recipe}`);
+    // API Pública para que Engine y Toolbar pidan los módulos
+    get(moduleName) {
+        if (!LOADED_MODULES[moduleName]) {
+            throw new Error(`El módulo '${moduleName}' no ha sido cargado o no existe.`);
         }
-        
-        // C. Consult Service
-        if (modelConfig.modules.consult) {
-            ActiveModel.consult = await import(`${modelConfig.base_path}/${modelConfig.modules.consult}`);
-        }
-
-        // D. Informe Service
-        if (modelConfig.modules.informe) {
-            ActiveModel.informe = await import(`${modelConfig.base_path}/${modelConfig.modules.informe}`);
-        }
-
-        // E. Export Service
-        if (modelConfig.modules.export) {
-            ActiveModel.export = await import(`${modelConfig.base_path}/${modelConfig.modules.export}`);
-        }
-
-        ActiveModel.metadata = modelConfig;
-        flash(`Módulo cargado: ${modelConfig.name}`);
-        return true;
-
-    } catch (e) {
-        console.error(e);
-        showErr(`Error Crítico cargando servicios: ${e.message}`);
-        return false;
+        return LOADED_MODULES[moduleName];
     }
-}
+};
