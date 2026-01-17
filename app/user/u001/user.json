@@ -2,13 +2,16 @@
   "profile": {
     "id": "u001",
     "role": "doctor",
+    "username": "tudraorl",
     "name": "Dra. Valentina González Yanez",
     "title_line_1": "Otorrinolaringología",
     "title_line_2": "Hospital de Clínicas Caracas",
     "phones": ["(0212) 5086321", "(0424) 1090979"],
     "email": "tudraorl@gmail.com",
+    "email2": "vgy13@hotmail.com",
     "instagram": "@tudraorl",
     "location": "Caracas, Venezuela"
+    "bloodtype": "ORH+"
   },
   "preferences": {
     "theme": "dark",
@@ -25,3 +28,5 @@
     "stamp_path": "./app/user/u001/layout/stamp.png"
   }
 }
+
+[
