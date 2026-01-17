@@ -18,7 +18,6 @@
 <div id="ui-mount-point"></div>
 
 <div class="container">
-  
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
       <div style="flex:1; display:flex; align-items:center; gap:20px;">
@@ -43,7 +42,6 @@
   <div id="previewShell" class="preview-shell hidden">
     <div id="docPreview"></div>
   </div>
-
 </div> 
 
 <script type="importmap">
@@ -60,40 +58,46 @@
 <script type="module">
     import { $, loadUserConfig } from 'brain';
     import { initToolbarEvents } from 'toolbar';
-    import { ServiceLoader } from 'service_loader'; // Importamos el cargador
+    import { ServiceLoader } from 'service_loader';
 
     document.addEventListener('DOMContentLoaded', async () => {
         console.log("CIMA ORL v5.0 (Dynamic) - Init...");
         
-        // 1. Cargar Configuración Usuario
+        // 1. Cargar Config (User + Preferencias)
         await loadUserConfig();
         
-        // 2. CARGA DINÁMICA DE SERVICIOS (Aquí ocurre la magia)
-        // Esto lee models.json y carga el JS correspondiente (ORL, Cardio, etc)
+        // 2. Cargar Módulos Dinámicos (ORL, Cardio, etc)
         const loaded = await ServiceLoader.init();
+        
         if (!loaded) {
-            alert("Error crítico cargando servicios médicos. Revise la consola.");
+            alert("Error crítico: No se pudieron cargar los servicios médicos.");
             return;
         }
 
-        // 3. Dibujar Interfaz (Solo cuando los servicios existen)
+        // 3. Renderizar Interfaz
         initToolbarEvents(); 
 
-        // 4. Conexiones Globales usando el Servicio Cargado
-        // Ya no importamos 'togglePatientDetails' directamente, lo sacamos del Loader
+        // 4. Conexiones Globales (Desde el servicio cargado)
         const PatientService = ServiceLoader.get('patient');
         
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
         window.$ = $;
 
-        // 5. Listeners Reactivos
+        // 5. Listeners Reactivos del DOM
         const formContainer = document.getElementById('patientForm');
         if(formContainer) {
             formContainer.addEventListener('change', (e) => {
-                if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(e.target.id)) PatientService.updatePatientHeader();
-                if(['fecha_nacimiento','peso_kg','talla_cm'].includes(e.target.id)) PatientService.calcularCampos();
-                if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
+                const target = e.target.id;
+                if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(target)) {
+                    PatientService.updatePatientHeader();
+                }
+                if(['fecha_nacimiento','peso_kg','talla_cm'].includes(target)) {
+                    PatientService.calcularCampos();
+                }
+                if(e.target.type === 'checkbox') {
+                    PatientService.toggleConditionalFields();
+                }
             });
         }
         
@@ -108,13 +112,13 @@
                     icon.classList.toggle('bi-chevron-right');
                     icon.classList.toggle('bi-chevron-down');
                 }
-                // Nota: openDocGlobal en toolbar.js ya usa ServiceLoader internamente
+                // Los botones de preview se manejan globalmente via toolbar.js
                 if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
                 if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
             });
         }
         
-        // Inicializar campos condicionales
+        // Inicializar estado de campos
         PatientService.toggleConditionalFields();
     });
 </script>
