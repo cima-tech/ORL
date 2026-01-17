@@ -15,6 +15,23 @@
 </head>
 <body>
 
+<div id="login-screen" class="login-overlay">
+    <div class="login-box glass">
+        <div class="login-header">
+            <div class="logo-big">CIMA</div>
+            <p>Sistema Clínico Integral</p>
+        </div>
+        <div class="login-content">
+            <p class="login-prompt">Seleccione un usuario:</p>
+            <div id="user-list-container" class="user-list">
+                </div>
+        </div>
+        <div class="login-footer">
+            v4.2 Stable
+        </div>
+    </div>
+</div>
+
 <div id="ui-mount-point"></div>
 
 <div class="container">
@@ -50,76 +67,19 @@
     "brain": "./app/logic/brain.js",
     "toolbar": "./app/logic/toolbar.js",
     "engine": "./app/logic/engine.js",
-    "service_loader": "./app/logic/service_loader.js"
+    "service_loader": "./app/logic/service_loader.js",
+    "start": "./app/logic/start.js"
   }
 }
 </script>
 
 <script type="module">
-    import { $, loadUserConfig } from 'brain';
-    import { initToolbarEvents } from 'toolbar';
-    import { ServiceLoader } from 'service_loader';
+    import { StartManager } from 'start';
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log("CIMA ORL v5.0 (Dynamic) - Init...");
-        
-        // 1. Cargar Config (User + Preferencias)
-        await loadUserConfig();
-        
-        // 2. Cargar Módulos Dinámicos (ORL, Cardio, etc)
-        const loaded = await ServiceLoader.init();
-        
-        if (!loaded) {
-            alert("Error crítico: No se pudieron cargar los servicios médicos.");
-            return;
-        }
-
-        // 3. Renderizar Interfaz
-        initToolbarEvents(); 
-
-        // 4. Conexiones Globales (Desde el servicio cargado)
-        const PatientService = ServiceLoader.get('patient');
-        
-        window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
-        window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
-        window.$ = $;
-
-        // 5. Listeners Reactivos del DOM
-        const formContainer = document.getElementById('patientForm');
-        if(formContainer) {
-            formContainer.addEventListener('change', (e) => {
-                const target = e.target.id;
-                if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido','documento_tipo','documento_numero'].includes(target)) {
-                    PatientService.updatePatientHeader();
-                }
-                if(['fecha_nacimiento','peso_kg','talla_cm'].includes(target)) {
-                    PatientService.calcularCampos();
-                }
-                if(e.target.type === 'checkbox') {
-                    PatientService.toggleConditionalFields();
-                }
-            });
-        }
-        
-        const visits = document.getElementById('visitsContainer');
-        if(visits) {
-            visits.addEventListener('click', (e) => {
-                const btn = e.target.closest('.visit-toggle-btn');
-                if(btn) {
-                    const card = btn.closest('.visit-card');
-                    card.querySelector('.visit-body').classList.toggle('hidden');
-                    const icon = btn.querySelector('i');
-                    icon.classList.toggle('bi-chevron-right');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-                // Los botones de preview se manejan globalmente via toolbar.js
-                if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
-                if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
-            });
-        }
-        
-        // Inicializar estado de campos
-        PatientService.toggleConditionalFields();
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("CIMA ORL v4.2 - Booting...");
+        // Iniciamos el Gestor de Arranque en lugar de cargar todo de golpe
+        StartManager.init();
     });
 </script>
 
