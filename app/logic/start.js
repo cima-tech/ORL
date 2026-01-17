@@ -32,13 +32,16 @@ export const StartManager = {
                 ? `<div class="user-avatar-lg" style="background-image: url('${u.avatar}'); color:transparent;"></div>`
                 : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
 
+            // Normalizar mayúsculas para display
+            const roleDisplay = u.Specialty || u.role;
+
             return `
             <div class="user-wrapper" id="user-wrapper-${u.id}">
                 <div class="user-card-content" onclick="window.selectUser('${u.id}', '${u.config_path}')">
                     ${avatarHtml}
                     <div class="user-info">
                         <h3>${u.name}</h3>
-                        <p>${u.role}</p>
+                        <p>${roleDisplay}</p>
                         <span class="username">@${u.username}</span>
                     </div>
                 </div>
