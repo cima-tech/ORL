@@ -6,10 +6,11 @@ const LOADED_MODULES = { patient: null, consult: null, informe: null, recipe: nu
 export const ServiceLoader = {
     async init() {
         try {
-            // 1. Obtener ID del modelo (Debe venir ya cargado en brain.js)
-            const modelId = STATE.currentUser.preferences.default_model;
+            // 1. Obtener ID del modelo (Debe venir ya cargado en brain.js por loadUserConfig)
+            // Usamos optional chaining por seguridad
+            const modelId = STATE.currentUser?.preferences?.default_model;
             
-            if (!modelId) throw new Error("El usuario no tiene un 'default_model' configurado.");
+            if (!modelId) throw new Error("El usuario no tiene un 'default_model' configurado en su JSON.");
 
             // 2. Cargar catálogo
             const response = await fetch('./app/catalog/models.json');
@@ -18,15 +19,14 @@ export const ServiceLoader = {
             
             // 3. Validar modelo
             const modelConfig = catalog[modelId];
-            if (!modelConfig) throw new Error(`Modelo '${modelId}' no existe en el catálogo.`);
+            if (!modelConfig) throw new Error(`El modelo '${modelId}' no existe en el catálogo.`);
             if (!modelConfig.path) throw new Error(`El modelo '${modelId}' no tiene una ruta (path) definida.`);
 
-            console.log(`[ServiceLoader] Importando: ${modelConfig.path}...`);
+            console.log(`[ServiceLoader] Importando desde: ${modelConfig.path}...`);
 
-            // 4. Importar Módulos
+            // 4. Importar Módulos (Usando la ruta del JSON)
             const basePath = modelConfig.path;
             
-            // Promesas paralelas para velocidad
             const [modPatient, modConsult, modInforme, modRecipe, modExport] = await Promise.all([
                 import(`${basePath}/patient.js`),
                 import(`${basePath}/consult.js`),
@@ -51,7 +51,7 @@ export const ServiceLoader = {
     },
 
     get(moduleName) {
-        if (!LOADED_MODULES[moduleName]) throw new Error(`Módulo '${moduleName}' no disponible.`);
+        if (!LOADED_MODULES[moduleName]) throw new Error(`Módulo '${moduleName}' no disponible. ServiceLoader no inicializado.`);
         return LOADED_MODULES[moduleName];
     }
 };
