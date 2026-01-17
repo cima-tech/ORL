@@ -1,14 +1,14 @@
-// app/logic/start.js
 import { $, log, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
+
+let PatientService = null;
 
 export const StartManager = {
     async init() {
         const loginScreen = document.getElementById('login-screen');
         if(loginScreen) loginScreen.classList.remove('hidden');
         
-        // Listener Consola
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'L') {
                 document.getElementById('consoleDrawer').classList.toggle('open');
@@ -19,7 +19,7 @@ export const StartManager = {
             const response = await fetch('./app/catalog/users.json');
             const users = await response.json();
             this.renderUserList(users);
-        } catch (e) { console.error(e); log("Error cargando users.json", true); }
+        } catch (e) { console.error(e); log("Error cargando usuarios", true); }
     },
 
     renderUserList(users) {
@@ -34,21 +34,19 @@ export const StartManager = {
 
             return `
             <div class="user-wrapper" id="user-wrapper-${u.id}">
-                <div class="user-card" onclick="window.selectUser('${u.id}', '${u.config_path}')">
-                    <div class="user-card-header">
-                        ${avatarHtml}
-                        <div class="user-info">
-                            <h3>${u.name}</h3>
-                            <p>${u.role}</p>
-                            <p style="font-size:0.7rem; opacity:0.5; margin-top:2px;">@${u.username}</p>
-                        </div>
+                <div class="user-card-content" onclick="window.selectUser('${u.id}', '${u.config_path}')">
+                    ${avatarHtml}
+                    <div class="user-info">
+                        <h3>${u.name}</h3>
+                        <p>${u.role}</p>
+                        <span class="username">@${u.username}</span>
                     </div>
-                    <div id="pwd-area-${u.id}" class="password-area hidden">
-                        <input type="password" id="pwd-input-${u.id}" class="password-input" 
-                               placeholder="Contraseña..." 
-                               onkeypress="if(event.key==='Enter') window.verifyPassword('${u.id}')"
-                               onclick="event.stopPropagation()">
-                    </div>
+                </div>
+                <div id="pwd-area-${u.id}" class="password-area hidden">
+                    <input type="password" id="pwd-input-${u.id}" class="login-input" 
+                           placeholder="Contraseña" 
+                           onkeypress="if(event.key==='Enter') window.verifyPassword('${u.id}')"
+                           onclick="event.stopPropagation()">
                 </div>
             </div>`;
         }).join('');
@@ -56,15 +54,12 @@ export const StartManager = {
 };
 
 window.selectUser = async (id, configPath) => {
-    // 1. Resetear UI de otros usuarios
     document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
     
-    // 2. Cargar config para saber si pide pass
     await loadUserConfig(configPath);
     const pwd = STATE.currentUser.profile.password;
 
     if (pwd) {
-        // 3. Mostrar input DENTRO de la tarjeta
         const area = document.getElementById(`pwd-area-${id}`);
         area.classList.remove('hidden');
         document.getElementById(`pwd-input-${id}`).focus();
@@ -90,18 +85,16 @@ async function finishLogin() {
     loginScreen.style.opacity = '0';
     
     try {
-        log("Iniciando servicios...");
+        log("Cargando módulos...");
         if (!await ServiceLoader.init()) throw new Error("Fallo en ServiceLoader");
         
         initToolbarEvents();
         
-        // Hooks Globales
-        const PatientService = ServiceLoader.get('patient');
+        PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
         window.$ = $;
 
-        // Listeners Globales
         const form = document.getElementById('patientForm');
         if(form) form.addEventListener('change', (e) => {
              if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) PatientService.updatePatientHeader();
