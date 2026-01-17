@@ -1,7 +1,265 @@
-/* --- LOGIN SCREEN --- */
+/* =========================================
+   1. CORE & VARIABLES
+   ========================================= */
+:root {
+  --primary: #0ea5e9;       /* Sky Blue 500 */
+  --accent: #22d3ee;        /* Cyan 400 */
+  --success: #10b981;       /* Emerald 500 */
+  --danger: #ef4444;        /* Red 500 */
+  --text-main: #f8fafc;     /* Slate 50 */
+  --text-muted: #94a3b8;    /* Slate 400 */
+  
+  /* Motor de Vidrio */
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.15);
+  --blur-strength: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: #0f172a; /* Fondo base */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+/* Cortina oscura sobre el wallpaper para legibilidad */
+body::before {
+    content: ''; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.45); 
+    z-index: -1; pointer-events: none;
+}
+
+.hidden { display: none !important; }
+
+/* =========================================
+   2. UI FLOTANTE (TOOLBAR)
+   ========================================= */
+.toolbar-container {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 2000;
+  display: flex; justify-content: center;
+  width: auto;
+  pointer-events: none; /* Para que no bloquee clicks a los lados */
+}
+
+.floating-toolbar {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 20px;
+  background: rgba(15, 23, 42, 0.7); 
+  backdrop-filter: blur(var(--blur-strength)); -webkit-backdrop-filter: blur(var(--blur-strength));
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-highlight);
+  padding: 10px 30px;
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
+}
+
+.toolbar-group {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+
+.icon-row {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.group-label {
+  font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 600; opacity: 0.8;
+}
+
+.v-divider {
+  width: 1px; height: 35px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Botones Icono */
+.icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  color: white; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  color: var(--accent);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.icon-btn:active { transform: scale(0.95); }
+
+.btn-close-app:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: #ef4444; }
+
+.badge-dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px; background: #ef4444;
+  border-radius: 50%; box-shadow: 0 0 5px #ef4444;
+}
+
+/* Avatar y Menú */
+.user-menu-wrapper { position: relative; }
+
+.avatar-circle {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white; font-weight: bold; border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer; transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+}
+.avatar-circle:hover { transform: scale(1.1); border-color: white; }
+
+.user-dropdown {
+    position: absolute; top: 55px; right: 0; width: 260px;
+    background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border); border-radius: 16px;
+    padding: 10px; display: flex; flex-direction: column; gap: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.dropdown-header { padding: 10px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.dropdown-header h4 { margin: 0; color: white; font-weight: 600; }
+.dropdown-header p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+
+.dropdown-item {
+    padding: 10px; border-radius: 8px; color: #cbd5e1; background: transparent; border: none;
+    display: flex; gap: 10px; align-items: center; cursor: pointer; text-align: left; width: 100%;
+    font-size: 0.9rem; transition: background 0.2s;
+}
+.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
+.dropdown-item i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+/* =========================================
+   3. CONTENEDOR PRINCIPAL & FORMS
+   ========================================= */
+.container { 
+    max-width: 1200px; margin: 120px auto 40px auto; 
+    padding: 0 20px; 
+}
+
+/* Tarjeta Genérica (Glass) */
+.card, .visit-card {
+  background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
+  border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
+  border-radius: 16px;
+  padding: 25px; margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+/* Ficha Paciente */
+.patient-header { 
+    display: flex; align-items: center; justify-content: space-between; cursor: pointer; 
+    user-select: none;
+}
+.patient-toggle-btn { 
+    width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); 
+    border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; 
+}
+.patient-toggle-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* Visitas */
+.visit-card { border-left: 4px solid var(--primary); }
+.visit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.visit-date-input { 
+    background: transparent; border: none; color: var(--accent); font-weight: bold; font-size: 1.1rem;
+    cursor: pointer; width: 140px;
+}
+
+/* Grids e Inputs */
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+.span-4 { grid-column: span 4; } 
+.span-2 { grid-column: span 2; }
+.span-1 { grid-column: span 1; }
+
+@media (max-width: 900px) {
+    .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .span-4, .span-2 { grid-column: span 2; }
+}
+
+.form-group label {
+    display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-input {
+  width: 100%; min-height: 40px; padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.25); 
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; color: white; font-family: inherit; font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.form-input:focus { 
+    border-color: var(--primary); outline: none; background: rgba(0,0,0,0.4); 
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+.form-input::placeholder { color: rgba(255,255,255,0.2); }
+textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+/* Checkbox bonito */
+input[type="checkbox"] {
+    accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;
+}
+
+/* =========================================
+   4. MODALES Y PREVIEW
+   ========================================= */
+.modal-overlay { 
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; 
+    display: none; justify-content: center; align-items: center; 
+    backdrop-filter: blur(5px);
+}
+.modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+
+.modal-box { 
+    background: #1e293b; width: 90%; max-width: 500px;
+    padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+}
+
+/* Barra flotante de Preview (Zoom/Firma) */
+#previewBar {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px);
+    padding: 10px 25px; border-radius: 50px; border: 1px solid var(--glass-border);
+    display: flex; gap: 20px; align-items: center; z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Contenedor del documento (papel) */
+.preview-shell {
+    position: fixed; inset: 0; z-index: 1500;
+    background: rgba(0,0,0,0.85);
+    display: flex; justify-content: center; overflow: auto;
+    padding-top: 140px; padding-bottom: 100px;
+}
+#docPreview {
+    transition: transform 0.2s ease-out; transform-origin: top center;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* =========================================
+   5. LOGIN SCREEN (NUEVO)
+   ========================================= */
 .login-overlay {
     position: fixed; inset: 0; z-index: 9999;
-    background: #0f172a; /* Fallback color */
+    background: #0f172a; 
     background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop');
     background-size: cover; background-position: center;
     display: flex; justify-content: center; align-items: center;
@@ -10,44 +268,76 @@
 
 .login-overlay::before {
     content: ''; position: absolute; inset: 0;
-    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px);
 }
 
 .login-box {
-    width: 100%; max-width: 400px;
-    background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px);
+    width: 100%; max-width: 420px;
+    background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(25px);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
-    padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
     position: relative; z-index: 10;
     transform: translateY(0); transition: transform 0.3s;
 }
 
-.login-header { text-align: center; margin-bottom: 30px; }
-.logo-big { font-size: 3rem; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, white, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.login-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+.login-header { text-align: center; margin-bottom: 35px; }
+.logo-big { 
+    font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; 
+    background: linear-gradient(135deg, white 20%, var(--primary)); 
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+}
+.login-header p { color: var(--text-muted); font-size: 1rem; margin-top: 0px; letter-spacing: 1px; text-transform: uppercase; }
+
+.login-prompt { margin-bottom: 15px; color: white; font-size: 0.9rem; font-weight: 500; }
 
 .user-list { display: flex; flex-direction: column; gap: 12px; }
 
 .user-card {
     display: flex; align-items: center; gap: 15px;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
-    padding: 12px 15px; border-radius: 12px; cursor: pointer;
-    transition: all 0.2s;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    padding: 15px; border-radius: 14px; cursor: pointer;
+    transition: all 0.2s ease;
 }
-.user-card:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); transform: translateX(5px); }
+.user-card:hover { 
+    background: rgba(255,255,255,0.08); 
+    border-color: var(--primary); 
+    transform: translateX(5px); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
 
 .user-avatar-lg {
-    width: 45px; height: 45px; border-radius: 50%;
+    width: 50px; height: 50px; border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--accent));
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; color: white; font-size: 1.1rem;
+    font-weight: bold; color: white; font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.user-info h3 { margin: 0; font-size: 1rem; color: white; font-weight: 500; }
-.user-info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
-.user-card i { margin-left: auto; color: var(--text-muted); }
+.user-info h3 { margin: 0; font-size: 1.05rem; color: white; font-weight: 600; }
+.user-info p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+.user-card i { margin-left: auto; color: rgba(255,255,255,0.3); }
 
-.login-footer { margin-top: 30px; text-align: center; font-size: 0.75rem; color: rgba(255,255,255,0.2); }
+.login-footer { 
+    margin-top: 40px; text-align: center; font-size: 0.8rem; 
+    color: rgba(255,255,255,0.2); font-family: monospace;
+}
 
-/* Loading State */
-.login-overlay.loading .login-box { transform: scale(0.95); opacity: 0.8; pointer-events: none; }
+/* Animaciones */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+
+.login-overlay.loading .login-box { 
+    transform: scale(0.95); opacity: 0.7; pointer-events: none; filter: grayscale(1);
+}
+
+.input-error {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    border-color: var(--danger) !important;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
