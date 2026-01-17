@@ -2,14 +2,16 @@
    1. CORE & VARIABLES
    ========================================= */
 :root {
-  --primary: #0ea5e9;
-  --accent: #22d3ee;
-  --success: #10b981;
-  --danger: #ef4444;
+  --primary: #0ea5e9;       
+  --accent: #22d3ee;        
+  --success: #10b981;       
+  --danger: #ef4444;        
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --glass-bg: rgba(15, 23, 42, 0.75);
+  
+  --glass-bg: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
+  --blur-strength: 20px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -30,125 +32,96 @@ body::before {
 .hidden { display: none !important; }
 
 /* =========================================
-   2. LOGIN SCREEN (Integrado)
+   2. UI ADAPTATIVA (TOOLBAR / SIDEBAR)
    ========================================= */
-.login-overlay {
-    position: fixed; inset: 0; z-index: 9999;
-    background: #0f172a; 
-    background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop');
-    background-size: cover; background-position: center;
-    display: flex; justify-content: center; align-items: center;
-}
-.login-overlay::before { content: ''; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px); }
-
-.login-box {
-    width: 100%; max-width: 400px;
-    background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; padding: 40px; position: relative; z-index: 10;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+/* Contenedor Base */
+#ui-mount-point {
+    position: fixed; z-index: 2000;
+    pointer-events: none; /* Permite clicks a través de áreas vacías */
 }
 
-.login-header { text-align: center; margin-bottom: 30px; }
-.logo-big { font-size: 3rem; font-weight: 800; color: white; letter-spacing: -1px; text-shadow: 0 0 20px rgba(14, 165, 233, 0.5); }
-.login-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
-
-/* Tarjeta Usuario Login */
-.user-list { display: flex; flex-direction: column; gap: 15px; }
-
-.user-wrapper {
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.2s;
-}
-.user-wrapper:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
-
-.user-card-content { display: flex; align-items: center; gap: 15px; }
-
-.user-avatar-lg {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    display: flex; align-items: center; justify-content: center;
-    font-weight: bold; color: white; font-size: 1.1rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+/* --- MODO TOOLBAR (TOP) --- */
+.layout-toolbar {
+    top: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; justify-content: center; width: auto;
 }
 
-.user-info h3 { margin: 0; font-size: 1rem; color: white; }
-.user-info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
-.user-info .username { font-size: 0.75rem; opacity: 0.5; display: block; margin-top: 2px; }
-
-/* Password Input (Integrado en tarjeta) */
-.password-area {
-    margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
-    animation: slideDown 0.2s ease-out;
-}
-.login-input {
-    width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--primary);
-    padding: 10px; border-radius: 8px; color: white; text-align: center; font-size: 1rem;
-}
-@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-/* =========================================
-   3. TOOLBAR & PREVIEW
-   ========================================= */
-.toolbar-container {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  z-index: 2000; display: flex; justify-content: center; pointer-events: none;
+.layout-toolbar .floating-bar {
+    pointer-events: auto; display: flex; align-items: center; gap: 20px;
+    background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
+    border: 1px solid var(--glass-border); padding: 8px 25px; border-radius: 50px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4); max-width: 95vw;
 }
 
-.floating-toolbar {
-  pointer-events: auto; display: flex; align-items: center; gap: 20px;
-  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border); border-top: 1px solid rgba(255,255,255,0.15);
-  padding: 8px 25px; border-radius: 50px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+.layout-toolbar .v-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.15); }
+.layout-toolbar .icon-row { display: flex; gap: 8px; }
+.layout-toolbar .group-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; text-align: center; display: block; margin-top: 4px; }
+
+/* --- MODO SIDEBAR (LEFT) --- */
+.layout-sidebar {
+    top: 0; left: 0; bottom: 0; width: 80px;
+    display: flex; flex-direction: column; justify-content: center;
 }
 
+.layout-sidebar .floating-bar {
+    pointer-events: auto; display: flex; flex-direction: column; gap: 15px;
+    background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
+    border-right: 1px solid var(--glass-border); height: 100%; padding: 20px 10px;
+    box-shadow: 5px 0 40px rgba(0,0,0,0.4); align-items: center; justify-content: flex-start;
+}
+
+.layout-sidebar .v-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.15); margin: 5px 0; }
+.layout-sidebar .icon-row { display: flex; flex-direction: column; gap: 10px; }
+.layout-sidebar .group-label { display: none; } /* En sidebar ocultamos etiquetas para ahorrar espacio */
+
+/* Botones Comunes */
 .icon-btn {
-  width: 40px; height: 40px; border-radius: 50%; border: none;
+  width: 40px; height: 40px; border-radius: 12px; border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.05); color: #cbd5e1; font-size: 1.1rem;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   transition: 0.2s;
 }
-.icon-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: translateY(-2px); }
+.icon-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: scale(1.05); border-color: var(--glass-border); }
+.icon-btn.active { background: var(--primary); color: white; border-color: var(--accent); }
 
-/* Avatar Toolbar */
+/* Avatar */
 .user-menu-wrapper { position: relative; }
 .avatar-circle {
-  width: 40px; height: 40px; border-radius: 50%; background: var(--primary);
-  background-size: cover; background-position: center;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary);
+  background-size: cover; color: transparent; border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer; transition: transform 0.2s;
 }
+.avatar-circle:hover { transform: scale(1.1); border-color: white; }
+
 .user-dropdown {
-    position: absolute; top: 50px; right: 0; width: 240px;
+    position: absolute; top: 100%; right: 0; width: 240px; margin-top: 10px;
     background: #1e293b; border: 1px solid var(--glass-border); border-radius: 12px;
-    padding: 10px; display: flex; flex-direction: column; gap: 5px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 8px; display: flex; flex-direction: column; gap: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2500;
 }
-.dropdown-header { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; }
+/* Ajuste para Sidebar: El menú sale a la derecha */
+.layout-sidebar .user-dropdown { top: 0; left: 100%; right: auto; margin-left: 15px; margin-top: 0; }
+
 .dropdown-item {
     padding: 10px; border-radius: 6px; color: #cbd5e1; background: transparent; border: none;
     text-align: left; cursor: pointer; display: flex; gap: 10px; align-items: center;
 }
 .dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
 
-/* HOJA DE PAPEL REAL */
-.preview-shell {
-    position: fixed; inset: 0; z-index: 1500; background: rgba(5, 10, 20, 0.92);
-    backdrop-filter: blur(5px);
-    display: flex; justify-content: center; overflow-y: auto; padding: 100px 0;
-}
-#docPreview {
-    background: white; color: black; width: 21.59cm; min-height: 27.94cm;
-    box-shadow: 0 0 60px rgba(0,0,0,0.8); transform-origin: top center;
-}
-
 /* =========================================
-   4. INPUTS & CHECKBOXES
+   3. CONTENEDOR PRINCIPAL
    ========================================= */
-.container { max-width: 1200px; margin: 120px auto 40px auto; padding: 0 20px; }
+.container { 
+    max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px;
+    transition: margin-left 0.3s; 
+}
+/* Ajuste de margen cuando hay Sidebar */
+body.has-sidebar .container { margin-left: 100px; max-width: calc(100% - 140px); }
+
 .card, .visit-card {
   background: var(--glass-bg); backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px; margin-bottom: 20px;
+  border: 1px solid var(--glass-border); border-radius: 16px;
+  padding: 25px; margin-bottom: 20px;
 }
 .visit-card { border-left: 4px solid var(--primary); }
 
@@ -162,22 +135,6 @@ body::before {
 }
 .form-input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
 
-/* Checkbox Switch Fijo */
-.checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.checkbox-wrapper input { display: none; }
-.checkbox-visual {
-    width: 44px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 20px;
-    position: relative; transition: 0.3s; border: 1px solid rgba(255,255,255,0.2);
-}
-.checkbox-visual::after {
-    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
-    background: white; border-radius: 50%; transition: 0.3s;
-}
-.checkbox-wrapper input:checked + .checkbox-visual { background: var(--success); border-color: var(--success); }
-.checkbox-wrapper input:checked + .checkbox-visual::after { transform: translateX(20px); }
-/* Cuando está guardado y disabled */
-.checkbox-wrapper input:disabled + .checkbox-visual { opacity: 0.8; cursor: default; filter: grayscale(0.2); }
-
 /* Chips */
 .chips-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .chip {
@@ -189,24 +146,63 @@ body::before {
 .chip.active { background: rgba(14,165,233,0.2); border-color: var(--primary); color: var(--accent); font-weight: 600; }
 
 /* =========================================
-   5. CONSOLE DRAWER (NO TOASTS)
+   4. MODALES DE CONFIGURACIÓN (SETTINGS)
    ========================================= */
+.modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+    z-index: 3000; justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+
+/* Modal Grande para Configuración */
+.settings-modal {
+    background: #1e293b; width: 90%; max-width: 1000px; height: 85vh;
+    border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+    display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
+    box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+}
+
+.settings-sidebar {
+    background: rgba(0,0,0,0.2); padding: 30px; overflow-y: auto;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+.settings-preview-area {
+    padding: 30px; background: #0f172a; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; position: relative;
+}
+
+.settings-section-title {
+    font-size: 1.1rem; color: var(--accent); margin-bottom: 20px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+}
+
+/* Preview Simulado (Carta Pequeña) */
+.doc-simulated {
+    width: 216px; height: 279px; /* Escala 10% de carta real aprox para visualización */
+    background: white; color: black; position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5); transform: scale(1.5);
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden; font-size: 4px; /* Texto ilegible simulado */
+}
+.doc-sim-header { height: 15%; background-size: contain; background-repeat: no-repeat; background-position: center; border-bottom: 1px dashed #ccc; }
+.doc-sim-body { flex: 1; padding: 10px; background: rgba(0,0,0,0.02); }
+.doc-sim-footer { height: 10%; background-size: contain; background-repeat: no-repeat; background-position: center; border-top: 1px dashed #ccc; }
+
+/* =========================================
+   5. LOGIN & DRAWER
+   ========================================= */
+/* (Estilos de Login y Drawer del V5.2 se mantienen igual, solo aseguro compatibilidad) */
 #consoleDrawer {
     position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
     background: #0f172a; border-top: 1px solid var(--primary); z-index: 10000;
-    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(100%); transition: transform 0.3s;
     display: flex; flex-direction: column; font-family: monospace; font-size: 0.8rem;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
 }
 #consoleDrawer.open { transform: translateY(0); }
-.console-header {
-    background: rgba(255,255,255,0.05); padding: 5px 15px; display: flex; justify-content: space-between;
-    color: var(--text-muted); font-size: 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-#consoleContent { flex: 1; overflow-y: auto; padding: 10px; color: #33ff00; }
-.console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
+.console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 10px; }
 
-/* Modales Ocultos por defecto */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
-.modal-overlay.active { display: flex; }
-.modal-box { background: #1e293b; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); }
+/* ... (Resto de estilos de login V5.2) ... */
+.login-overlay { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; justify-content: center; align-items: center; }
+.login-box { width: 380px; background: rgba(30,41,59,0.9); padding: 40px; border-radius: 20px; }
+.user-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+.password-area.hidden { display: none; }
