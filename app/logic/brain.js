@@ -1,5 +1,3 @@
-// app/logic/brain.js
-
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
@@ -54,7 +52,7 @@ export function rotateWallpaper() {
     };
 }
 
-// --- CONSOLE DRAWER ONLY (Cero UI intrusiva) ---
+// --- CONSOLE DRAWER ONLY ---
 export function log(msg, isError = false) {
     console.log(msg); 
     const drawer = document.getElementById('consoleContent');
