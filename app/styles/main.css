@@ -2,24 +2,20 @@
    1. CORE & VARIABLES
    ========================================= */
 :root {
-  --primary: #0ea5e9;       /* Sky Blue 500 */
-  --accent: #22d3ee;        /* Cyan 400 */
-  --success: #10b981;       /* Emerald 500 */
-  --danger: #ef4444;        /* Red 500 */
-  --text-main: #f8fafc;     /* Slate 50 */
-  --text-muted: #94a3b8;    /* Slate 400 */
-  
-  /* Motor de Vidrio */
-  --glass-bg: rgba(15, 23, 42, 0.70);
+  --primary: #0ea5e9;
+  --accent: #22d3ee;
+  --success: #10b981;
+  --danger: #ef4444;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(15, 23, 42, 0.75);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.15);
-  --blur-strength: 20px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   background-color: #0f172a; 
   background-size: cover; background-position: center; background-attachment: fixed;
   color: var(--text-main);
@@ -34,145 +30,7 @@ body::before {
 .hidden { display: none !important; }
 
 /* =========================================
-   2. UI FLOTANTE (TOOLBAR)
-   ========================================= */
-.toolbar-container {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  z-index: 2000;
-  display: flex; justify-content: center;
-  width: auto; pointer-events: none;
-}
-
-.floating-toolbar {
-  pointer-events: auto;
-  display: flex; align-items: center; gap: 20px;
-  background: rgba(15, 23, 42, 0.85); 
-  backdrop-filter: blur(var(--blur-strength)); -webkit-backdrop-filter: blur(var(--blur-strength));
-  border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
-  padding: 10px 30px; border-radius: 24px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-}
-
-.toolbar-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.icon-row { display: flex; align-items: center; gap: 12px; }
-.group-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; opacity: 0.8; }
-.v-divider { width: 1px; height: 35px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent); }
-
-/* Botones */
-.icon-btn {
-  width: 42px; height: 42px; border-radius: 12px;
-  border: 1px solid transparent; background: rgba(255, 255, 255, 0.05);
-  color: white; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.icon-btn:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); color: var(--accent); }
-.icon-btn.active { background: var(--primary); color: white; border-color: var(--accent); }
-
-/* Avatar */
-.user-menu-wrapper { position: relative; }
-.avatar-circle {
-  width: 42px; height: 42px; border-radius: 50%;
-  background-size: cover; background-position: center;
-  background-color: var(--primary); color: white; font-weight: bold;
-  border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
-  display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
-}
-.avatar-circle:hover { transform: scale(1.1); border-color: white; }
-
-.user-dropdown {
-    position: absolute; top: 55px; right: 0; width: 260px;
-    background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border); border-radius: 16px;
-    padding: 10px; display: flex; flex-direction: column; gap: 4px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-}
-.dropdown-header { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; }
-.dropdown-header h4 { margin: 0; color: white; font-weight: 600; }
-.dropdown-header p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
-.dropdown-item {
-    padding: 10px; border-radius: 8px; color: #cbd5e1; background: transparent; border: none;
-    display: flex; gap: 10px; align-items: center; cursor: pointer; text-align: left; width: 100%;
-}
-.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
-
-/* =========================================
-   3. CONTENEDOR Y INPUTS
-   ========================================= */
-.container { max-width: 1200px; margin: 120px auto 40px auto; padding: 0 20px; }
-
-.card, .visit-card {
-  background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
-  border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
-  border-radius: 16px; padding: 25px; margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-}
-.visit-card { border-left: 4px solid var(--primary); }
-
-/* Inputs Estilizados */
-.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-.span-4 { grid-column: span 4; } .span-2 { grid-column: span 2; }
-
-.form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-
-.form-input, select.form-input {
-  width: 100%; min-height: 40px; padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.3); 
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px; color: white; font-family: inherit; font-size: 0.95rem;
-  transition: all 0.2s; appearance: none;
-}
-select.form-input { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 30px; }
-.form-input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); }
-
-/* Checkbox One-Time (Switch) */
-.checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.checkbox-wrapper input { display: none; }
-.checkbox-visual {
-    width: 44px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 20px;
-    position: relative; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.2);
-}
-.checkbox-visual::after {
-    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
-    background: white; border-radius: 50%; transition: all 0.3s;
-}
-.checkbox-wrapper input:checked + .checkbox-visual { background: var(--success); border-color: var(--success); }
-.checkbox-wrapper input:checked + .checkbox-visual::after { transform: translateX(20px); }
-/* Estado Deshabilitado (Fijo) */
-.checkbox-wrapper input:disabled + .checkbox-visual { opacity: 0.7; cursor: not-allowed; filter: grayscale(0.5); }
-
-/* Chips en Consulta */
-.chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-.chip {
-    padding: 6px 14px; border-radius: 50px; font-size: 0.85rem; cursor: pointer;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: var(--text-muted);
-    transition: all 0.2s; user-select: none;
-}
-.chip:hover { border-color: var(--primary); color: white; }
-.chip.active { 
-    background: rgba(14, 165, 233, 0.15); border-color: var(--primary); 
-    color: var(--accent); font-weight: 600; box-shadow: 0 0 10px rgba(14, 165, 233, 0.1);
-}
-
-/* =========================================
-   4. PREVIEW (PAPEL)
-   ========================================= */
-.preview-shell {
-    position: fixed; inset: 0; z-index: 1500;
-    background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(10px);
-    display: flex; justify-content: center; overflow-y: auto;
-    padding-top: 120px; padding-bottom: 100px;
-}
-
-#docPreview {
-    background: white; color: black; /* Papel real */
-    width: 21.59cm; min-height: 27.94cm; /* Carta */
-    padding: 0; margin: 0 auto;
-    box-shadow: 0 0 60px rgba(0,0,0,0.8);
-    transform-origin: top center; transition: transform 0.2s;
-}
-
-/* =========================================
-   5. LOGIN & CONSOLE
+   2. LOGIN SCREEN (Integrado)
    ========================================= */
 .login-overlay {
     position: fixed; inset: 0; z-index: 9999;
@@ -181,48 +39,174 @@ select.form-input { background-image: url("data:image/svg+xml;charset=UTF-8,%3cs
     background-size: cover; background-position: center;
     display: flex; justify-content: center; align-items: center;
 }
-.login-overlay::before { content: ''; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(10px); }
+.login-overlay::before { content: ''; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px); }
 
 .login-box {
-    width: 100%; max-width: 420px; background: rgba(30, 41, 59, 0.7); 
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; 
-    padding: 40px; position: relative; z-index: 10;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.6); transition: all 0.3s;
+    width: 100%; max-width: 400px;
+    background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 40px; position: relative; z-index: 10;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
 
-/* User Card en Login */
-.user-card {
-    display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px;
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); 
-    cursor: pointer; transition: all 0.2s ease;
+.login-header { text-align: center; margin-bottom: 30px; }
+.logo-big { font-size: 3rem; font-weight: 800; color: white; letter-spacing: -1px; text-shadow: 0 0 20px rgba(14, 165, 233, 0.5); }
+.login-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
+
+/* Tarjeta Usuario Login */
+.user-list { display: flex; flex-direction: column; gap: 15px; }
+
+.user-wrapper {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.2s;
 }
-.user-card:hover { 
-    background: rgba(255,255,255,0.08); border-color: var(--primary); 
-    transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
+.user-wrapper:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
+
+.user-card-content { display: flex; align-items: center; gap: 15px; }
+
 .user-avatar-lg {
-    width: 54px; height: 54px; border-radius: 50%; background-size: cover; background-position: center;
-    background-color: var(--primary); display: flex; align-items: center; justify-content: center; 
-    color: white; font-weight: bold; font-size: 1.2rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1);
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: white; font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.password-prompt { 
-    margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px; 
-    border-radius: 12px; animation: slideDown 0.2s ease-out; 
-    border: 1px solid var(--primary);
-}
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.user-info h3 { margin: 0; font-size: 1rem; color: white; }
+.user-info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+.user-info .username { font-size: 0.75rem; opacity: 0.5; display: block; margin-top: 2px; }
 
-/* CONSOLE DRAWER */
+/* Password Input (Integrado en tarjeta) */
+.password-area {
+    margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);
+    animation: slideDown 0.2s ease-out;
+}
+.login-input {
+    width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--primary);
+    padding: 10px; border-radius: 8px; color: white; text-align: center; font-size: 1rem;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =========================================
+   3. TOOLBAR & PREVIEW
+   ========================================= */
+.toolbar-container {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 2000; display: flex; justify-content: center; pointer-events: none;
+}
+
+.floating-toolbar {
+  pointer-events: auto; display: flex; align-items: center; gap: 20px;
+  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-top: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 25px; border-radius: 50px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, 0.05); color: #cbd5e1; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: translateY(-2px); }
+
+/* Avatar Toolbar */
+.user-menu-wrapper { position: relative; }
+.avatar-circle {
+  width: 40px; height: 40px; border-radius: 50%; background: var(--primary);
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+}
+.user-dropdown {
+    position: absolute; top: 50px; right: 0; width: 240px;
+    background: #1e293b; border: 1px solid var(--glass-border); border-radius: 12px;
+    padding: 10px; display: flex; flex-direction: column; gap: 5px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.dropdown-header { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px; }
+.dropdown-item {
+    padding: 10px; border-radius: 6px; color: #cbd5e1; background: transparent; border: none;
+    text-align: left; cursor: pointer; display: flex; gap: 10px; align-items: center;
+}
+.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+/* HOJA DE PAPEL REAL */
+.preview-shell {
+    position: fixed; inset: 0; z-index: 1500; background: rgba(5, 10, 20, 0.92);
+    backdrop-filter: blur(5px);
+    display: flex; justify-content: center; overflow-y: auto; padding: 100px 0;
+}
+#docPreview {
+    background: white; color: black; width: 21.59cm; min-height: 27.94cm;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8); transform-origin: top center;
+}
+
+/* =========================================
+   4. INPUTS & CHECKBOXES
+   ========================================= */
+.container { max-width: 1200px; margin: 120px auto 40px auto; padding: 0 20px; }
+.card, .visit-card {
+  background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px; margin-bottom: 20px;
+}
+.visit-card { border-left: 4px solid var(--primary); }
+
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+.span-4 { grid-column: span 4; } .span-2 { grid-column: span 2; }
+
+.form-input {
+  width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white;
+  font-family: inherit; font-size: 0.95rem;
+}
+.form-input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+
+/* Checkbox Switch Fijo */
+.checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.checkbox-wrapper input { display: none; }
+.checkbox-visual {
+    width: 44px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 20px;
+    position: relative; transition: 0.3s; border: 1px solid rgba(255,255,255,0.2);
+}
+.checkbox-visual::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+    background: white; border-radius: 50%; transition: 0.3s;
+}
+.checkbox-wrapper input:checked + .checkbox-visual { background: var(--success); border-color: var(--success); }
+.checkbox-wrapper input:checked + .checkbox-visual::after { transform: translateX(20px); }
+/* Cuando está guardado y disabled */
+.checkbox-wrapper input:disabled + .checkbox-visual { opacity: 0.8; cursor: default; filter: grayscale(0.2); }
+
+/* Chips */
+.chips-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.chip {
+    padding: 5px 12px; border-radius: 50px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; cursor: pointer;
+    transition: 0.2s; user-select: none;
+}
+.chip:hover { border-color: var(--primary); color: white; }
+.chip.active { background: rgba(14,165,233,0.2); border-color: var(--primary); color: var(--accent); font-weight: 600; }
+
+/* =========================================
+   5. CONSOLE DRAWER (NO TOASTS)
+   ========================================= */
 #consoleDrawer {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 220px;
-    background: #0f172a; border-top: 1px solid var(--primary);
-    z-index: 9998; padding: 10px 20px; font-family: 'Consolas', monospace; 
-    font-size: 0.85rem; color: #33ff00;
-    overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex; flex-direction: column; box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
+    background: #0f172a; border-top: 1px solid var(--primary); z-index: 10000;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; flex-direction: column; font-family: monospace; font-size: 0.8rem;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
 }
 #consoleDrawer.open { transform: translateY(0); }
-.console-line { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
-.console-ts { color: #64748b; }
+.console-header {
+    background: rgba(255,255,255,0.05); padding: 5px 15px; display: flex; justify-content: space-between;
+    color: var(--text-muted); font-size: 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+#consoleContent { flex: 1; overflow-y: auto; padding: 10px; color: #33ff00; }
+.console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
+
+/* Modales Ocultos por defecto */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal-box { background: #1e293b; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); }
