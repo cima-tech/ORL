@@ -1,22 +1,57 @@
 // app/logic/toolbar.js
 
 import { $, STATE, rotateWallpaper, flash, showErr, fmtDate } from 'brain';
-import { ServiceLoader } from './service_loader.js'; // <--- IMPORT CRÍTICO
+import { ServiceLoader } from './service_loader.js'; 
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js'; 
 
 // ==========================================
 // 1. GENERADORES DE HTML
 // ==========================================
-// (El código HTML de los grupos no cambia, pero lo incluyo para que tengas el archivo completo y limpio)
 
 function getNavGroupHTML() {
     const activeStyle = (mode) => STATE.UI.currentMode === mode 
         ? 'background:rgba(255,255,255,0.2); border-color:white; box-shadow:0 0 10px rgba(255,255,255,0.1);' : '';
-    const user = STATE.currentUser.profile;
-    const parts = user.name.trim().split(" ");
-    const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0,2);
+    
+    // Extracción de datos del JSON complejo
+    const profile = STATE.currentUser.profile;
+    const fullName = `${profile.title} ${profile.firstname} ${profile.lastname}`;
+    const roleDisplay = profile.title_line_1 || profile.role;
+    
+    // Iniciales
+    const initials = profile.firstname ? profile.firstname[0] + (profile.lastname ? profile.lastname[0] : '') : "DR";
 
-    return `<div class="toolbar-group"><div class="icon-row"><button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button><button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button><button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button><button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button><button class="icon-btn" title="Inbox" style="position:relative;"><i class="bi bi-inbox"></i><span class="badge-dot"></span></button><div class="user-menu-wrapper"><button id="btnUserAvatar" class="avatar-circle">${initials.toUpperCase()}</button><div id="userDropdown" class="user-dropdown hidden"><div class="dropdown-header"><h4>${user.name}</h4><p>Administrador</p></div><button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button><button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button><button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Tema</button><button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Layout</button><div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div><button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Salir</button></div></div></div><span class="group-label">Navegación</span></div>`;
+    return `
+    <div class="toolbar-group">
+        <div class="icon-row">
+            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
+            <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
+            <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
+            <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
+            <button class="icon-btn" title="Inbox" style="position:relative;"><i class="bi bi-inbox"></i><span class="badge-dot"></span></button>
+            
+            <div class="user-menu-wrapper">
+                <button id="btnUserAvatar" class="avatar-circle">${initials.toUpperCase()}</button>
+                
+                <div id="userDropdown" class="user-dropdown hidden">
+                    <div class="dropdown-header">
+                        <h4>${fullName}</h4>
+                        <p>${roleDisplay}</p>
+                    </div>
+                    
+                    <button id="btnUserProfile" class="dropdown-item"><i class="bi bi-person-gear"></i> Perfil</button>
+                    <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Cambiar Fondo</button>
+                    <button id="btnToggleTheme" class="dropdown-item"><i class="bi bi-palette"></i> Alternar Tema</button>
+                    <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar-inset"></i> Layout</button>
+                    
+                    <div style="border-top:1px solid rgba(255,255,255,0.1); margin:4px 0;"></div>
+                    
+                    <button id="btnLogout" class="dropdown-item" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+        <span class="group-label">Navegación</span>
+    </div>
+    `;
 }
 
 function getHistoryGroupHTML() {
@@ -36,7 +71,7 @@ function getPreviewGroupHTML() {
 }
 
 // ==========================================
-// 2. RENDER
+// 2. RENDER PRINCIPAL
 // ==========================================
 
 export function renderToolbar() {
@@ -46,12 +81,14 @@ export function renderToolbar() {
     updateContentVisibility();
 
     let html = `<div class="toolbar-container"><div class="floating-toolbar">`;
+
     if (STATE.UI.currentMode === 'CONSULTATION') {
         html += getHistoryGroupHTML();
         html += getConsultToolsHTML();
         html += getPreviewGroupHTML();
         html += `<div class="v-divider"></div>`;
     }
+
     html += getNavGroupHTML();
     html += `</div></div>`;
     html += getModalsHTML();
@@ -96,7 +133,6 @@ function bindEvents() {
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
         
-        // Inicializar ficha con el servicio cargado
         ServiceLoader.get('patient').initializeNewPatient();
         
         $("#patientForm").classList.remove('hidden');
@@ -119,7 +155,6 @@ function bindEvents() {
     $("#btnRefresh")?.addEventListener('click', refreshPreview);
     $("#zoomRange")?.addEventListener('input', (e) => { $("#zoomVal").textContent = e.target.value + '%'; $("#docPreview").style.transform = `scale(${e.target.value / 100})`; });
 
-    // Botones Export (Usan ServiceLoader)
     $("#btnOpenExport")?.addEventListener('click', () => {
         if (!STATE.currentPreviewDoc) { showErr("Genere documento primero"); return; }
         const fname = $("#documento_numero")?.value || 'paciente';
@@ -180,13 +215,8 @@ window.openDocGlobal = function(kind, cardId) {
     STATE.currentPreviewCard = card;
     STATE.currentPreviewDoc = kind;
     STATE.UI.isPreviewMode = true; 
-    
-    let html = '';
-    if (kind === 'INF') html = ServiceLoader.get('informe').buildReportHTML(card);
-    else html = ServiceLoader.get('recipe').buildRecipeHTML(card);
-
+    let html = kind === 'INF' ? ServiceLoader.get('informe').buildReportHTML(card) : ServiceLoader.get('recipe').buildRecipeHTML(card);
     const preview = $("#docPreview");
     if(preview) preview.innerHTML = html;
-    
     renderToolbar();
 };
