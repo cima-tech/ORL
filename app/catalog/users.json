@@ -9,4 +9,15 @@
     "avatar": "app/user/u001/layout/avatar.png",
     "config_path": "app/user/u001/user.json"
   }
+
+  {
+    "id": "u002",
+    "username": "migueldaza",
+    "name": "Miguel Daza",
+    "role": "doctor",
+    "Title": "Dr.",
+    "Specialty": "General",
+    "avatar": "app/user/u002/layout/avatar.png",
+    "config_path": "app/user/u002/user.json"
+  }
 ]
