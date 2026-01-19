@@ -7,7 +7,8 @@ export function saveCurrentHistory() {
     const PatientService = ServiceLoader.get('patient');
     const patientData = PatientService.getPatientData();
     if (!patientData.documento_numero || !patientData.primer_nombre) { 
-        showErr('Faltan datos obligatorios'); return false; 
+        showErr('Faltan datos obligatorios'); 
+        return false; 
     }
 
     const visits = Array.from($$('.visit-card')).map(card => {
@@ -31,26 +32,37 @@ export function saveCurrentHistory() {
         };
     });
 
-    const fullRecord = { patient: patientData, visits: visits, lastUpdated: new Date().toISOString() };
+    const fullRecord = { 
+        patient: patientData, 
+        visits: visits, 
+        lastUpdated: new Date().toISOString() 
+    };
+    
     try {
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         db[patientData.documento_numero] = fullRecord;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         return true;
-    } catch (e) { showErr('Error guardando'); return false; }
+    } catch (e) { 
+        showErr('Error guardando'); 
+        return false; 
+    }
 }
 
 export function loadHistoryRecord(record) {
     const PatientService = ServiceLoader.get('patient');
     const ConsultService = ServiceLoader.get('consult');
 
-    resetStory(); 
-    PatientService.loadPatientDataToDOM(record.patient); 
+    resetStory();
+    PatientService.loadPatientDataToDOM(record.patient);
     $("#visitsContainer").classList.remove('hidden');
 
     [...(record.visits || [])].reverse().forEach(v => {
         const card = ConsultService.createVisitCard(v.type || 'Sucesiva');
-        const setVal = (sel, val) => { const el = card.querySelector(sel); if(el) el.value = val || ''; };
+        const setVal = (sel, val) => { 
+            const el = card.querySelector(sel); 
+            if(el) el.value = val || ''; 
+        };
         
         setVal('.visit-date', v.date);
         setVal('.txt-motivo', v.motivo);
@@ -71,15 +83,18 @@ export function loadHistoryRecord(record) {
         $("#visitsContainer").prepend(card);
     });
     
-    STATE.UI.isStoryOpen = true; 
+    STATE.UI.isStoryOpen = true;
     flash('Historia cargada.');
 }
 
 export function handleAddConsulta() {
     if(!STATE.UI.isStoryOpen) return;
-    if (!$("#primer_nombre")?.value) { showErr('Ingrese nombre primero'); return; }
+    if (!$("#primer_nombre")?.value) { 
+        showErr('Ingrese nombre primero'); 
+        return; 
+    }
 
-    const ConsultService = ServiceLoader.get('consult'); 
+    const ConsultService = ServiceLoader.get('consult');
     $("#visitsContainer").classList.remove('hidden');
 
     const existingCards = $("#visitsContainer").querySelectorAll('.visit-card');
@@ -110,7 +125,9 @@ export function handleAddConsulta() {
 }
 
 export function resetStory() {
-    ServiceLoader.get('patient').initializeNewPatient();
+    if (ServiceLoader.get('patient')) {
+        ServiceLoader.get('patient').initializeNewPatient();
+    }
     $("#visitsContainer").innerHTML = '';
     $("#visitsContainer").classList.add('hidden');
     STATE.UI.isStoryOpen = false;
@@ -122,6 +139,7 @@ export function getSearchResults(query) {
     query = query.toLowerCase().trim();
     return Object.values(db).filter(r => {
         const p = r.patient;
-        return `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase().includes(query) || p.documento_numero.includes(query);
+        return `${p.primer_nombre} ${p.primer_apellido}`.toLowerCase().includes(query) || 
+               p.documento_numero.includes(query);
     });
 }
