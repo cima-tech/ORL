@@ -61,7 +61,21 @@ body::before {
 /* --- MODO SIDEBAR (LEFT) --- */
 /* Ajuste del Body cuando hay sidebar */
 body.has-sidebar { margin-left: 90px; }
+/* DISABLED (failsafe): sidebar no debe deformar .container
 body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px auto; }
+
+
+/* =========================================
+   SIDEBAR SAFE OFFSET (FIX)
+   ========================================= */
+/* En modo sidebar, el contenido se desplaza con padding del body, NO tocando el ancho del .container */
+body.has-sidebar { padding-left: 100px; }
+@media (max-width: 720px) {
+  body.has-sidebar { padding-left: 80px; } /* reduce desplazamiento en pantallas pequenas */
+}
+/* El contenedor permanece centrado y con ancho fijo */
+.container { max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px; }
+*/
 
 .layout-sidebar {
     top: 0; left: 0; bottom: 0; width: 80px;
