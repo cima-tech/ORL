@@ -13,76 +13,19 @@
 </head>
 <body>
 
-<div id="login-screen" class="login-overlay">
-    <div class="login-box glass">
-        <div class="login-header">
-            <div class="logo-big">CIMA</div>
-            
-
-<!-- AUTH DRAWER (pre-login) -->
-<div id="authOverlay" class="drawer-overlay hidden">
-  <div id="authDrawer" class="drawer glass">
-    <div class="drawer-header">
-      <div>
-        <div class="logo-big" style="letter-spacing:2px;">CIMA</div>
-        <div class="muted">Acceso y gestión de usuarios</div>
-      </div>
-      <button id="btnCloseAuth" class="icon-btn" title="Cerrar"><i class="bi bi-x-lg"></i></button>
+<!-- Login como Drawer lateral derecho -->
+<div id="loginDrawer" class="login-drawer">
+    <div class="login-drawer-header">
+        <h3><i class="bi bi-person-badge"></i> Iniciar Sesión</h3>
+        <button class="icon-btn btn-close-login"><i class="bi bi-x-lg"></i></button>
     </div>
-
-    <div class="drawer-tabs">
-      <button id="tabLogin" class="tab-btn active">Iniciar sesión</button>
-      <button id="tabCreate" class="tab-btn">Crear usuario</button>
-    </div>
-
-    <div id="authPaneLogin" class="drawer-pane">
-      <div class="section-title">Recientes</div>
-      <div id="recentUsersRow" class="recent-row"></div>
-
-      <div class="section-title" style="margin-top:14px;">Todos los usuarios</div>
-      <div id="user-list-container" class="user-list"></div>
-    </div>
-
-    <div id="authPaneCreate" class="drawer-pane hidden">
-      <div class="section-title">Nuevo usuario</div>
-
-      <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:12px;">
-        <div class="form-group"><label>ID (ej: u002)</label><input id="cu_id" class="form-input" placeholder="u002"></div>
-        <div class="form-group"><label>Username</label><input id="cu_username" class="form-input" placeholder="tudraorl"></div>
-
-        <div class="form-group"><label>Nombre visible</label><input id="cu_name" class="form-input" placeholder="Nombre Apellido"></div>
-        <div class="form-group"><label>Título</label><input id="cu_title" class="form-input" placeholder="Dra."></div>
-
-        <div class="form-group"><label>Especialidad</label><input id="cu_specialty" class="form-input" placeholder="Otorrinolaringología"></div>
-        <div class="form-group"><label>Password (opcional)</label><input id="cu_password" type="password" class="form-input" placeholder="••••••••"></div>
-
-        <div class="form-group span-2"><label>Modelo por defecto</label><select id="cu_model" class="form-input"></select></div>
-
-        <div class="form-group"><label>Avatar</label><input id="cu_avatar" type="file" accept="image/*" class="form-input"></div>
-        <div class="form-group"><label>Header</label><input id="cu_header" type="file" accept="image/*" class="form-input"></div>
-
-        <div class="form-group"><label>Footer</label><input id="cu_footer" type="file" accept="image/*" class="form-input"></div>
-        <div class="form-group"><label>Firma</label><input id="cu_signature" type="file" accept="image/*" class="form-input"></div>
-
-        <div class="form-group"><label>Sello</label><input id="cu_stamp" type="file" accept="image/*" class="form-input"></div>
-        <div class="form-group"><label>Ubicación</label><input id="cu_location" class="form-input" placeholder="Caracas, Venezuela"></div>
-      </div>
-
-      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
-        <button id="btnDownloadUser" class="icon-btn" style="width:auto; padding:0 14px; font-size:0.9rem;"><i class="bi bi-download"></i> Descargar JSON</button>
-        <button id="btnCreateUser" class="icon-btn" style="width:auto; padding:0 14px; font-size:0.9rem; background:var(--primary);"><i class="bi bi-person-plus"></i> Crear</button>
-      </div>
-
-      <div class="muted" style="margin-top:10px; line-height:1.35;">
-        Nota: en modo estático, los nuevos usuarios se guardan en <code>localStorage</code>. También puedes descargar el <code>user.json</code> generado.
-      </div>
-    </div>
-  </div>
-</div>
-
-<p>Sistema Clínico Integral</p>
+    <div class="login-drawer-content">
+        <div id="user-list-container" class="user-list"></div>
+        <div class="login-drawer-footer">
+            <button id="btnCreateAccount" class="btn-ghost" style="width:100%; margin-top:15px;">
+                <i class="bi bi-person-plus"></i> Crear Cuenta (Próximamente)
+            </button>
         </div>
-        <div class="login-content"><div id="user-list-container" class="user-list"></div></div>
     </div>
 </div>
 
