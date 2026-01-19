@@ -223,93 +223,37 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 
 
 /* =========================================
-   UI MOUNT FIX (toolbar/sidebar stable)
+   TOOLBAR CONTAINER POSITION FIX (v4)
+   Problema: .layout-toolbar/.layout-sidebar estaban definidos para #ui-mount-point,
+   pero el render crea un div interno .toolbar-container con esas clases.
+   Solución: dar position:fixed al .toolbar-container y mantener #ui-mount-point neutro.
    ========================================= */
-#ui-mount-point {
+
+#ui-mount-point { position: static !important; inset: auto !important; }
+
+.toolbar-container{
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.toolbar-container.layout-toolbar{
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: auto;
+}
+
+.toolbar-container.layout-sidebar{
   top: 0;
   left: 0;
-  right: 0;
   bottom: 0;
-}
-.toolbar-container { pointer-events: none; }
-.toolbar-container .floating-bar { pointer-events: auto; }
-
-
-
-/* =========================================
-   AUTH DRAWER (pre-login)
-   ========================================= */
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 9998;
+  width: 80px;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  justify-content: center;
 }
-.drawer {
-  width: min(560px, 92vw);
-  height: 100%;
-  border-left: 1px solid var(--glass-border);
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(var(--blur-strength));
-  padding: 18px;
-  transform: translateX(0);
-  box-shadow: -20px 0 60px rgba(0,0,0,0.6);
-}
-.drawer-header{
-  display:flex;
-  align-items:flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-.drawer-header .muted{ color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
-.drawer-tabs{
-  display:flex;
-  gap: 8px;
-  margin-top: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.tab-btn{
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.05);
-  color: #cbd5e1;
-  padding: 8px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.tab-btn.active{
-  background: rgba(14,165,233,0.20);
-  border-color: rgba(34,211,238,0.35);
-  color: white;
-}
-.drawer-pane{ margin-top: 14px; }
-.section-title{
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
-.recent-row{
-  display:flex;
-  gap:10px;
-  overflow:auto;
-  padding-bottom: 8px;
-}
-.user-list{ margin-top: 10px; }
 
-
-
-/* Login input */
-.login-input{
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 10px;
-  color: white;
-}
-.login-input:focus{ border-color: var(--primary); background: rgba(0,0,0,0.35); }
+.toolbar-container .floating-bar{ pointer-events: auto; }
