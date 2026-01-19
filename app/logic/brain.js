@@ -1,3 +1,4 @@
+// app/logic/brain.js
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
@@ -77,9 +78,10 @@ export function rotateWallpaper() {
     };
 }
 
+// --- CONSOLE DRAWER ---
 export function log(msg, isError = false) {
     console.log(msg);
-    const drawer = $('#consoleContent');
+    const drawer = document.getElementById('consoleContent');
     if (!drawer) return;
     const time = new Date().toLocaleTimeString();
     const color = isError ? '#ef4444' : '#4ade80';
@@ -92,6 +94,7 @@ export function log(msg, isError = false) {
 export function showErr(msg) { log(msg, true); }
 export function flash(msg, isError = false) { log(msg, isError); }
 
+// --- UTILS ---
 export function getLocalDateTime() { 
     const now = new Date(); 
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
