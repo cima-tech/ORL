@@ -6,10 +6,18 @@ let PatientService = null;
 
 export const StartManager = {
     async init() {
-        // Inicializar toolbar inmediatamente (muestra botón login)
-        initToolbarEvents();
-        
-        // Cargar lista de usuarios para el drawer
+        // Inicializar eventos globales
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+                $('#consoleDrawer').classList.toggle('open');
+            }
+            if (e.key === 'Escape') {
+                $('.login-drawer.open')?.classList.remove('open');
+                $('.config-drawer.open')?.classList.remove('open');
+            }
+        });
+
+        // Cargar usuarios para login
         try {
             const response = await fetch('./app/catalog/users.json');
             const users = await response.json();
@@ -19,25 +27,24 @@ export const StartManager = {
             log("Error cargando usuarios", true); 
         }
 
-        // Atajo teclado para console drawer
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && e.key === 'L') {
-                document.getElementById('consoleDrawer').classList.toggle('open');
-            }
-        });
+        // Inicializar toolbar
+        initToolbarEvents();
+        
+        // Aplicar tema guardado
+        const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
+        document.body.className = `theme-${savedTheme}`;
     },
 
     renderUserList(users) {
-        const list = document.getElementById('user-list-container');
+        const list = $('#user-list-container');
         if(!list) return;
         
         list.innerHTML = users.map(u => {
             const hasImg = u.avatar && u.avatar !== "";
             const avatarHtml = hasImg 
-                ? `<div class="user-avatar-lg" style="background-image: url('${u.avatar}'); color:transparent;"></div>`
+                ? `<div class="user-avatar-lg" style="background-image: url('${u.avatar}');"></div>`
                 : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
 
-            // Normalizar mayúsculas para display
             const roleDisplay = u.Specialty || u.role;
 
             return `
@@ -62,22 +69,22 @@ export const StartManager = {
 };
 
 window.selectUser = async (id, configPath) => {
-    document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
+    $$('.password-area').forEach(el => el.classList.add('hidden'));
     
     await loadUserConfig(configPath);
     const pwd = STATE.currentUser.profile.password;
 
     if (pwd) {
-        const area = document.getElementById(`pwd-area-${id}`);
+        const area = $(`#pwd-area-${id}`);
         area.classList.remove('hidden');
-        document.getElementById(`pwd-input-${id}`).focus();
+        $(`#pwd-input-${id}`).focus();
     } else {
         finishLogin();
     }
 };
 
 window.verifyPassword = (id) => {
-    const input = document.getElementById(`pwd-input-${id}`);
+    const input = $(`#pwd-input-${id}`);
     const actual = STATE.currentUser.profile.password;
     if (input.value === actual) {
         finishLogin();
@@ -89,7 +96,7 @@ window.verifyPassword = (id) => {
 };
 
 async function finishLogin() {
-    const loginDrawer = document.getElementById('loginDrawer');
+    const loginDrawer = $('#loginDrawer');
     loginDrawer.classList.remove('open');
     
     try {
@@ -97,7 +104,7 @@ async function finishLogin() {
         if (!await ServiceLoader.init()) throw new Error("Fallo en ServiceLoader");
         
         // Re-renderizar toolbar con usuario logueado
-        initToolbarEvents();
+        import('./toolbar.js').then(({ initToolbarEvents }) => initToolbarEvents());
         
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
@@ -105,14 +112,15 @@ async function finishLogin() {
         window.$ = $;
 
         // Configurar listeners del formulario paciente
-        const form = document.getElementById('patientForm');
+        const form = $('#patientForm');
         if(form) form.addEventListener('change', (e) => {
-             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) PatientService.updatePatientHeader();
+             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) 
+                 PatientService.updatePatientHeader();
              if(e.target.id.includes('nacimiento')) PatientService.calcularCampos();
              if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
         });
         
-        const visits = document.getElementById('visitsContainer');
+        const visits = $('#visitsContainer');
         if(visits) visits.addEventListener('click', handleVisitClicks);
 
         setTimeout(() => {
