@@ -6,10 +6,7 @@
     "role": "doctor",
     "Title": "Dra.",
     "Specialty": "Otorrinolaringologia",
-    "avatar": "./app/user/u001/layout/avatar.png",
-    "config_path": "./app/user/u001/user.json",
-    "email": "tudraorl@gmail.com",
-    "phone": "+584241090979",
-    "document_id": "V-16815618"
+    "avatar": "app/user/u001/layout/avatar.png",
+    "config_path": "app/user/u001/user.json"
   }
 ]
