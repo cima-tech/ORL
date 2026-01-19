@@ -1,4 +1,5 @@
 // app/logic/brain.js
+// app/logic/brain.js
 
 export const $ = (selector) => document.querySelector(selector);
 export const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -7,15 +8,18 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
-    
-    // Compat: algunos módulos usan patientUUID (no eliminar)
-    patientUUID: 1,
     // UI State
     UI: {
         currentMode: 'CONSULTATION', 
         isStoryOpen: false,          
         isPreviewMode: false,
         layout: 'toolbar' // 'toolbar' | 'sidebar'
+    },
+
+    // Auth/UI bootstrap
+    AUTH: {
+        isLoggedIn: false,
+        selectedUserId: null
     },
 
     currentPreviewCard: null, 
