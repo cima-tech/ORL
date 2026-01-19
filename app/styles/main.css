@@ -258,3 +258,10 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 
 .toolbar-container .floating-bar{ pointer-events: auto; }
 
+/* Si el login quedó transparente por error, que no bloquee clicks */
+#login-screen[style*="opacity: 0"] { pointer-events: none !important; }
+
+/* Y si está hidden, que desaparezca de verdad */
+#login-screen.hidden { display: none !important; }
+
+
