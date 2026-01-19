@@ -1,4 +1,4 @@
-import { $, $$, STATE, rotateWallpaper, log, flash } from 'brain';
+import { STATE, rotateWallpaper, log as brainLog, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js';
 
@@ -432,3 +432,4 @@ window.openDocGlobal = function(kind, cardId) {
     $('#docPreview').innerHTML = html; 
     renderToolbar();
 };
+
