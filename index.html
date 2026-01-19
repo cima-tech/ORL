@@ -4,28 +4,37 @@
     <meta charset="UTF-8">
     <title>CIMA — Sistema ORL</title>
     <link rel="stylesheet" href="app/styles/main.css">
+    <link rel="stylesheet" href="app/styles/layout.css">
+    <link rel="stylesheet" href="app/styles/forms.css">
+    <link rel="stylesheet" href="app/styles/components.css">
+    <link rel="stylesheet" href="app/styles/themes.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 </head>
-<body>
+<body class="theme-glass">
 
-<!-- Login como Drawer lateral derecho -->
+<!-- Drawer de Login -->
 <div id="loginDrawer" class="login-drawer">
-    <div class="login-drawer-header">
+    <div class="drawer-header">
         <h3><i class="bi bi-person-badge"></i> Iniciar Sesión</h3>
-        <button class="icon-btn btn-close-login"><i class="bi bi-x-lg"></i></button>
+        <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
     </div>
-    <div class="login-drawer-content">
+    <div class="drawer-content">
         <div id="user-list-container" class="user-list"></div>
-        <div class="login-drawer-footer">
-            <button id="btnCreateAccount" class="btn-ghost" style="width:100%; margin-top:15px;">
-                <i class="bi bi-person-plus"></i> Crear Cuenta (Próximamente)
-            </button>
-        </div>
+    </div>
+</div>
+
+<!-- Drawer de Configuración -->
+<div id="configDrawer" class="config-drawer">
+    <div class="drawer-header">
+        <h3><i class="bi bi-gear"></i> Configuración</h3>
+        <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="drawer-content" id="config-content">
+        <!-- Se llena dinámicamente desde toolbar.js -->
     </div>
 </div>
 
@@ -34,21 +43,21 @@
 <div class="container">
   <div id="patientForm" class="card hidden">
     <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
-      <div style="flex:1; display:flex; align-items:center; gap:20px;">
-        <i class="bi bi-person-circle" style="font-size: 2.5rem; color:var(--primary);"></i>
-        <div>
-            <div style="display:flex; gap:12px; align-items:baseline;">
-                <h3 id="patient-header-name" style="margin:0; font-size:1.4rem; color:white;">Nuevo Paciente</h3>
-                <span id="patient-age-display" class="badge" style="background:var(--accent); color:black; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.75rem;">-- años</span>
+      <div class="patient-header-left">
+        <i class="bi bi-person-circle patient-avatar-icon"></i>
+        <div class="patient-header-info">
+            <div class="patient-name-row">
+                <h3 id="patient-header-name">Nuevo Paciente</h3>
+                <span id="patient-age-display" class="badge">-- años</span>
             </div>
-            <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">
+            <div class="patient-meta">
                 <span id="patient-doc-info">Doc: ---</span> • <span id="patient-internal-id">ID: ---</span>
             </div>
         </div>
       </div>
       <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
     </div>
-    <div class="patient-details hidden" id="patient-form-container" style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);"></div>
+    <div class="patient-details hidden" id="patient-form-container"></div>
   </div> 
 
   <div id="visitsContainer" class="hidden"></div>
@@ -61,7 +70,7 @@
 <div id="consoleDrawer">
     <div class="console-header">
         <span>SYSTEM LOG (Ctrl+Shift+L)</span>
-        <span style="cursor:pointer;" onclick="document.getElementById('consoleDrawer').classList.remove('open')">▼</span>
+        <span class="toggle-console">▼</span>
     </div>
     <div id="consoleContent"></div>
 </div>
