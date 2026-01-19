@@ -1,11 +1,11 @@
-// app/logic/start.js
+// app/logic/start.js - VERSIÓN CORREGIDA
 import { log as brainLog, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
 
-// Helpers locales para selectores
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+// Helpers locales (NO usar nombres conflictivos)
+const $local = (selector) => document.querySelector(selector);
+const $$local = (selector) => Array.from(document.querySelectorAll(selector));
 
 let PatientService = null;
 
@@ -14,11 +14,11 @@ export const StartManager = {
         // Inicializar eventos globales
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'L') {
-                $('#consoleDrawer').classList.toggle('open');
+                $local('#consoleDrawer').classList.toggle('open');
             }
             if (e.key === 'Escape') {
-                $('.login-drawer.open')?.classList.remove('open');
-                $('.config-drawer.open')?.classList.remove('open');
+                $local('.login-drawer.open')?.classList.remove('open');
+                $local('.config-drawer.open')?.classList.remove('open');
             }
         });
 
@@ -41,7 +41,7 @@ export const StartManager = {
     },
 
     renderUserList(users) {
-        const list = $('#user-list-container');
+        const list = $local('#user-list-container');
         if(!list) return;
         
         list.innerHTML = users.map(u => {
@@ -74,22 +74,22 @@ export const StartManager = {
 };
 
 window.selectUser = async (id, configPath) => {
-    $$('.password-area').forEach(el => el.classList.add('hidden'));
+    $$local('.password-area').forEach(el => el.classList.add('hidden'));
     
     await loadUserConfig(configPath);
     const pwd = STATE.currentUser.profile.password;
 
     if (pwd) {
-        const area = $(`#pwd-area-${id}`);
+        const area = $local(`#pwd-area-${id}`);
         area.classList.remove('hidden');
-        $(`#pwd-input-${id}`).focus();
+        $local(`#pwd-input-${id}`).focus();
     } else {
         finishLogin();
     }
 };
 
 window.verifyPassword = (id) => {
-    const input = $(`#pwd-input-${id}`);
+    const input = $local(`#pwd-input-${id}`);
     const actual = STATE.currentUser.profile.password;
     if (input.value === actual) {
         finishLogin();
@@ -101,7 +101,7 @@ window.verifyPassword = (id) => {
 };
 
 async function finishLogin() {
-    const loginDrawer = $('#loginDrawer');
+    const loginDrawer = $local('#loginDrawer');
     loginDrawer.classList.remove('open');
     
     try {
@@ -114,10 +114,10 @@ async function finishLogin() {
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
-        window.$ = $; // Asignamos $ global para uso en otros módulos
+        window.$ = $local; // Asignamos al global
 
         // Configurar listeners del formulario paciente
-        const form = $('#patientForm');
+        const form = $local('#patientForm');
         if(form) form.addEventListener('change', (e) => {
              if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) 
                  PatientService.updatePatientHeader();
@@ -125,7 +125,7 @@ async function finishLogin() {
              if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
         });
         
-        const visits = $('#visitsContainer');
+        const visits = $local('#visitsContainer');
         if(visits) visits.addEventListener('click', handleVisitClicks);
 
         setTimeout(() => {
