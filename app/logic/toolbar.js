@@ -20,7 +20,7 @@ function getNavGroupHTML(isSidebar) {
         (p.assets.avatar_path.startsWith('./') ? p.assets.avatar_path.substring(1) : p.assets.avatar_path) : '';
     
     const avatarStyle = avatarPath ? `background-image: url('${avatarPath}'); color:transparent;` : '';
-    const initials = p.username ? p.username.substring(0,2).toUpperCase() : "U";
+    const initials = p.name ? p.name.substring(0,2).toUpperCase() : "U";
 
     if (!isLoggedIn) {
         return `
@@ -420,3 +420,4 @@ window.openDocGlobal = function(kind, cardId) {
     document.getElementById('docPreview').innerHTML = html; 
     renderToolbar();
 };
+
