@@ -42,6 +42,7 @@ function getNavGroupHTML(isSidebar) {
             <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
             <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
             <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
+            <button class="icon-btn" title="Inbox" onclick="window.changeMode('INBOX')" style="${activeStyle('INBOX')}"><i class="bi bi-inbox"></i></button>
             <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
             ${!isSidebar ? userMenu : ''} 
         </div>
@@ -76,12 +77,26 @@ function getPreviewGroupHTML() {
     </div>`;
 }
 
+
+function getAuthGroupHTML() {
+    return `
+    <div class="toolbar-group">
+      <div class="icon-row">
+        <button class="icon-btn" title="Iniciar sesión" onclick="window.openAuthDrawer('login')"><i class="bi bi-person-check"></i></button>
+        <button class="icon-btn" title="Crear usuario" onclick="window.openAuthDrawer('create')"><i class="bi bi-person-plus"></i></button>
+      </div>
+      <span class="group-label">Acceso</span>
+    </div>`;
+}
+
 /* ================= RENDER ================= */
 
 export function renderToolbar() {
     const mount = document.getElementById('ui-mount-point');
     if (!mount) return;
 
+
+    const isLoggedIn = !!STATE.AUTH?.isLoggedIn;
     // Body Class Layout
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
@@ -104,6 +119,16 @@ export function renderToolbar() {
     }
 
     let html = `<div class="toolbar-container ${isSidebar ? 'layout-sidebar' : 'layout-toolbar'}"><div class="floating-bar">`;
+
+    // Pre-login toolbar (no requiere ServiceLoader)
+    if (!isLoggedIn) {
+        html += getAuthGroupHTML();
+        html += `</div></div>`;
+        html += getModalsHTML();
+        mount.innerHTML = html;
+        bindEvents();
+        return;
+    }
 
     if (isSidebar) {
         html += getNavGroupHTML(true);
@@ -129,6 +154,24 @@ export function renderToolbar() {
 }
 
 function bindEvents() {
+    window.openAuthDrawer = (pane='login') => {
+        const ov = document.getElementById('authOverlay');
+        if(!ov) return;
+        ov.classList.remove('hidden');
+        const tabL = document.getElementById('tabLogin');
+        const tabC = document.getElementById('tabCreate');
+        const pL = document.getElementById('authPaneLogin');
+        const pC = document.getElementById('authPaneCreate');
+        const set = (which) => {
+            const isLogin = which==='login';
+            tabL?.classList.toggle('active', isLogin);
+            tabC?.classList.toggle('active', !isLogin);
+            pL?.classList.toggle('hidden', !isLogin);
+            pC?.classList.toggle('hidden', isLogin);
+        };
+        set(pane);
+    };
+
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
