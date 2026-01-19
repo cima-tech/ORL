@@ -3,5 +3,10 @@
     "id": "ORL-001",
     "name": "Otorrinolaringología",
     "path": "./app/services/consultation/models/ORL-001"
+  },
+  "GEN-001": {
+    "id": "GEN-001",
+    "name": "Medicina General",
+    "path": "./app/services/consultation/models/GEN-001"
   }
 }
