@@ -14,9 +14,7 @@ function getNavGroupHTML(isSidebar) {
     const name = p.name || `${p.firstname} ${p.lastname}`;
     const role = p.Specialty || p.role;
     
-    /* Compat: assets viven en STATE.currentUser.assets (no en profile). Conservamos fallback. */
-    const avatarPath = (STATE.currentUser?.assets?.avatar_path || p.assets?.avatar_path || '');
-    const avatarStyle = avatarPath ? `background-image: url('${avatarPath}'); color:transparent;` : '';
+    const avatarStyle = p.assets?.avatar_path ? `background-image: url('${p.assets.avatar_path}'); color:transparent;` : '';
     const initials = p.username ? p.username.substring(0,2).toUpperCase() : "U";
 
     const userMenu = `
@@ -42,7 +40,6 @@ function getNavGroupHTML(isSidebar) {
             <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
             <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
             <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
-            <button class="icon-btn" title="Inbox" onclick="window.changeMode('INBOX')" style="${activeStyle('INBOX')}"><i class="bi bi-inbox"></i></button>
             <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
             ${!isSidebar ? userMenu : ''} 
         </div>
@@ -77,13 +74,12 @@ function getPreviewGroupHTML() {
     </div>`;
 }
 
-
 function getAuthGroupHTML() {
     return `
     <div class="toolbar-group">
       <div class="icon-row">
-        <button class="icon-btn" title="Iniciar sesión" onclick="window.openAuthDrawer('login')"><i class="bi bi-person-check"></i></button>
-        <button class="icon-btn" title="Crear usuario" onclick="window.openAuthDrawer('create')"><i class="bi bi-person-plus"></i></button>
+        <button id="btnAuthLogin" class="icon-btn" title="Iniciar sesión"><i class="bi bi-person-check"></i></button>
+        <button id="btnAuthCreate" class="icon-btn" title="Crear usuario"><i class="bi bi-person-plus"></i></button>
       </div>
       <span class="group-label">Acceso</span>
     </div>`;
@@ -95,9 +91,10 @@ export function renderToolbar() {
     const mount = document.getElementById('ui-mount-point');
     if (!mount) return;
 
+    
 
     const isLoggedIn = !!STATE.AUTH?.isLoggedIn;
-    // Body Class Layout
+// Body Class Layout
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
@@ -124,7 +121,6 @@ export function renderToolbar() {
     if (!isLoggedIn) {
         html += getAuthGroupHTML();
         html += `</div></div>`;
-        html += getModalsHTML();
         mount.innerHTML = html;
         bindEvents();
         return;
@@ -154,6 +150,7 @@ export function renderToolbar() {
 }
 
 function bindEvents() {
+    // Pre-login drawer open helpers (evita onclick inline)
     window.openAuthDrawer = (pane='login') => {
         const ov = document.getElementById('authOverlay');
         if(!ov) return;
@@ -171,6 +168,8 @@ function bindEvents() {
         };
         set(pane);
     };
+    document.getElementById('btnAuthLogin')?.addEventListener('click', (e)=>{ e.stopPropagation(); window.openAuthDrawer('login'); });
+    document.getElementById('btnAuthCreate')?.addEventListener('click', (e)=>{ e.stopPropagation(); window.openAuthDrawer('create'); });
 
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
