@@ -301,15 +301,3 @@ function handleVisitClicks(e) {
 }
 
 // Helper para mostrar errores (reemplaza la función de brain.js temporalmente)
-function log(message, isError = false) {
-    console.log(message);
-    const drawer = document.getElementById('consoleContent');
-    if (!drawer) return;
-    
-    const time = new Date().toLocaleTimeString();
-    const color = isError ? '#ef4444' : '#4ade80';
-    const line = document.createElement('div');
-    line.className = 'console-line';
-    line.innerHTML = `<span style="color:#64748b">[${time}]</span> <span style="color:${color}">${message}</span>`;
-    drawer.prepend(line);
-}
