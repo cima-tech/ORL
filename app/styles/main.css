@@ -1,5 +1,5 @@
 /* =========================================
-   1. CORE & VARIABLES
+   0. SYSTEM THEMES (Liquid Glass, Glassmorphism, Dusk)
    ========================================= */
 :root {
   --primary: #0ea5e9;       
@@ -9,9 +9,37 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   
+  /* Glass Theme (default) */
   --glass-bg: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
   --blur-strength: 20px;
+  
+  /* Layout Transition Fix */
+  --sidebar-width: 80px;
+  --container-padding: 20px;
+}
+
+/* LIQUID GLASS THEME */
+body.theme-liquid {
+  --glass-bg: rgba(30, 41, 59, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --blur-strength: 30px;
+}
+
+/* GLASSMORPHISM THEME */
+body.theme-glassmorphism {
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --blur-strength: 25px;
+}
+
+/* DUSK THEME */
+body.theme-dusk {
+  --glass-bg: rgba(30, 41, 59, 0.95);
+  --glass-border: rgba(251, 146, 60, 0.3);
+  --blur-strength: 15px;
+  --primary: #f97316;
+  --accent: #fb923c;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -22,7 +50,8 @@ body {
   background-size: cover; background-position: center; background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh; font-size: 14px; overflow-x: hidden;
-  transition: margin-left 0.3s ease; /* Transición suave para sidebar */
+  /* Transición solo para margin-left, no afecta contenido */
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body::before {
@@ -33,238 +62,417 @@ body::before {
 .hidden { display: none !important; }
 
 /* =========================================
-   2. UI ADAPTATIVA (TOOLBAR / SIDEBAR)
+   1. LOGIN DRAWER (Nuevo Sistema)
+   ========================================= */
+.login-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Oculto por defecto */
+    width: 380px;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--glass-border);
+    z-index: 9999;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+}
+
+.login-drawer.open {
+    right: 0;
+}
+
+.login-drawer-header {
+    padding: 25px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.login-drawer-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--accent);
+}
+
+.login-drawer-content {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+}
+
+.login-drawer-footer {
+    padding: 25px;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* =========================================
+   2. UI ADAPTATIVA (TOOLBAR / SIDEBAR - FIXED)
    ========================================= */
 /* Contenedor Base */
 #ui-mount-point {
-    position: fixed; z-index: 2000;
-    pointer-events: auto; 
+    position: fixed; 
+    z-index: 2000;
+    pointer-events: none; 
 }
 
 /* --- MODO TOOLBAR (TOP) --- */
 .layout-toolbar {
-    top: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; justify-content: center; width: auto;
+    top: 20px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    width: auto;
 }
 
 .layout-toolbar .floating-bar {
-    pointer-events: auto; display: flex; align-items: center; gap: 20px;
-    background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
-    border: 1px solid var(--glass-border); padding: 8px 25px; border-radius: 50px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.4); max-width: 95vw;
+    pointer-events: auto; 
+    display: flex; 
+    align-items: center; 
+    gap: 20px;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(var(--blur-strength));
+    border: 1px solid var(--glass-border); 
+    padding: 8px 25px; 
+    border-radius: 50px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
+    max-width: 95vw;
 }
 
-.layout-toolbar .v-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.15); }
-.layout-toolbar .icon-row { display: flex; gap: 8px; }
-.layout-toolbar .group-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; text-align: center; display: block; margin-top: 4px; }
+.layout-toolbar .v-divider { 
+    width: 1px; 
+    height: 30px; 
+    background: rgba(255,255,255,0.15); 
+}
+
+.layout-toolbar .icon-row { 
+    display: flex; 
+    gap: 8px; 
+}
+
+.layout-toolbar .group-label { 
+    font-size: 0.65rem; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    text-align: center; 
+    display: block; 
+    margin-top: 4px; 
+}
 
 /* --- MODO SIDEBAR (LEFT) --- */
-/* Ajuste del Body cuando hay sidebar */
-body.has-sidebar { margin-left: 90px; }
-body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px auto; }
-
 .layout-sidebar {
-    top: 0; left: 0; bottom: 0; width: 80px;
-    display: flex; flex-direction: column; justify-content: center;
+    top: 0; 
+    left: 0; 
+    bottom: 0; 
+    width: var(--sidebar-width);
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
 }
 
 .layout-sidebar .floating-bar {
-    pointer-events: auto; display: flex; flex-direction: column; gap: 15px;
-    background: var(--glass-bg); backdrop-filter: blur(var(--blur-strength));
-    border-right: 1px solid var(--glass-border); height: 100%; padding: 20px 10px;
-    box-shadow: 5px 0 40px rgba(0,0,0,0.4); align-items: center; justify-content: flex-start;
+    pointer-events: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(var(--blur-strength));
+    border-right: 1px solid var(--glass-border); 
+    height: 100%; 
+    padding: 20px 10px;
+    box-shadow: 5px 0 40px rgba(0,0,0,0.4); 
+    align-items: center; 
+    justify-content: flex-start;
 }
 
-.layout-sidebar .v-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.15); margin: 5px 0; }
-.layout-sidebar .icon-row { display: flex; flex-direction: column; gap: 10px; }
-.layout-sidebar .group-label { display: none; } 
-
-/* Botones Comunes */
-.icon-btn {
-  width: 40px; height: 40px; border-radius: 12px; border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05); color: #cbd5e1; font-size: 1.1rem;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  transition: 0.2s;
+.layout-sidebar .v-divider { 
+    width: 40px; 
+    height: 1px; 
+    background: rgba(255,255,255,0.15); 
+    margin: 5px 0; 
 }
-.icon-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: scale(1.05); border-color: var(--glass-border); }
-.icon-btn.active { background: var(--primary); color: white; border-color: var(--accent); }
 
-/* Avatar */
-.user-menu-wrapper { position: relative; }
-.avatar-circle {
-  width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary);
-  background-size: cover; color: transparent; border: 2px solid rgba(255,255,255,0.2);
-  cursor: pointer; transition: transform 0.2s;
+.layout-sidebar .icon-row { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
 }
-.avatar-circle:hover { transform: scale(1.1); border-color: white; }
 
-.user-dropdown {
-    position: absolute; top: 100%; right: 0; width: 240px; margin-top: 10px;
-    background: #1e293b; border: 1px solid var(--glass-border); border-radius: 12px;
-    padding: 8px; display: flex; flex-direction: column; gap: 4px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2500;
+.layout-sidebar .group-label { 
+    display: none; 
 }
-/* Ajuste para Sidebar: El menú sale a la derecha */
-.layout-sidebar .user-dropdown { top: 0; left: 100%; right: auto; margin-left: 15px; margin-top: 0; }
 
-.dropdown-item {
-    padding: 10px; border-radius: 6px; color: #cbd5e1; background: transparent; border: none;
-    text-align: left; cursor: pointer; display: flex; gap: 10px; align-items: center;
+/* Ajuste del Body cuando hay sidebar - FIXED */
+body.has-sidebar { 
+    margin-left: var(--sidebar-width);
 }
-.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
+
+body.has-sidebar .container { 
+    max-width: calc(100% - var(--sidebar-width));
+    padding: 0 40px; 
+    margin: 40px auto;
+    transition: none; /* Eliminar transición del contenedor */
+}
 
 /* =========================================
-   3. CONTENEDOR PRINCIPAL
+   3. CONTENEDOR PRINCIPAL (FIXED FORMS)
    ========================================= */
 .container { 
-    max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px;
+    max-width: 1100px; 
+    margin: 100px auto 40px auto; 
+    padding: 0 var(--container-padding);
+    transition: none; /* Sin transición */
 }
 
 .card, .visit-card {
-  background: var(--glass-bg); backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border); border-radius: 16px;
-  padding: 25px; margin-bottom: 20px;
+  background: var(--glass-bg); 
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); 
+  border-radius: 16px;
+  padding: 25px; 
+  margin-bottom: 20px;
 }
-.visit-card { border-left: 4px solid var(--primary); }
+.visit-card { 
+    border-left: 4px solid var(--primary); 
+}
 
-.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-.span-4 { grid-column: span 4; } .span-2 { grid-column: span 2; }
+/* Form Grid (FIXED para paciente) */
+.form-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px; 
+}
+.span-4 { grid-column: span 4; } 
+.span-2 { grid-column: span 2; }
+.span-1 { grid-column: span 1; }
 
 .form-input {
-  width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white;
-  font-family: inherit; font-size: 0.95rem;
+  width: 100%; 
+  padding: 10px 12px; 
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15); 
+  border-radius: 8px; 
+  color: white;
+  font-family: inherit; 
+  font-size: 0.95rem;
 }
-.form-input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+.form-input:focus { 
+    border-color: var(--primary); 
+    outline: none; 
+    background: rgba(0,0,0,0.5); 
+}
 
 /* Chips */
-.chips-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.chip {
-    padding: 5px 12px; border-radius: 50px; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; cursor: pointer;
-    transition: 0.2s; user-select: none;
+.chips-container { 
+    display: flex; 
+    gap: 8px; 
+    flex-wrap: wrap; 
+    margin-bottom: 10px; 
 }
-.chip:hover { border-color: var(--primary); color: white; }
-.chip.active { background: rgba(14,165,233,0.2); border-color: var(--primary); color: var(--accent); font-weight: 600; }
+.chip {
+    padding: 5px 12px; 
+    border-radius: 50px; 
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.2); 
+    font-size: 0.85rem; 
+    cursor: pointer;
+    transition: 0.2s; 
+    user-select: none;
+}
+.chip:hover { 
+    border-color: var(--primary); 
+    color: white; 
+}
+.chip.active { 
+    background: rgba(14,165,233,0.2); 
+    border-color: var(--primary); 
+    color: var(--accent); 
+    font-weight: 600; 
+}
+
+/* Checkboxes y Radio Buttons (FIXED) */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.checkbox-group input[type="checkbox"],
+.checkbox-group input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.checkbox-group label {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+/* Dropdowns (FIXED) */
+.form-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    border-color: var(--primary);
+    outline: none;
+    background: rgba(0,0,0,0.5);
+}
 
 /* =========================================
-   4. MODALES DE CONFIGURACIÓN (SETTINGS)
+   4. MODALES DE CONFIGURACIÓN (EXPANDIDO)
    ========================================= */
 .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-    z-index: 3000; justify-content: center; align-items: center;
+    display: none; 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    z-index: 3000; 
+    justify-content: center; 
+    align-items: center;
 }
-.modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+.modal-overlay.active { 
+    display: flex; 
+    animation: fadeIn 0.2s; 
+}
 
-/* Modal Grande para Configuración */
+/* Modal de Configuración de Perfil Expandido */
 .settings-modal {
-    background: #1e293b; width: 90%; max-width: 1000px; height: 85vh;
-    border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-    display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
+    background: #1e293b; 
+    width: 90%; 
+    max-width: 1200px; 
+    height: 85vh;
+    border-radius: 20px; 
+    border: 1px solid rgba(255,255,255,0.1);
+    display: grid; 
+    grid-template-columns: 300px 1fr;
+    overflow: hidden;
     box-shadow: 0 50px 100px rgba(0,0,0,0.8);
 }
 
 .settings-sidebar {
-    background: rgba(0,0,0,0.2); padding: 30px; overflow-y: auto;
+    background: rgba(0,0,0,0.2); 
+    padding: 30px; 
+    overflow-y: auto;
     border-right: 1px solid rgba(255,255,255,0.05);
 }
+
 .settings-preview-area {
-    padding: 30px; background: #0f172a; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; position: relative;
+    padding: 30px; 
+    background: #0f172a; 
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: flex-start; 
+    position: relative;
+    overflow-y: auto;
 }
 
 .settings-section-title {
-    font-size: 1.1rem; color: var(--accent); margin-bottom: 20px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+    font-size: 1.1rem; 
+    color: var(--accent); 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 10px;
 }
 
-/* Preview Simulado (Carta Pequeña) */
-.doc-simulated {
-    width: 216px; height: 279px; /* Escala 10% de carta real aprox */
-    background: white; color: black; position: relative;
-    box-shadow: 0 0 30px rgba(0,0,0,0.5); transform: scale(1.5);
-    display: flex; flex-direction: column; justify-content: space-between;
-    overflow: hidden; font-size: 4px; 
+/* File Upload para imágenes */
+.file-upload-group {
+    margin-bottom: 20px;
 }
-.doc-sim-header { height: 15%; background-size: contain; background-repeat: no-repeat; background-position: center; border-bottom: 1px dashed #ccc; }
-.doc-sim-body { flex: 1; padding: 10px; background: rgba(0,0,0,0.02); }
-.doc-sim-footer { height: 10%; background-size: contain; background-repeat: no-repeat; background-position: center; border-top: 1px dashed #ccc; }
 
-/* Modal Simple (Search/Export) */
-.modal-box {
-    background: #1e293b; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px;
-    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+.file-upload-label {
+    display: block;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.file-upload-label:hover {
+    border-color: var(--primary);
+    background: rgba(0,0,0,0.4);
+}
+
+.file-upload-input {
+    display: none;
+}
+
+/* Theme Selector */
+.theme-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.theme-option {
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.05);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.theme-option:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.theme-option.active {
+    border-color: var(--primary);
+    background: rgba(14,165,233,0.2);
 }
 
 /* =========================================
-   5. LOGIN & DRAWER
+   5. CONSOLE DRAWER (sin cambios)
    ========================================= */
-/* Login Integrado */
-.login-overlay { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; justify-content: center; align-items: center; }
-.login-box { width: 380px; background: rgba(30,41,59,0.9); padding: 40px; border-radius: 20px; border: 1px solid var(--glass-border); }
-.user-wrapper { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
-.user-wrapper:hover { border-color: var(--primary); background: rgba(255,255,255,0.08); }
-.password-area { margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; animation: slideDown 0.2s; }
-.password-area.hidden { display: none; }
-
-/* Console Drawer */
 #consoleDrawer {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
-    background: #0f172a; border-top: 1px solid var(--primary); z-index: 10000;
-    transform: translateY(100%); transition: transform 0.3s;
-    display: flex; flex-direction: column; font-family: monospace; font-size: 0.8rem;
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    height: 200px;
+    background: #0f172a; 
+    border-top: 1px solid var(--primary); 
+    z-index: 10000;
+    transform: translateY(100%); 
+    transition: transform 0.3s;
+    display: flex; 
+    flex-direction: column; 
+    font-family: monospace; 
+    font-size: 0.8rem;
 }
-#consoleDrawer.open { transform: translateY(0); }
-.console-line { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 10px; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-
-
-/* =========================================
-   TOOLBAR CONTAINER POSITION FIX (v4)
-   Problema: .layout-toolbar/.layout-sidebar estaban definidos para #ui-mount-point,
-   pero el render crea un div interno .toolbar-container con esas clases.
-   Solución: dar position:fixed al .toolbar-container y mantener #ui-mount-point neutro.
-   ========================================= */
-
-#ui-mount-point { position: static !important; inset: auto !important; }
-
-.toolbar-container{
-  position: fixed;
-  z-index: 2000;
-  pointer-events: auto;
+#consoleDrawer.open { 
+    transform: translateY(0); 
+}
+.console-line { 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+    padding: 2px 10px; 
 }
 
-.toolbar-container.layout-toolbar{
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  width: auto;
+@keyframes fadeIn { 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
 }
-
-.toolbar-container.layout-sidebar{
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+@keyframes slideDown { 
+    from { opacity: 0; transform: translateY(-5px); } 
+    to { opacity: 1; transform: translateY(0); } 
 }
-
-.toolbar-container .floating-bar{ pointer-events: auto; }
-
-/* Si el login quedó transparente por error, que no bloquee clicks */
-#login-screen[style*="opacity: 0"] { pointer-events: none !important; }
-
-/* Y si está hidden, que desaparezca de verdad */
-#login-screen.hidden { display: none !important; }
-/* La barra siempre por encima del login si algo se rompe */
-.toolbar-container { z-index: 11000 !important; }
-
-
-
