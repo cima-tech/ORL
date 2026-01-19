@@ -1,13 +1,36 @@
-cima-orl/
+/
 ├── index.html
 ├── app/
 │   ├── styles/
-│   │   └── main.css
+│   │   ├── main.css
+│   │   ├── layout.css
+│   │   ├── forms.css
+│   │   ├── components.css
+│   │   └── themes.css
+│   ├── catalog/
+│   │   ├── models.json
+│   │   └── users.json
 │   ├── logic/
-│   │   └── main.js
-│   └── services/
-│       └── consultation/
-│           └── models/
-│               └── ORL-001/
-│                   ├── data.js
-│                   └── patient-profile.js
+│   │   ├── brain.js
+│   │   ├── engine.js
+│   │   ├── toolbar.js
+│   │   ├── service_loader.js
+│   │   └── start.js
+│   ├── services/
+│   │   └── consultation/
+│   │       └── models/
+│   │           └── ORL-001/
+│   │               ├── patient.js
+│   │               ├── consult.js
+│   │               ├── informe.js
+│   │               ├── recipe-indicaciones.js
+│   │               └── export.js
+│   └── user/
+│       └── u001/
+│           ├── user.json
+│           └── layout/
+│               ├── avatar.png
+│               ├── header.png
+│               ├── footer.png
+│               ├── signature.png
+│               └── stamp.png
