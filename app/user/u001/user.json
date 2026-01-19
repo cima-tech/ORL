@@ -11,7 +11,6 @@
     "secondlastname": "Yanez",
     "title_line_1": "Otorrinolaringología",
     "title_line_2": "Hospital de Clínicas Caracas",
-
     "contact": {
       "phone": "+58 (424) 109-0979",
       "phone2": "+58 (212) 508-6321",
@@ -19,11 +18,9 @@
       "email2": "vgy13@hotmail.com",
       "instagram": "@tudraorl"
     },
-
     "location": "Caracas, Venezuela",
     "bloodtype": "ORH+"
   },
-
   "professional": {
     "specialty": "Otorrinolaringología",
     "license_number": "",
@@ -31,22 +28,19 @@
     "signature_label": "Dra. Valentina González Yanez",
     "legal_footer": ""
   },
-
   "institution": {
     "name": "Hospital de Clínicas Caracas",
     "service": "",
     "address": "Caracas, Venezuela",
     "logo_path": ""
   },
-
   "preferences": {
-    "theme": "dark",
-    "primary_color": "#3b82f6",
+    "theme": "glass",
+    "primary_color": "#0ea5e9",
     "default_zoom": 60,
     "use_digital_signature_default": true,
     "default_model": "ORL-001"
   },
-
   "documents": {
     "vertical": {
       "page": {
@@ -73,25 +67,22 @@
       }
     }
   },
-
   "security": {
     "allow_email_send": true,
     "require_confirm_before_delete": true,
     "auto_lock_minutes": 15
   },
-
   "system_state": {
     "last_login": null,
     "last_module": "ORL-001",
     "last_patient_opened": null,
     "recent_documents": []
   },
-
   "assets": {
-    "avatar_path": "./app/user/u001/layout/avatar.png",
-    "header_path": "./app/user/u001/layout/header.png",
-    "footer_path": "./app/user/u001/layout/footer.png",
-    "signature_path": "./app/user/u001/layout/signature.png",
-    "stamp_path": "./app/user/u001/layout/stamp.png"
+    "avatar_path": "app/user/u001/layout/avatar.png",
+    "header_path": "app/user/u001/layout/header.png",
+    "footer_path": "app/user/u001/layout/footer.png",
+    "signature_path": "app/user/u001/layout/signature.png",
+    "stamp_path": "app/user/u001/layout/stamp.png"
   }
 }
