@@ -61,19 +61,7 @@ body::before {
 /* --- MODO SIDEBAR (LEFT) --- */
 /* Ajuste del Body cuando hay sidebar */
 body.has-sidebar { margin-left: 90px; }
-/* DISABLED (failsafe): sidebar no debe deformar .container
 body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px auto; }
-
-
-/* =========================================
-   SIDEBAR SAFE OFFSET (FIX)
-   ========================================= */
-/* En modo sidebar, el contenido se desplaza con padding del body, NO tocando el ancho del .container */
-body.has-sidebar { padding-left: 100px; }
-@media (max-width: 720px) {
-  body.has-sidebar { padding-left: 80px; }
-}
-*/
 
 .layout-sidebar {
     top: 0; left: 0; bottom: 0; width: 80px;
@@ -235,92 +223,93 @@ body.has-sidebar { padding-left: 100px; }
 
 
 /* =========================================
-   FORM CONTROLS POLISH (FIX)
+   UI MOUNT FIX (toolbar/sidebar stable)
    ========================================= */
-/* Inputs / selects con glass consistente */
-.form-input,
-select.form-input,
-textarea.form-input {
-  -webkit-appearance: none;
-  appearance: none;
-  backdrop-filter: blur(var(--blur-strength));
+#ui-mount-point {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
-
-/* Select: flecha custom (sin depender de libs) */
-select.form-input {
-  padding-right: 34px;
-  background-image:
-    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.65) 50%),
-    linear-gradient(135deg, rgba(255,255,255,0.65) 50%, transparent 50%),
-    linear-gradient(to right, transparent, transparent);
-  background-position:
-    calc(100% - 18px) 50%,
-    calc(100% - 12px) 50%,
-    0 0;
-  background-size: 6px 6px, 6px 6px, 100% 100%;
-  background-repeat: no-repeat;
-}
-
-/* Checkbox estilo switch (opt-in: aplica a checkboxes dentro de .switch) */
-.switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  user-select: none;
-}
-.switch input[type="checkbox"]{
-  -webkit-appearance: none;
-  appearance: none;
-  width: 44px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.18);
-  position: relative;
-  cursor: pointer;
-  transition: 0.2s;
-  backdrop-filter: blur(var(--blur-strength));
-}
-.switch input[type="checkbox"]::after{
-  content:"";
-  position:absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.85);
-  transition: 0.2s;
-}
-.switch input[type="checkbox"]:checked{
-  background: rgba(14,165,233,0.35);
-  border-color: rgba(34,211,238,0.45);
-}
-.switch input[type="checkbox"]:checked::after{
-  left: 22px;
-}
+.toolbar-container { pointer-events: none; }
+.toolbar-container .floating-bar { pointer-events: auto; }
 
 
 
 /* =========================================
-   LOGIN EXPAND (FIX)
+   AUTH DRAWER (pre-login)
    ========================================= */
-/* Evitar "flotante": overlay ya es fixed inset 0; aquí afinamos la expansión del password */
-.password-area {
-  display: block;           /* evita display:none para permitir transición */
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 0;
-  margin-top: 0;
-  transition: max-height 0.25s ease, opacity 0.2s ease, padding-top 0.25s ease, margin-top 0.25s ease;
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 9998;
+  display: flex;
+  justify-content: flex-end;
 }
-.password-area.is-open {
-  max-height: 110px;
-  opacity: 1;
-  padding-top: 10px;
-  margin-top: 10px;
+.drawer {
+  width: min(560px, 92vw);
+  height: 100%;
+  border-left: 1px solid var(--glass-border);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(var(--blur-strength));
+  padding: 18px;
+  transform: translateX(0);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.6);
 }
-/* Mantén compat con .hidden legado: solo para estado inicial */
-.password-area.hidden { display: block; max-height: 0; opacity: 0; padding-top:0; margin-top:0; }
+.drawer-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.drawer-header .muted{ color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+.drawer-tabs{
+  display:flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.tab-btn{
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.tab-btn.active{
+  background: rgba(14,165,233,0.20);
+  border-color: rgba(34,211,238,0.35);
+  color: white;
+}
+.drawer-pane{ margin-top: 14px; }
+.section-title{
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.recent-row{
+  display:flex;
+  gap:10px;
+  overflow:auto;
+  padding-bottom: 8px;
+}
+.user-list{ margin-top: 10px; }
+
+
+
+/* Login input */
+.login-input{
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
+  color: white;
+}
+.login-input:focus{ border-color: var(--primary); background: rgba(0,0,0,0.35); }
