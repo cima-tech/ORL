@@ -56,16 +56,31 @@ export const StartManager = {
     }
 };
 
+
+function openPasswordArea(userId) {
+    const area = document.getElementById(`pwd-area-${userId}`);
+    const input = document.getElementById(`pwd-input-${userId}`);
+    if (!area) return;
+
+    // Compat: antes se usaba solo .hidden (display:none). Ahora usamos transición por max-height.
+    area.classList.remove('hidden');
+
+    // Fuerza reflow para que la transición aplique
+    void area.offsetHeight;
+    area.classList.add('is-open');
+
+    if (input) input.focus();
+}
+
+
 window.selectUser = async (id, configPath) => {
-    document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.password-area').forEach(el => { el.classList.remove('is-open'); el.classList.add('hidden'); });
     
     await loadUserConfig(configPath);
     const pwd = STATE.currentUser.profile.password;
 
     if (pwd) {
-        const area = document.getElementById(`pwd-area-${id}`);
-        area.classList.remove('hidden');
-        document.getElementById(`pwd-input-${id}`).focus();
+        openPasswordArea(id);
     } else {
         finishLogin();
     }
