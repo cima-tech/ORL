@@ -38,7 +38,7 @@ body::before {
 /* Contenedor Base */
 #ui-mount-point {
     position: fixed; z-index: 2000;
-    pointer-events: none; 
+    pointer-events: auto; 
 }
 
 /* --- MODO TOOLBAR (TOP) --- */
@@ -234,7 +234,7 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 .toolbar-container{
   position: fixed;
   z-index: 2000;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .toolbar-container.layout-toolbar{
@@ -257,3 +257,4 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 }
 
 .toolbar-container .floating-bar{ pointer-events: auto; }
+
