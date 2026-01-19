@@ -1,6 +1,10 @@
-import { $, log, loadUserConfig, STATE } from 'brain';
+import { log, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
+
+// Helpers locales (no usar $ global aquí)
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 let PatientService = null;
 
@@ -89,9 +93,9 @@ window.verifyPassword = (id) => {
     if (input.value === actual) {
         finishLogin();
     } else {
-        input.style.borderColor = "var(--danger)";
+        input.style.borderColor = "#ef4444";
         log("Contraseña incorrecta", true);
-        setTimeout(() => input.style.borderColor = "var(--primary)", 500);
+        setTimeout(() => input.style.borderColor = "", 500);
     }
 };
 
@@ -104,12 +108,12 @@ async function finishLogin() {
         if (!await ServiceLoader.init()) throw new Error("Fallo en ServiceLoader");
         
         // Re-renderizar toolbar con usuario logueado
-        import('./toolbar.js').then(({ initToolbarEvents }) => initToolbarEvents());
+        initToolbarEvents();
         
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
-        window.$ = $;
+        window.$ = $; // Ahora sí asignamos $ global
 
         // Configurar listeners del formulario paciente
         const form = $('#patientForm');
