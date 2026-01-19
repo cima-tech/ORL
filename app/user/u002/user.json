@@ -39,7 +39,7 @@
     "primary_color": "#0ea5e9",
     "default_zoom": 60,
     "use_digital_signature_default": true,
-    "default_model": "ORL-001"
+    "default_model": "GEN-001"
   },
   "documents": {
     "vertical": {
@@ -70,7 +70,7 @@
   "security": {
     "allow_email_send": true,
     "require_confirm_before_delete": true,
-    "auto_lock_minutes": 15
+    "auto_lock_minutes": 1095
   },
   "system_state": {
     "last_login": null,
@@ -79,10 +79,10 @@
     "recent_documents": []
   },
   "assets": {
-    "avatar_path": "app/user/u001/layout/avatar.png",
-    "header_path": "app/user/u001/layout/header.png",
-    "footer_path": "app/user/u001/layout/footer.png",
-    "signature_path": "app/user/u001/layout/signature.png",
-    "stamp_path": "app/user/u001/layout/stamp.png"
+    "avatar_path": "app/user/u002/layout/avatar.png",
+    "header_path": "app/user/u002/layout/header.png",
+    "footer_path": "app/user/u002/layout/footer.png",
+    "signature_path": "app/user/u002/layout/signature.png",
+    "stamp_path": "app/user/u002/layout/stamp.png"
   }
 }
