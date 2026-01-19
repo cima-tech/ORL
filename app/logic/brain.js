@@ -7,6 +7,9 @@ export const STATE = {
     visitIdCounter: 0,
     patientIdCounter: 1, 
     
+    
+    // Compat: algunos módulos usan patientUUID (no eliminar)
+    patientUUID: 1,
     // UI State
     UI: {
         currentMode: 'CONSULTATION', 
