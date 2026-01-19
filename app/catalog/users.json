@@ -1,12 +1,22 @@
-{
-  "ORL-001": {
-    "id": "ORL-001",
-    "name": "Otorrinolaringología",
-    "path": "./app/services/consultation/models/ORL-001"
+[
+  {
+    "id": "u001",
+    "username": "tudraorl",
+    "name": "Valentina González",
+    "role": "doctor",
+    "title": "Dra.",
+    "specialty": "Otorrinolaringologia",
+    "avatar": "app/user/u001/layout/avatar.png",
+    "config_path": "app/user/u001/user.json"
   },
-  "GEN-001": {
-    "id": "GEN-001",
-    "name": "Medicina General",
-    "path": "./app/services/consultation/models/GEN-001"
+  {
+    "id": "u002",
+    "username": "migueldaza",
+    "name": "Miguel Daza",
+    "role": "doctor",
+    "title": "Dr.",
+    "specialty": "Medicina General",
+    "avatar": "app/user/u002/layout/avatar.png",
+    "config_path": "app/user/u002/user.json"
   }
-}
+]
