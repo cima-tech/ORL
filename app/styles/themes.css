@@ -1,0 +1,84 @@
+/* =========================================
+   SISTEMA DE TEMAS
+   ========================================= */
+
+/* TEMA GLASS (default) */
+body.theme-glass {
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --blur-strength: 20px;
+    --primary: #0ea5e9;
+    --accent: #22d3ee;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+}
+
+/* TEMA LIQUID GLASS */
+body.theme-liquid {
+    --glass-bg: rgba(30, 41, 59, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --blur-strength: 30px;
+    --primary: #3b82f6;
+    --accent: #60a5fa;
+    --text-main: #f1f5f9;
+    --text-muted: #cbd5e1;
+}
+
+/* TEMA LIGHT GLASS */
+body.theme-light {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --blur-strength: 25px;
+    --primary: #8b5cf6;
+    --accent: #a78bfa;
+    --text-main: #ffffff;
+    --text-muted: #e2e8f0;
+    background-color: #1e293b;
+}
+
+/* TEMA DUSK */
+body.theme-dusk {
+    --glass-bg: rgba(30, 41, 59, 0.95);
+    --glass-border: rgba(251, 146, 60, 0.3);
+    --blur-strength: 15px;
+    --primary: #f97316;
+    --accent: #fb923c;
+    --text-main: #fed7aa;
+    --text-muted: #fdba74;
+    background-color: #0c0a09;
+}
+
+/* Aplicar variables a componentes */
+.floating-bar,
+.card,
+.visit-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-strength));
+    border-color: var(--glass-border);
+}
+
+.icon-btn:hover {
+    border-color: var(--glass-border);
+}
+
+.icon-btn.active {
+    background: var(--primary);
+    border-color: var(--accent);
+}
+
+.form-section-title {
+    color: var(--accent);
+}
+
+.chip:hover {
+    border-color: var(--primary);
+}
+
+.chip.active {
+    border-color: var(--primary);
+    color: var(--accent);
+}
+
+body {
+    color: var(--text-main);
+}
