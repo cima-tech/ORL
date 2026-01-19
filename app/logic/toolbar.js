@@ -14,7 +14,9 @@ function getNavGroupHTML(isSidebar) {
     const name = p.name || `${p.firstname} ${p.lastname}`;
     const role = p.Specialty || p.role;
     
-    const avatarStyle = p.assets?.avatar_path ? `background-image: url('${p.assets.avatar_path}'); color:transparent;` : '';
+    /* Compat: assets viven en STATE.currentUser.assets (no en profile). Conservamos fallback. */
+    const avatarPath = (STATE.currentUser?.assets?.avatar_path || p.assets?.avatar_path || '');
+    const avatarStyle = avatarPath ? `background-image: url('${avatarPath}'); color:transparent;` : '';
     const initials = p.username ? p.username.substring(0,2).toUpperCase() : "U";
 
     const userMenu = `
