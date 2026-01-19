@@ -1,4 +1,5 @@
-import { STATE, rotateWallpaper, log as brainLog, flash } from 'brain';
+// app/logic/toolbar.js
+import { $, $$, STATE, rotateWallpaper, log, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js';
 
@@ -8,18 +9,19 @@ function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
     const p = STATE.currentUser.profile;
     
-    // Verificar si hay usuario logueado
     const isLoggedIn = p.id !== "guest";
     
-    // Normalizar datos
     const title = p.Title || p.title || "";
     const name = p.name || `${p.firstname} ${p.lastname}`;
     const role = p.Specialty || p.role;
     
-    const avatarStyle = p.assets?.avatar_path ? `background-image: url('${p.assets.avatar_path}'); color:transparent;` : '';
+    // CORRECCIÓN: Usar ruta absoluta para GitHub Pages
+    const avatarPath = p.assets?.avatar_path ? 
+        (p.assets.avatar_path.startsWith('./') ? p.assets.avatar_path.substring(1) : p.assets.avatar_path) : '';
+    
+    const avatarStyle = avatarPath ? `background-image: url('${avatarPath}'); color:transparent;` : '';
     const initials = p.username ? p.username.substring(0,2).toUpperCase() : "U";
 
-    // Si no está logueado, mostrar botón de login
     if (!isLoggedIn) {
         return `
         <div class="toolbar-group">
@@ -32,7 +34,6 @@ function getNavGroupHTML(isSidebar) {
         </div>`;
     }
 
-    // Usuario logueado - Menú completo
     const userMenu = `
     <div class="user-menu-wrapper">
         <button id="btnUserAvatar" class="avatar-circle" style="${avatarStyle}">${initials}</button>
@@ -126,17 +127,15 @@ function getPreviewGroupHTML() {
 /* ================= RENDER PRINCIPAL ================= */
 
 export function renderToolbar() {
-    const mount = $('#ui-mount-point');
+    const mount = document.getElementById('ui-mount-point');
     if (!mount) return;
 
-    // Body Class Layout
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
-    // Determinar visibilidad de elementos
-    const previewShell = $('#previewShell');
-    const form = $('#patientForm');
-    const visits = $('#visitsContainer');
+    const previewShell = document.getElementById('previewShell');
+    const form = document.getElementById('patientForm');
+    const visits = document.getElementById('visitsContainer');
 
     if (STATE.UI.isPreviewMode && STATE.currentUser.profile.id !== "guest") {
         previewShell.classList.remove('hidden');
@@ -189,39 +188,33 @@ function bindEvents() {
         if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); 
     };
 
-    // Botón Login
-    $('#btnOpenLogin')?.addEventListener('click', () => {
-        $('#loginDrawer').classList.add('open');
+    document.getElementById('btnOpenLogin')?.addEventListener('click', () => {
+        document.getElementById('loginDrawer').classList.add('open');
     });
 
-    // Botones Cerrar Drawer
-    $$('.btn-close-drawer').forEach(btn => {
+    document.querySelectorAll('.btn-close-drawer').forEach(btn => {
         btn.addEventListener('click', () => {
             btn.closest('.login-drawer, .config-drawer').classList.remove('open');
         });
     });
 
-    // Layout Toggle
-    $('#btnToggleLayout')?.addEventListener('click', (e) => {
+    document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
         e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
         renderToolbar();
     });
 
-    // Configuración de Perfil
-    $('#btnUserConfig')?.addEventListener('click', (e) => {
+    document.getElementById('btnUserConfig')?.addEventListener('click', (e) => {
         e.stopPropagation();
         openConfigDrawer();
     });
 
-    // Cambiar Tema (Rotatorio)
-    $('#btnChangeTheme')?.addEventListener('click', (e) => {
+    document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => {
         e.stopPropagation();
         rotateTheme();
     });
 
-    // Eventos de Historia
-    $('#btnNew')?.addEventListener('click', () => { 
+    document.getElementById('btnNew')?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar historia actual?")) return; 
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
@@ -229,12 +222,11 @@ function bindEvents() {
         renderToolbar(); 
     });
     
-    $('#btnClose')?.addEventListener('click', () => { 
+    document.getElementById('btnClose')?.addEventListener('click', () => { 
         if(saveCurrentHistory()) flash('Guardado'); 
     });
     
-    $('#btnOpen')?.addEventListener('click', () => { 
-        // Abrir búsqueda
+    document.getElementById('btnOpen')?.addEventListener('click', () => { 
         const query = prompt("Buscar paciente (nombre o documento):");
         if(query) {
             const results = getSearchResults(query);
@@ -246,27 +238,26 @@ function bindEvents() {
         }
     });
     
-    $('#btnAddConsulta')?.addEventListener('click', handleAddConsulta);
+    document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
     
-    $('#btnDeleteLast')?.addEventListener('click', () => { 
+    document.getElementById('btnDeleteLast')?.addEventListener('click', () => { 
         if(confirm("¿Borrar última consulta?")) { 
-            $('#visitsContainer').firstChild?.remove(); 
+            document.getElementById('visitsContainer').firstChild?.remove(); 
         }
     });
     
-    $('#btnExitPreview')?.addEventListener('click', () => { 
+    document.getElementById('btnExitPreview')?.addEventListener('click', () => { 
         STATE.UI.isPreviewMode = false; 
         renderToolbar(); 
     });
     
-    $('#btnToggleSign')?.addEventListener('click', () => { 
+    document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
         STATE.USE_SIG = !STATE.USE_SIG; 
         window.switchDoc(STATE.currentPreviewDoc); 
     });
 
-    // User Dropdown Logic
-    const avatarBtn = $('#btnUserAvatar');
-    const userDropdown = $('#userDropdown');
+    const avatarBtn = document.getElementById('btnUserAvatar');
+    const userDropdown = document.getElementById('userDropdown');
     
     if(avatarBtn && userDropdown) {
         avatarBtn.addEventListener('click', (e) => {
@@ -283,12 +274,12 @@ function bindEvents() {
         });
     }
 
-    $('#btnChangeWallpaper')?.addEventListener('click', (e) => {
+    document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => {
         e.stopPropagation();
         rotateWallpaper();
     });
     
-    $('#btnLogout')?.addEventListener('click', () => logout());
+    document.getElementById('btnLogout')?.addEventListener('click', () => logout());
 }
 
 /* ================= FUNCIONES DE NEGOCIO ================= */
@@ -333,12 +324,11 @@ function rotateTheme() {
 }
 
 function openConfigDrawer() {
-    const configContent = $('#config-content');
+    const configContent = document.getElementById('config-content');
     if (!configContent) return;
     
     const user = STATE.currentUser;
     
-    // Generar formulario basado en user.json
     const formHTML = `
         <div class="config-section">
             <h4><i class="bi bi-person"></i> Perfil</h4>
@@ -384,7 +374,7 @@ function openConfigDrawer() {
     `;
     
     configContent.innerHTML = formHTML;
-    $('#configDrawer').classList.add('open');
+    document.getElementById('configDrawer').classList.add('open');
 }
 
 // Función global para guardar configuración
@@ -393,24 +383,22 @@ window.saveConfig = async () => {
         ...STATE.currentUser,
         profile: {
             ...STATE.currentUser.profile,
-            name: $('#config-name').value,
-            title: $('#config-title').value,
-            Specialty: $('#config-specialty').value,
+            name: document.getElementById('config-name').value,
+            title: document.getElementById('config-title').value,
+            Specialty: document.getElementById('config-specialty').value,
             contact: {
                 ...STATE.currentUser.profile.contact,
-                phone: $('#config-phone').value,
-                email: $('#config-email').value
+                phone: document.getElementById('config-phone').value,
+                email: document.getElementById('config-email').value
             },
-            location: $('#config-location').value
+            location: document.getElementById('config-location').value
         }
     };
     
     STATE.currentUser = updatedUser;
     
-    // Aquí deberías guardar en el servidor o localStorage
-    // Por ahora, solo actualizamos el STATE
     log("Configuración actualizada (guardar persistente pendiente)");
-    $('#configDrawer').classList.remove('open');
+    document.getElementById('configDrawer').classList.remove('open');
 };
 
 export function initToolbarEvents() { 
@@ -429,7 +417,6 @@ window.openDocGlobal = function(kind, cardId) {
         ? ServiceLoader.get('informe').buildReportHTML(card) 
         : ServiceLoader.get('recipe').buildRecipeHTML(card);
     
-    $('#docPreview').innerHTML = html; 
+    document.getElementById('docPreview').innerHTML = html; 
     renderToolbar();
 };
-
