@@ -6,20 +6,25 @@ let PatientService = null;
 
 export const StartManager = {
     async init() {
-        const loginScreen = document.getElementById('login-screen');
-        if(loginScreen) loginScreen.classList.add('hidden');
+        // Inicializar toolbar inmediatamente (muestra botón login)
+        initToolbarEvents();
         
+        // Cargar lista de usuarios para el drawer
+        try {
+            const response = await fetch('./app/catalog/users.json');
+            const users = await response.json();
+            this.renderUserList(users);
+        } catch (e) { 
+            console.error(e); 
+            log("Error cargando usuarios", true); 
+        }
+
+        // Atajo teclado para console drawer
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'L') {
                 document.getElementById('consoleDrawer').classList.toggle('open');
             }
         });
-
-        try {
-            const response = await fetch('./app/catalog/users.json');
-            const users = await response.json();
-            this.renderUserList(users);
-        } catch (e) { console.error(e); log("Error cargando usuarios", true); }
     },
 
     renderUserList(users) {
@@ -84,21 +89,22 @@ window.verifyPassword = (id) => {
 };
 
 async function finishLogin() {
-    const loginScreen = document.getElementById('login-screen');
-    loginScreen.style.opacity = '0';
+    const loginDrawer = document.getElementById('loginDrawer');
+    loginDrawer.classList.remove('open');
     
     try {
         log("Cargando módulos...");
         if (!await ServiceLoader.init()) throw new Error("Fallo en ServiceLoader");
         
+        // Re-renderizar toolbar con usuario logueado
         initToolbarEvents();
-        document.getElementById('authOverlay')?.classList.remove('hidden');
         
         PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
         window.$ = $;
 
+        // Configurar listeners del formulario paciente
         const form = document.getElementById('patientForm');
         if(form) form.addEventListener('change', (e) => {
              if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) PatientService.updatePatientHeader();
@@ -110,10 +116,13 @@ async function finishLogin() {
         if(visits) visits.addEventListener('click', handleVisitClicks);
 
         setTimeout(() => {
-            loginScreen.classList.add('hidden');
             PatientService.toggleConditionalFields();
-        }, 500);
-    } catch (e) { console.error(e); log(e.message, true); }
+            log(`Bienvenido/a ${STATE.currentUser.profile.name}`);
+        }, 300);
+    } catch (e) { 
+        console.error(e); 
+        log(e.message, true); 
+    }
 }
 
 function handleVisitClicks(e) {
@@ -121,7 +130,8 @@ function handleVisitClicks(e) {
     if(btn) {
         btn.closest('.visit-card').querySelector('.visit-body').classList.toggle('hidden');
         const i = btn.querySelector('i');
-        i.classList.toggle('bi-chevron-right'); i.classList.toggle('bi-chevron-down');
+        i.classList.toggle('bi-chevron-right'); 
+        i.classList.toggle('bi-chevron-down');
     }
     if(e.target.classList.contains('chip')) {
         e.target.classList.toggle('active');
