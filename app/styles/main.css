@@ -263,5 +263,8 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 
 /* Y si está hidden, que desaparezca de verdad */
 #login-screen.hidden { display: none !important; }
+/* La barra siempre por encima del login si algo se rompe */
+.toolbar-container { z-index: 11000 !important; }
+
 
 
