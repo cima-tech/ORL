@@ -1,6 +1,12 @@
 import { STATE, showErr } from 'brain';
 
-const LOADED_MODULES = { patient: null, consult: null, informe: null, recipe: null, export: null };
+const LOADED_MODULES = { 
+    patient: null, 
+    consult: null, 
+    informe: null, 
+    recipe: null, 
+    export: null 
+};
 
 export const ServiceLoader = {
     async init() {
@@ -39,6 +45,7 @@ export const ServiceLoader = {
             return false;
         }
     },
+    
     get(name) {
         if (!LOADED_MODULES[name]) throw new Error(`Módulo '${name}' no cargado.`);
         return LOADED_MODULES[name];
