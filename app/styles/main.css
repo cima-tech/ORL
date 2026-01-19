@@ -71,10 +71,8 @@ body.has-sidebar .container { max-width: 100%; padding: 0 40px; margin: 40px aut
 /* En modo sidebar, el contenido se desplaza con padding del body, NO tocando el ancho del .container */
 body.has-sidebar { padding-left: 100px; }
 @media (max-width: 720px) {
-  body.has-sidebar { padding-left: 80px; } /* reduce desplazamiento en pantallas pequenas */
+  body.has-sidebar { padding-left: 80px; }
 }
-/* El contenedor permanece centrado y con ancho fijo */
-.container { max-width: 1100px; margin: 100px auto 40px auto; padding: 0 20px; }
 */
 
 .layout-sidebar {
@@ -233,3 +231,96 @@ body.has-sidebar { padding-left: 100px; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+
+
+/* =========================================
+   FORM CONTROLS POLISH (FIX)
+   ========================================= */
+/* Inputs / selects con glass consistente */
+.form-input,
+select.form-input,
+textarea.form-input {
+  -webkit-appearance: none;
+  appearance: none;
+  backdrop-filter: blur(var(--blur-strength));
+}
+
+/* Select: flecha custom (sin depender de libs) */
+select.form-input {
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.65) 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.65) 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%,
+    0 0;
+  background-size: 6px 6px, 6px 6px, 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Checkbox estilo switch (opt-in: aplica a checkboxes dentro de .switch) */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+.switch input[type="checkbox"]{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  position: relative;
+  cursor: pointer;
+  transition: 0.2s;
+  backdrop-filter: blur(var(--blur-strength));
+}
+.switch input[type="checkbox"]::after{
+  content:"";
+  position:absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  transition: 0.2s;
+}
+.switch input[type="checkbox"]:checked{
+  background: rgba(14,165,233,0.35);
+  border-color: rgba(34,211,238,0.45);
+}
+.switch input[type="checkbox"]:checked::after{
+  left: 22px;
+}
+
+
+
+/* =========================================
+   LOGIN EXPAND (FIX)
+   ========================================= */
+/* Evitar "flotante": overlay ya es fixed inset 0; aquí afinamos la expansión del password */
+.password-area {
+  display: block;           /* evita display:none para permitir transición */
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 0;
+  margin-top: 0;
+  transition: max-height 0.25s ease, opacity 0.2s ease, padding-top 0.25s ease, margin-top 0.25s ease;
+}
+.password-area.is-open {
+  max-height: 110px;
+  opacity: 1;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+/* Mantén compat con .hidden legado: solo para estado inicial */
+.password-area.hidden { display: block; max-height: 0; opacity: 0; padding-top:0; margin-top:0; }
