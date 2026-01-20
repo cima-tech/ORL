@@ -1,43 +1,252 @@
-{
-type: "file",
-fileName: "components.css",
-fullContent: `
 /* =========================================
-   COMPONENTES UI & ESTILOS DE DRAWER
+   COMPONENTES REUTILIZABLES
    ========================================= */
 
-/* --- DRAWERS COMUNES --- */
-.login-drawer, .config-drawer {
-    position: fixed;
-    top: 0;
-    bottom: 0;
+/* Icon Buttons */
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border:1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    transform: scale(1.05);
+    border-color: rgba(255,255,255,0.2);
+}
+
+.icon-btn.active {
+    background: #0ea5e9;
+    color: white;
+    border-color: #22d3ee;
+}
+
+/* Generic Buttons */
+.btn {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.btn-primary { background: #0ea5e9; color: white; }
+.btn-primary:hover { background: #0284c7; }
+
+.btn-success { background: #10b981; color: white; }
+.btn-success:hover { background: #059669; }
+
+.btn-danger { background: #ef4444; color: white; }
+.btn-danger:hover { background: #dc2626; }
+
+/* Ghost Buttons (Corrección de Estilo) */
+.btn-ghost {
+    background: transparent;
+    color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.btn-ghost:hover {
+    background: rgba(255,255,255,0.1);
+    color: #f1f5f9;
+    border-color: rgba(255,255,255,0.2);
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+}
+
+/* Patient Navigation (Corrección de Estilo) */
+.patient-nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 20px;
+}
+
+.patient-nav button {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #94a3b8;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.patient-nav button:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-color: #22d3ee;
+}
+
+/* Patient Header */
+.patient-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.2);
+    margin-bottom: 15px;
+}
+
+.patient-header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Avatar Styles */
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.9rem;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-circle:hover {
+    border-color: var(--primary);
+}
+
+/* Dropdowns */
+.user-menu-wrapper {
+    position: relative;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 240px;
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    padding: 10px;
     z-index: 3000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-header {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.dropdown-header h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: white;
+}
+
+.dropdown-header p {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.dropdown-item {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    background: transparent;
+    color: #cbd5e1;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+.dropdown-item.text-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 5px 0;
+}
+
+/* Drawers */
+.login-drawer,
+.config-drawer {
+    position: fixed;
+    top: 0;
+    width: 420px; /* Aumentado para acomodar tabs */
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(20px);
+    z-index: 3000;
+    transition: transform var(--transition-speed) ease;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
 .login-drawer {
-    right: 0;
-    left: auto;
-    width: 350px;
-    transform: translateX(100%);
+    right: -420px;
     border-left: 1px solid rgba(255,255,255,0.1);
-    border-right: none;
 }
 
 .config-drawer {
-    left: 0;
-    width: 500px;
-    transform: translateX(-100%);
+    left: -420px;
+    border-right: 1px solid rgba(255,255,255,0.1);
 }
 
-.login-drawer.open { transform: translateX(0); }
-.config-drawer.open { transform: translateX(0); }
+.login-drawer.open {
+    transform: translateX(-420px);
+}
+
+.config-drawer.open {
+    transform: translateX(420px);
+}
 
 .drawer-header {
     padding: 20px;
@@ -45,253 +254,260 @@ fullContent: `
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: rgba(0,0,0,0.2);
 }
 
 .drawer-header h3 {
     margin: 0;
-    color: var(--primary, #0ea5e9);
     font-size: 1.2rem;
+    color: var(--text-main);
 }
 
 .drawer-content {
     flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-/* --- CONFIG TABS --- */
-.config-tabs-nav {
-    display: flex;
-    gap: 5px;
-    padding: 10px 15px;
-    background: rgba(0,0,0,0.2);
-    overflow-x: auto;
-}
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.tab-btn:hover { background: rgba(255,255,255,0.05); color: white; }
-.tab-btn.active { background: var(--primary, #0ea5e9); color: white; }
-
-.config-tabs-content {
-    padding: 20px;
-    flex: 1;
+    padding: 0; /* Padding handled by tabs/sections */
     overflow-y: auto;
 }
 
-/* --- ASSETS LIST --- */
-.asset-row {
+/* Console Drawer */
+#consoleDrawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: #0f172a;
+    border-top: 1px solid #0ea5e9;
+    z-index: 10000;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    display: flex;
+    flex-direction: column;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+#consoleDrawer.open {
+    transform: translateY(0);
+}
+
+.console-header {
+    padding: 8px 15px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255,255,255,0.03);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255,255,255,0.05);
 }
 
-.asset-info label { display: block; font-weight: 600; color: #e2e8f0; font-size: 0.9rem; }
-.asset-path { font-size: 0.75rem; color: #94a3b8; font-family: monospace; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
-
-.asset-actions { display: flex; gap: 8px; }
-.btn-upload {
-    background: rgba(255,255,255,0.1);
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.btn-upload:hover { background: rgba(255,255,255,0.2); }
-.btn-preview {
-    background: none; border: none; color: var(--accent, #22d3ee); cursor: pointer;
-}
-
-/* --- BOTONES & ICONOS --- */
-.icon-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,0.1);
-    color: #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
-}
-
-.icon-btn:hover {
-    background: rgba(255,255,255,0.2);
-    transform: scale(1.05);
-    color: white;
-}
-
-.icon-btn.text-danger:hover { background: #ef4444; }
-
-/* --- USER DROPDOWN --- */
-.user-menu-wrapper { position: relative; }
-
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.2);
-    background: #334155;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
-}
-
-.user-dropdown {
-    position: absolute;
-    bottom: 50px; /* Sidebar layout */
-    left: 0;
-    width: 260px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-}
-
-.layout-toolbar .user-dropdown {
-    bottom: auto;
-    top: 55px;
-}
-
-.dropdown-header {
-    background: rgba(0,0,0,0.2);
-    padding: 15px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.dropdown-avatar-lg {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: #475569;
-    margin: 0 auto 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    border: 2px solid var(--primary, #0ea5e9);
-}
-
-.dropdown-header h4 { margin: 0; font-size: 1rem; color: white; }
-.dropdown-header p { margin: 2px 0 0; font-size: 0.8rem; color: #94a3b8; }
-
-.dropdown-body { padding: 5px; }
-
-.dropdown-item {
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: none;
-    color: #cbd5e1;
-    padding: 10px 15px;
-    border-radius: 6px;
+.toggle-console {
     cursor: pointer;
     font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.2s;
 }
 
-.dropdown-item:hover { background: rgba(255,255,255,0.1); color: white; }
-.dropdown-item.text-danger { color: #f87171; }
-.dropdown-item.text-danger:hover { background: rgba(239, 68, 68, 0.2); }
+#consoleContent {
+    flex: 1;
+    overflow-y: auto;
+    padding: 5px;
+}
 
-/* --- LOGIN CARDS --- */
-.user-wrapper {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    margin-bottom: 10px;
-    overflow: hidden;
+.console-line {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 2px 10px;
+    font-size: 0.8rem;
+}
+
+/* =========================================
+   TABS SYSTEM (Para Configuración)
+   ========================================= */
+.config-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    overflow-x: auto;
+    padding: 0 10px;
+}
+
+.config-tab-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 15px 15px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
     transition: all 0.2s;
 }
 
-.user-card-content {
-    padding: 12px;
+.config-tab-btn:hover {
+    color: white;
+}
+
+.config-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+.config-tab-content {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.3s;
+}
+
+.config-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   ASSET UPLOAD BOX
+   ========================================= */
+.asset-uploader {
     display: flex;
     align-items: center;
-    gap: 12px;
-    cursor: pointer;
+    gap: 15px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+}
+
+.asset-uploader:hover {
+    border-color: var(--primary);
+}
+
+.asset-preview {
+    width: 50px;
+    height: 50px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.asset-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.asset-info {
+    flex: 1;
+}
+
+.asset-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    margin-bottom: 4px;
+}
+
+/* =========================================
+   LOGIN LIST STYLES
+   ========================================= */
+.user-list {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-wrapper {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
 }
 
 .user-wrapper:hover {
-    background: rgba(255,255,255,0.07);
-    border-color: var(--primary, #0ea5e9);
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+}
+
+.user-card-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    cursor: pointer;
 }
 
 .user-avatar-lg {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #334155;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
     font-weight: bold;
-    color: #cbd5e1;
-    background-size: cover;
-    background-position: center;
+    font-size: 1.1rem;
+    overflow: hidden;
 }
 
-.user-info h3 { margin: 0; font-size: 1rem; color: #f1f5f9; }
-.user-info p { margin: 0; font-size: 0.8rem; color: #94a3b8; }
-.user-info .username { font-size: 0.75rem; color: var(--primary, #0ea5e9); opacity: 0.8; }
+.user-avatar-lg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: white;
+}
+
+.user-info p {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.username {
+    font-size: 0.75rem;
+    color: #64748b;
+}
 
 .password-area {
-    padding: 10px 12px;
-    background: rgba(0,0,0,0.2);
-    border-top: 1px solid rgba(255,255,255,0.05);
-    animation: slideDown 0.2s ease-out;
+    padding: 0 15px 15px 15px;
+    animation: slideDown 0.2s;
 }
 
 .login-input {
     width: 100%;
+    padding: 10px;
     background: rgba(0,0,0,0.3);
-    border: 1px solid var(--primary, #0ea5e9);
-    padding: 8px 12px;
-    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
     color: white;
+}
+
+.login-input:focus {
+    border-color: var(--primary);
     outline: none;
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
-`
+
+/* Config Actions */
+.config-actions {
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
 }
