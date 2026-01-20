@@ -1,4 +1,4 @@
-// app/logic/start.js - VERSIÓN CORREGIDA DEFINITIVA
+// app/logic/start.js
 import { log, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from 'service_loader';
 import { initToolbarEvents } from 'toolbar';
@@ -39,14 +39,14 @@ export const StartManager = {
         if(!list) return;
         
         list.innerHTML = users.map(u => {
-            // CORRECCIÓN: Usar ruta relativa correcta
-            const avatarPath = u.avatar ? u.avatar : '';
-            const hasImg = avatarPath && avatarPath !== "";
+            // Intentar cargar imagen desde localStorage si existe
+            const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
+            const hasImg = savedImg || (u.avatar && u.avatar !== "");
             const avatarHtml = hasImg 
-                ? `<div class="user-avatar-lg" style="background-image: url('${avatarPath}');"></div>`
+                ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>`
                 : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
 
-            const roleDisplay = u.Specialty || u.role;
+            const roleDisplay = u.specialty || u.role;
 
             return `
             <div class="user-wrapper" id="user-wrapper-${u.id}">
@@ -59,10 +59,13 @@ export const StartManager = {
                     </div>
                 </div>
                 <div id="pwd-area-${u.id}" class="password-area hidden">
-                    <input type="password" id="pwd-input-${u.id}" class="login-input" 
-                           placeholder="Contraseña" 
-                           onkeypress="if(event.key==='Enter') verifyPassword('${u.id}')"
-                           onclick="event.stopPropagation()">
+                    <div style="position:relative;">
+                        <input type="password" id="pwd-input-${u.id}" class="login-input" 
+                               placeholder="Contraseña" 
+                               onkeypress="if(event.key==='Enter') verifyPassword('${u.id}')"
+                               onclick="event.stopPropagation(); this.focus()">
+                        <i class="bi bi-lock-fill" style="position:absolute; right:10px; top:10px; color:#64748b;"></i>
+                    </div>
                 </div>
             </div>`;
         }).join('');
@@ -72,7 +75,21 @@ export const StartManager = {
 async function selectUser(id, configPath) {
     document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
     
-    await loadUserConfig(configPath);
+    // Cargar config local si existe (prioridad) o del JSON
+    const localConfig = localStorage.getItem(`CIMA_USER_CONFIG_${id}`);
+    
+    if(localConfig) {
+        try {
+            const parsed = JSON.parse(localConfig);
+            STATE.currentUser = parsed;
+            log("Configuración local cargada para " + id);
+        } catch(e) {
+            await loadUserConfig(configPath);
+        }
+    } else {
+        await loadUserConfig(configPath);
+    }
+
     const pwd = STATE.currentUser.profile.password;
 
     if (pwd) {
@@ -91,8 +108,12 @@ function verifyPassword(id) {
         finishLogin();
     } else {
         input.style.borderColor = "#ef4444";
+        input.classList.add('shake');
         log("Contraseña incorrecta", true);
-        setTimeout(() => input.style.borderColor = "", 500);
+        setTimeout(() => {
+            input.style.borderColor = "";
+            input.classList.remove('shake');
+        }, 500);
     }
 }
 
@@ -125,7 +146,7 @@ async function finishLogin() {
 
         setTimeout(() => {
             PatientService.toggleConditionalFields();
-            log(`Bienvenido/a ${STATE.currentUser.profile.name}`);
+            log(`Bienvenido/a ${STATE.currentUser.profile.firstname}`);
         }, 300);
     } catch (e) { 
         console.error(e); 
