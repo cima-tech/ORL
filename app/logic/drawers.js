@@ -25,9 +25,17 @@ export const DrawersManager = {
         const content = document.getElementById('create-user-content');
         if (!content) return;
 
-        // Generar ID sugerido
-        const existingUsers = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-        const nextIdNum = existingUsers.length + 3; // Partimos de u003 aprox
+        // Generar ID sugerido buscando el más alto
+        let nextIdNum = 3; // Default u003
+        try {
+            // Leer LocalStorage para ver IDs existentes
+            const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
+            const allIds = localDB.map(u => parseInt(u.id.replace('u', '')));
+            if(allIds.length > 0) {
+                nextIdNum = Math.max(...allIds) + 1;
+            }
+        } catch(e) { console.warn("Error calculando ID", e); }
+        
         const nextId = `u${String(nextIdNum).padStart(3, '0')}`;
 
         const html = `
@@ -129,11 +137,9 @@ export const DrawersManager = {
         // Verificar duplicado en localStorage
         const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
         if(localDB.find(u => u.username === username)) {
-            showErr("El nombre de usuario ya existe");
+            showErr("El nombre de usuario ya existe en esta sesión");
             return;
         }
-
-        const timestamp = new Date().toISOString();
 
         const newUser = {
             id: userId,
