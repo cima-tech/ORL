@@ -1,7 +1,3 @@
-{
-type: "file",
-fileName: "toolbar.js",
-fullContent: `
 // app/logic/toolbar.js
 import { $, $$, STATE, rotateWallpaper, log, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js';
@@ -11,122 +7,134 @@ import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, lo
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
-    const p = STATE.currentUser.profile;
-    const assets = STATE.currentUser.assets || {};
     
-    const isLoggedIn = p.id !== "guest";
+    // FIX: Acceso correcto al perfil
+    const profile = STATE.currentUser?.profile || {};
+    const assets = STATE.currentUser?.assets || {};
+    const preferences = STATE.currentUser?.preferences || {};
     
-    const title = p.Title || p.title || "";
-    const name = p.name || \`\${p.firstname} \${p.lastname}\`;
-    const role = p.Specialty || p.role;
+    const isLoggedIn = profile.id !== "guest";
     
-    // Avatar logic
-    const avatarPath = assets.avatar_path ? assets.avatar_path : '';
-    const avatarStyle = avatarPath ? \`background-image: url('\${avatarPath}'); color:transparent; background-size: cover;\` : '';
-    const initials = p.firstname ? p.firstname.substring(0,2).toUpperCase() : "GU";
+    const title = profile.title || "";
+    const name = profile.firstname ? `${profile.firstname} ${profile.lastname || ''}`.trim() : "Usuario";
+    const role = profile.specialty || profile.role || "";
+
+    // FIX: Avatar mapping correcto desde user.json
+    let avatarPath = assets.avatar_path || "";
+    // Limpieza de ruta relativa si es necesario para visualización
+    if (avatarPath && !avatarPath.startsWith('http') && !avatarPath.startsWith('data:')) {
+        // Ajuste simple de ruta, asumiendo estructura de carpetas estándar
+        if (!avatarPath.startsWith('./') && !avatarPath.startsWith('/')) {
+            avatarPath = './' + avatarPath;
+        }
+    }
+
+    const initials = (profile.firstname ? profile.firstname[0] : '') + (profile.lastname ? profile.lastname[0] : '');
 
     if (!isLoggedIn) {
-        return \`
+        return `
         <div class="toolbar-group">
             <div class="icon-row">
                 <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión">
                     <i class="bi bi-person-circle"></i>
                 </button>
             </div>
-            \${!isSidebar ? '<span class="group-label">Login</span>' : ''}
-        </div>\`;
+            ${!isSidebar ? '<span class="group-label">Login</span>' : ''}
+        </div>`;
     }
 
-    const userMenu = \`
+    const userMenu = `
     <div class="user-menu-wrapper">
-        <button id="btnUserAvatar" class="avatar-circle" style="\${avatarStyle}">\${initials}</button>
-        <div id="userDropdown" class="user-dropdown hidden glass-panel">
+        <button id="btnUserAvatar" class="avatar-circle" title="${name}">
+            ${avatarPath 
+                ? `<img src="${avatarPath}" onerror="this.style.display='none'; this.parentNode.innerText='${initials}';" alt="Avatar">` 
+                : initials}
+        </button>
+        <div id="userDropdown" class="user-dropdown hidden">
             <div class="dropdown-header">
-                <div class="dropdown-avatar-lg" style="\${avatarStyle}">\${!avatarPath ? initials : ''}</div>
-                <h4>\${title} \${name}</h4>
-                <p>\${role}</p>
+                <h4>${title} ${name}</h4>
+                <p>${role}</p>
             </div>
-            <div class="dropdown-body">
-                <button id="btnUserConfig" class="dropdown-item"><i class="bi bi-gear-wide-connected"></i> Configuración Global</button>
-                <button id="btnChangeTheme" class="dropdown-item"><i class="bi bi-palette"></i> Cambiar Tema (\${localStorage.getItem('CIMA_THEME') || 'Glass'})</button>
-                <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar"></i> Alternar Diseño</button>
-                <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-image"></i> Rotar Fondo</button>
-            </div>
-            <div class="dropdown-footer">
-                <button id="btnLogout" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
-            </div>
+            <button id="btnUserConfig" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración</button>
+            <button id="btnChangeTheme" class="dropdown-item"><i class="bi bi-palette"></i> Cambiar Tema</button>
+            <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar"></i> Alternar Barra/Menú</button>
+            <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Fondo</button>
+            <div class="dropdown-divider"></div>
+            <button id="btnLogout" class="dropdown-item text-danger"><i class="bi bi-power"></i> Salir</button>
         </div>
-    </div>\`;
+    </div>`;
 
-    return \`
+    return `
     <div class="toolbar-group">
         <div class="icon-row">
-            \${isSidebar ? userMenu : ''} 
-            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="\${activeStyle('DASHBOARD')}">
-                <i class="bi bi-grid-1x2"></i>
+            ${isSidebar ? userMenu : ''} 
+            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}">
+                <i class="bi bi-speedometer2"></i>
             </button>
-            <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="\${activeStyle('CONSULTATION')}">
-                <i class="bi bi-activity"></i>
+            <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}">
+                <i class="bi bi-heart-pulse"></i>
             </button>
-            <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="\${activeStyle('AGENDA')}">
-                <i class="bi bi-calendar-check"></i>
+            <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}">
+                <i class="bi bi-calendar-week"></i>
             </button>
-            <button class="icon-btn" title="Finanzas" onclick="window.changeMode('BILLING')" style="\${activeStyle('BILLING')}">
-                <i class="bi bi-currency-dollar"></i>
+            <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}">
+                <i class="bi bi-receipt"></i>
             </button>
-            \${!isSidebar ? userMenu : ''} 
+            ${!isSidebar ? userMenu : ''} 
         </div>
-        \${!isSidebar ? '<span class="group-label">Navegación</span>' : ''}
-    </div>\`;
+        ${!isSidebar ? '<span class="group-label">Navegación</span>' : ''}
+    </div>`;
 }
 
 function getHistoryGroupHTML() {
     if (STATE.currentUser.profile.id === "guest") return '';
-    return \`
+    
+    return `
     <div class="toolbar-group">
         <div class="icon-row">
-            <button id="btnNew" class="icon-btn" title="Nueva Historia"><i class="bi bi-person-plus"></i></button>
-            <button id="btnOpen" class="icon-btn" title="Buscar Paciente"><i class="bi bi-search"></i></button>
-            \${STATE.UI.isStoryOpen ? \`
-                <button id="btnClose" class="icon-btn" title="Guardar Cambios"><i class="bi bi-cloud-arrow-up"></i></button>
-                <button id="btnCloseStory" class="icon-btn btn-close-app" title="Cerrar Ficha"><i class="bi bi-x-circle"></i></button>
-            \` : ''}
+            <button id="btnNew" class="icon-btn" title="Nueva"><i class="bi bi-file-earmark-plus"></i></button>
+            <button id="btnOpen" class="icon-btn" title="Abrir"><i class="bi bi-folder2-open"></i></button>
+            ${STATE.UI.isStoryOpen ? `
+                <button id="btnClose" class="icon-btn" title="Guardar"><i class="bi bi-floppy"></i></button>
+                <button id="btnCloseStory" class="icon-btn btn-close-app" title="Cerrar"><i class="bi bi-x-lg"></i></button>
+            ` : ''}
         </div>
         <span class="group-label">Historia</span>
-    </div>\`;
+    </div>`;
 }
 
 function getConsultToolsHTML() {
     if (!STATE.UI.isStoryOpen || STATE.UI.isPreviewMode || STATE.currentUser.profile.id === "guest") return '';
-    return \`
+    
+    return `
     <div class="v-divider"></div>
     <div class="toolbar-group">
         <div class="icon-row">
-            <button id="btnAddConsulta" class="icon-btn" title="Agregar Consulta"><i class="bi bi-journal-plus"></i></button>
-            <button id="btnDeleteLast" class="icon-btn" title="Borrar Última"><i class="bi bi-trash3"></i></button>
+            <button id="btnAddConsulta" class="icon-btn" title="Agregar"><i class="bi bi-plus-lg"></i></button>
+            <button id="btnDeleteLast" class="icon-btn" title="Borrar"><i class="bi bi-dash-lg"></i></button>
         </div>
-        <span class="group-label">Acciones</span>
-    </div>\`;
+        <span class="group-label">Consulta</span>
+    </div>`;
 }
 
 function getPreviewGroupHTML() {
     if (!STATE.UI.isPreviewMode || STATE.currentUser.profile.id === "guest") return '';
-    const active = (t) => STATE.currentPreviewDoc === t ? 'background:var(--primary); color:white;' : '';
     
-    return \`
+    const active = (t) => STATE.currentPreviewDoc === t ? 'background:var(--primary);' : '';
+    
+    return `
     <div class="v-divider"></div>
     <div class="toolbar-group preview-group">
         <div class="icon-row">
-            <button onclick="window.switchDoc('INF')" class="icon-btn" style="font-size:0.75rem; width:auto; padding:0 10px; \${active('INF')}">INFORME</button>
-            <button onclick="window.switchDoc('RP')" class="icon-btn" style="font-size:0.75rem; width:auto; padding:0 10px; \${active('RP')}">RÉCIPE</button>
-            <div class="v-divider" style="height:20px; margin:0 5px;"></div>
-            <button id="btnToggleSign" class="icon-btn" title="Firmar Documento" style="\${STATE.USE_SIG ? 'color:#4ade80' : ''}"><i class="bi bi-pen-fill"></i></button>
-            <button id="btnOpenExport" class="icon-btn" title="Descargar PNG"><i class="bi bi-download"></i></button>
-            <button id="btnShareWhatsapp" class="icon-btn" title="Enviar WhatsApp"><i class="bi bi-whatsapp"></i></button>
-            <button id="btnExitPreview" class="icon-btn text-danger"><i class="bi bi-x-lg"></i></button>
+            <button onclick="window.switchDoc('INF')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('INF')}">INF</button>
+            <button onclick="window.switchDoc('RP')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('RP')}">RP</button>
+            <div class="v-divider" style="height:20px;"></div>
+            <button id="btnToggleSign" class="icon-btn" title="Firmar"><i class="bi bi-pen-fill"></i></button>
+            <button id="btnOpenExport" class="icon-btn" title="Exportar"><i class="bi bi-share-fill"></i></button>
+            <button id="btnExitPreview" class="icon-btn"><i class="bi bi-x-lg"></i></button>
         </div>
         <span class="group-label" style="color:var(--success);">Vista Previa</span>
-    </div>\`;
+    </div>`;
 }
 
 /* ================= RENDER PRINCIPAL ================= */
@@ -138,200 +146,49 @@ export function renderToolbar() {
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
-    // Manejo de visibilidad de contenedores
-    const toggle = (id, show) => document.getElementById(id)?.classList.toggle('hidden', !show);
-    const isLoggedIn = STATE.currentUser.profile.id !== "guest";
-    const isConsultation = STATE.UI.currentMode === 'CONSULTATION';
+    const previewShell = document.getElementById('previewShell');
+    const form = document.getElementById('patientForm');
+    const visits = document.getElementById('visitsContainer');
 
-    toggle('previewShell', STATE.UI.isPreviewMode && isLoggedIn);
-    toggle('patientForm', !STATE.UI.isPreviewMode && STATE.UI.isStoryOpen && isConsultation && isLoggedIn);
-    toggle('visitsContainer', !STATE.UI.isPreviewMode && STATE.UI.isStoryOpen && isConsultation && isLoggedIn);
 
-    let html = \`<div class="toolbar-container \${isSidebar ? 'layout-sidebar' : 'layout-toolbar'}"><div class="floating-bar">\`;
+
+    if (STATE.UI.isPreviewMode && STATE.currentUser.profile.id !== "guest") {
+        previewShell.classList.remove('hidden');
+        form.classList.add('hidden');
+        visits.classList.add('hidden');
+    } else {
+        previewShell.classList.add('hidden');
+        if (STATE.UI.isStoryOpen && STATE.UI.currentMode === 'CONSULTATION' && STATE.currentUser.profile.id !== "guest") {
+            form.classList.remove('hidden');
+            visits.classList.remove('hidden');
+        } else {
+            form.classList.add('hidden');
+            visits.classList.add('hidden');
+        }
+    }
+
+    let html = `<div class="toolbar-container ${isSidebar ? 'layout-sidebar' : 'layout-toolbar'}"><div class="floating-bar">`;
 
     if (isSidebar) {
         html += getNavGroupHTML(true);
-        html += \`<div class="v-divider"></div>\`;
+        html += `<div class="v-divider"></div>`;
         html += getPreviewGroupHTML();
         html += getConsultToolsHTML();
         html += getHistoryGroupHTML();
     } else {
-        if (isConsultation && isLoggedIn) {
+        if (STATE.UI.currentMode === 'CONSULTATION' && STATE.currentUser.profile.id !== "guest") {
             html += getHistoryGroupHTML();
             html += getConsultToolsHTML();
             html += getPreviewGroupHTML();
-            html += \`<div class="v-divider"></div>\`;
+            html += `<div class="v-divider"></div>`;
         }
         html += getNavGroupHTML(false);
     }
 
-    html += \`</div></div>\`;
+    html += `</div></div>`;
     mount.innerHTML = html;
     bindEvents();
 }
-
-/* ================= CONFIG DRAWER & LOGIC ================= */
-
-// Estructura de pestañas para configuración
-const CONFIG_TABS = [
-    { id: 'profile', icon: 'bi-person-vcard', label: 'Perfil' },
-    { id: 'professional', icon: 'bi-briefcase', label: 'Profesional' },
-    { id: 'institution', icon: 'bi-building', label: 'Institución' },
-    { id: 'docs', icon: 'bi-file-earmark-text', label: 'Documentos' },
-    { id: 'assets', icon: 'bi-images', label: 'Gráficos' }
-];
-
-function openConfigDrawer() {
-    const configContent = document.getElementById('config-content');
-    if (!configContent) return;
-    
-    const user = STATE.currentUser;
-    const p = user.profile || {};
-    const pro = user.professional || {};
-    const inst = user.institution || {};
-    const docs = user.documents?.vertical?.content_margins_cm || { top:1, bottom:1, left:1, right:1 };
-    
-    // Generar Navegación de Pestañas
-    let navHTML = '<div class="config-tabs-nav">';
-    CONFIG_TABS.forEach((tab, index) => {
-        navHTML += \`
-            <button class="tab-btn \${index === 0 ? 'active' : ''}" onclick="window.switchConfigTab('\${tab.id}')">
-                <i class="bi \${tab.icon}"></i> \${tab.label}
-            </button>\`;
-    });
-    navHTML += '</div>';
-
-    // Generar Contenido de Pestañas
-    let contentHTML = '<div class="config-tabs-content">';
-
-    // 1. PERFIL
-    contentHTML += \`
-    <div id="tab-profile" class="tab-pane active">
-        <div class="form-grid">
-            <div class="span-2"><label>Nombre Completo</label><input id="cfg-name" class="form-input" value="\${p.name || ''}"></div>
-            <div class="span-1"><label>Título (Dr/Dra)</label><input id="cfg-title" class="form-input" value="\${p.title || ''}"></div>
-            <div class="span-1"><label>Usuario</label><input class="form-input" value="\${p.username || ''}" disabled></div>
-            <div class="span-1"><label>Teléfono 1</label><input id="cfg-phone" class="form-input" value="\${p.contact?.phone || ''}"></div>
-            <div class="span-1"><label>Teléfono 2</label><input id="cfg-phone2" class="form-input" value="\${p.contact?.phone2 || ''}"></div>
-            <div class="span-2"><label>Email Principal</label><input id="cfg-email" class="form-input" value="\${p.contact?.email || ''}"></div>
-            <div class="span-4"><label>Ubicación</label><input id="cfg-location" class="form-input" value="\${p.location || ''}"></div>
-        </div>
-    </div>\`;
-
-    // 2. PROFESIONAL
-    contentHTML += \`
-    <div id="tab-professional" class="tab-pane hidden">
-        <div class="form-grid">
-            <div class="span-2"><label>Especialidad</label><input id="cfg-specialty" class="form-input" value="\${pro.specialty || ''}"></div>
-            <div class="span-2"><label>N° Licencia / MPPS</label><input id="cfg-license" class="form-input" value="\${pro.license_number || ''}"></div>
-            <div class="span-2"><label>Colegio Médico</label><input id="cfg-college" class="form-input" value="\${pro.college || ''}"></div>
-            <div class="span-2"><label>Etiqueta Firma</label><input id="cfg-sign-label" class="form-input" value="\${pro.signature_label || ''}"></div>
-            <div class="span-4"><label>Pie Legal (Footer)</label><textarea id="cfg-legal" class="form-input" rows="3">\${pro.legal_footer || ''}</textarea></div>
-        </div>
-    </div>\`;
-
-    // 3. INSTITUCION
-    contentHTML += \`
-    <div id="tab-institution" class="tab-pane hidden">
-        <div class="form-grid">
-            <div class="span-4"><label>Nombre Institución</label><input id="cfg-inst-name" class="form-input" value="\${inst.name || ''}"></div>
-            <div class="span-4"><label>Dirección</label><input id="cfg-inst-addr" class="form-input" value="\${inst.address || ''}"></div>
-            <div class="span-2"><label>Servicio / Dpto</label><input id="cfg-inst-service" class="form-input" value="\${inst.service || ''}"></div>
-        </div>
-    </div>\`;
-
-    // 4. DOCUMENTOS
-    contentHTML += \`
-    <div id="tab-docs" class="tab-pane hidden">
-        <h4>Márgenes de Impresión (cm)</h4>
-        <div class="form-grid">
-            <div class="span-1"><label>Superior</label><input type="number" step="0.1" id="cfg-margin-top" class="form-input" value="\${docs.top}"></div>
-            <div class="span-1"><label>Inferior</label><input type="number" step="0.1" id="cfg-margin-bottom" class="form-input" value="\${docs.bottom}"></div>
-            <div class="span-1"><label>Izquierdo</label><input type="number" step="0.1" id="cfg-margin-left" class="form-input" value="\${docs.left}"></div>
-            <div class="span-1"><label>Derecho</label><input type="number" step="0.1" id="cfg-margin-right" class="form-input" value="\${docs.right}"></div>
-        </div>
-    </div>\`;
-
-    // 5. ASSETS (Gráficos)
-    const assetRow = (label, key) => \`
-        <div class="asset-row">
-            <div class="asset-info">
-                <label>\${label}</label>
-                <div class="asset-path">\${user.assets?.[key] || 'No definido'}</div>
-            </div>
-            <div class="asset-actions">
-                <label class="btn-upload">
-                    <i class="bi bi-upload"></i> Subir
-                    <input type="file" accept="image/png" onchange="window.handleAssetUpload(this, '\${key}')" hidden>
-                </label>
-                \${user.assets?.[key] ? \`<button class="btn-preview" onclick="window.open('\${user.assets[key]}', '_blank')"><i class="bi bi-eye"></i></button>\` : ''}
-            </div>
-        </div>\`;
-
-    contentHTML += \`
-    <div id="tab-assets" class="tab-pane hidden">
-        <div class="assets-list">
-            \${assetRow('Avatar Usuario', 'avatar_path')}
-            \${assetRow('Cabecera (Header)', 'header_path')}
-            \${assetRow('Pie de Página (Footer)', 'footer_path')}
-            \${assetRow('Firma Digital', 'signature_path')}
-            \${assetRow('Sello Húmedo', 'stamp_path')}
-        </div>
-    </div>\`;
-
-    contentHTML += '</div>'; // End content
-
-    // Acciones Footer
-    const footerHTML = \`
-        <div class="config-actions">
-            <button class="icon-btn success" onclick="window.saveConfigGlobal()" style="width:100%; justify-content:center;">
-                <i class="bi bi-save"></i> Guardar Configuración
-            </button>
-        </div>\`;
-
-    configContent.innerHTML = navHTML + contentHTML + footerHTML;
-    document.getElementById('configDrawer').classList.add('open');
-}
-
-// Helpers Globales para la UI de Configuración
-window.switchConfigTab = (tabId) => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-    
-    // Activar
-    const btn = document.querySelector(\`.tab-btn[onclick*="\${tabId}"]\`);
-    if(btn) btn.classList.add('active');
-    document.getElementById(\`tab-\${tabId}\`).classList.remove('hidden');
-};
-
-window.handleAssetUpload = (input, key) => {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Simulamos guardado actualizando el estado local
-            if(!STATE.currentUser.assets) STATE.currentUser.assets = {};
-            STATE.currentUser.assets[key] = e.target.result; // Data URL
-            flash('Imagen cargada temporalmente. Guarde para aplicar.');
-            openConfigDrawer(); // Recargar para ver cambios
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-};
-
-window.saveConfigGlobal = () => {
-    // Aquí mapeamos todos los inputs de vuelta al objeto STATE
-    // (Simplificado para el ejemplo, deberías mapear todos)
-    const p = STATE.currentUser.profile;
-    p.name = $('#cfg-name').value;
-    p.title = $('#cfg-title').value;
-    if(!p.contact) p.contact = {};
-    p.contact.phone = $('#cfg-phone').value;
-    // ... mapear el resto ...
-    
-    flash('Configuración guardada (En memoria)');
-    document.getElementById('configDrawer').classList.remove('open');
-    renderToolbar(); // Refrescar UI con nuevos datos
-};
 
 /* ================= EVENT BINDING ================= */
 
@@ -346,9 +203,10 @@ function bindEvents() {
         if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); 
     };
 
-    // Listeners básicos
-    document.getElementById('btnOpenLogin')?.addEventListener('click', () => document.getElementById('loginDrawer').classList.add('open'));
-    
+    document.getElementById('btnOpenLogin')?.addEventListener('click', () => {
+        document.getElementById('loginDrawer').classList.add('open');
+    });
+
     document.querySelectorAll('.btn-close-drawer').forEach(btn => {
         btn.addEventListener('click', () => {
             btn.closest('.login-drawer, .config-drawer').classList.remove('open');
@@ -356,24 +214,26 @@ function bindEvents() {
     });
 
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
+        e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
         renderToolbar();
     });
 
-    document.getElementById('btnUserConfig')?.addEventListener('click', openConfigDrawer);
-    document.getElementById('btnChangeTheme')?.addEventListener('click', () => {
-        const themes = ['glass', 'liquid', 'light', 'dusk'];
-        const current = document.body.className.match(/theme-(\\w+)/)?.[1] || 'glass';
-        const next = themes[(themes.indexOf(current) + 1) % themes.length];
-        document.body.className = \`theme-\${next}\`;
-        localStorage.setItem('CIMA_THEME', next);
+    document.getElementById('btnUserConfig')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openConfigDrawer();
+    });
+
+    document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        rotateTheme();
     });
 
     document.getElementById('btnNew')?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar historia actual?")) return; 
         resetStory(); 
         STATE.UI.isStoryOpen = true; 
-        try { ServiceLoader.get('patient').initializeNewPatient(); } catch(e) { console.error(e); }
+        ServiceLoader.get('patient').initializeNewPatient(); 
         renderToolbar(); 
     });
     
@@ -385,15 +245,20 @@ function bindEvents() {
         const query = prompt("Buscar paciente (nombre o documento):");
         if(query) {
             const results = getSearchResults(query);
-            if(results.length > 0) loadHistoryRecord(results[0]);
-            else alert("No se encontraron resultados.");
+            if(results.length > 0) {
+                loadHistoryRecord(results[0]);
+            } else {
+                alert("No se encontraron resultados.");
+            }
         }
     });
     
     document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
     
     document.getElementById('btnDeleteLast')?.addEventListener('click', () => { 
-        if(confirm("¿Borrar última consulta?")) document.getElementById('visitsContainer').firstChild?.remove(); 
+        if(confirm("¿Borrar última consulta?")) { 
+            document.getElementById('visitsContainer').firstChild?.remove(); 
+        }
     });
     
     document.getElementById('btnExitPreview')?.addEventListener('click', () => { 
@@ -406,17 +271,6 @@ function bindEvents() {
         window.switchDoc(STATE.currentPreviewDoc); 
     });
 
-    document.getElementById('btnOpenExport')?.addEventListener('click', async () => {
-        const { exportToPNG } = await import('./service_loader.js').then(m => m.ServiceLoader.get('export'));
-        exportToPNG();
-    });
-    
-    document.getElementById('btnShareWhatsapp')?.addEventListener('click', async () => {
-         const { shareViaWhatsApp } = await import('./service_loader.js').then(m => m.ServiceLoader.get('export'));
-         shareViaWhatsApp();
-    });
-
-    // Dropdown Logic
     const avatarBtn = document.getElementById('btnUserAvatar');
     const userDropdown = document.getElementById('userDropdown');
     
@@ -425,27 +279,324 @@ function bindEvents() {
             e.stopPropagation();
             userDropdown.classList.toggle('hidden');
         });
+        
         document.addEventListener('click', (e) => {
-            if(!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+            if(!userDropdown.classList.contains('hidden') && 
+               !userDropdown.contains(e.target) && 
+               !avatarBtn.contains(e.target)) {
                 userDropdown.classList.add('hidden');
             }
         });
     }
 
-    document.getElementById('btnChangeWallpaper')?.addEventListener('click', rotateWallpaper);
-    document.getElementById('btnLogout')?.addEventListener('click', logout);
+    document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        rotateWallpaper();
+    });
+    
+    document.getElementById('btnLogout')?.addEventListener('click', () => logout());
 }
+
+/* ================= FUNCIONES DE NEGOCIO ================= */
 
 function logout() {
     if(confirm("¿Cerrar sesión?")) {
-        STATE.currentUser = { profile: { id: "guest", role: "guest" }, preferences: {}, assets: {} };
+        STATE.currentUser = {
+            profile: {
+                id: "guest",
+                role: "guest",
+                username: "guest",
+                title: "",
+                firstname: "Usuario",
+                lastname: "",
+                title_line_1: "",
+                contact: {},
+                location: ""
+            },
+            preferences: {
+                theme: "glass",
+                default_model: "ORL-001"
+            },
+            assets: {}
+        };
+        
         resetStory();
         renderToolbar();
         log("Sesión cerrada");
     }
 }
 
-export function initToolbarEvents() { renderToolbar(); }
+function rotateTheme() {
+    const themes = ['glass', 'liquid', 'light', 'dusk'];
+    const currentTheme = document.body.className.match(/theme-(\w+)/)?.[1] || 'glass';
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    const nextTheme = themes[nextIndex];
+    
+    document.body.className = `theme-${nextTheme}`;
+    localStorage.setItem('CIMA_THEME', nextTheme);
+    log(`Tema cambiado a: ${nextTheme}`);
+}
+
+/* ================= CONFIG DRAWER (MEJORADO COMPLETO) ================= */
+
+function openConfigDrawer() {
+    const configContent = document.getElementById('config-content');
+    if (!configContent) return;
+    
+    const user = STATE.currentUser;
+    const p = user.profile || {};
+    const prof = user.professional || {};
+    const inst = user.institution || {};
+    const prefs = user.preferences || {};
+    const sec = user.security || {};
+    const doc = user.documents || {};
+    const assets = user.assets || {};
+
+    // Buffer temporal para imagenes cargadas (Base64)
+    if (!window.tempImageBuffer) window.tempImageBuffer = {};
+
+    const html = `
+    <div class="config-tabs">
+        <button class="config-tab-btn active" onclick="switchConfigTab('perfil')">Perfil</button>
+        <button class="config-tab-btn" onclick="switchConfigTab('prof')">Profesional</button>
+        <button class="config-tab-btn" onclick="switchConfigTab('inst')">Institución</button>
+        <button class="config-tab-btn" onclick="switchConfigTab('prefs')">Preferencias</button>
+        <button class="config-tab-btn" onclick="switchConfigTab('assets')">Imágenes</button>
+    </div>
+
+    <!-- TAB: PERFIL -->
+    <div id="tab-perfil" class="config-tab-content active">
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div>
+            <div class="form-grid">
+                <div class="span-1"><label class="form-label">Título</label><input id="cfg-title" class="form-input" value="${p.title || ''}"></div>
+                <div class="span-1"><label class="form-label">Primer Nombre</label><input id="cfg-firstname" class="form-input" value="${p.firstname || ''}"></div>
+                <div class="span-1"><label class="form-label">Segundo Nombre</label><input id="cfg-secondname" class="form-input" value="${p.secondname || ''}"></div>
+                <div class="span-1"><label class="form-label">Primer Apellido</label><input id="cfg-lastname" class="form-input" value="${p.lastname || ''}"></div>
+                <div class="span-1"><label class="form-label">Segundo Apellido</label><input id="cfg-secondlastname" class="form-input" value="${p.secondlastname || ''}"></div>
+                <div class="span-1"><label class="form-label">Tipo Sangre</label><input id="cfg-bloodtype" class="form-input" value="${p.bloodtype || ''}"></div>
+                <div class="span-4"><label class="form-label">Ubicación</label><input id="cfg-location" class="form-input" value="${p.location || ''}"></div>
+            </div>
+        </div>
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-telephone"></i> Contacto</div>
+            <div class="form-grid">
+                <div class="span-2"><label class="form-label">Teléfono Principal</label><input id="cfg-phone" class="form-input" value="${p.contact?.phone || ''}"></div>
+                <div class="span-2"><label class="form-label">Teléfono Secundario</label><input id="cfg-phone2" class="form-input" value="${p.contact?.phone2 || ''}"></div>
+                <div class="span-2"><label class="form-label">Email Principal</label><input id="cfg-email" class="form-input" value="${p.contact?.email || ''}"></div>
+                <div class="span-2"><label class="form-label">Email Alternativo</label><input id="cfg-email2" class="form-input" value="${p.contact?.email2 || ''}"></div>
+                <div class="span-4"><label class="form-label">Instagram</label><input id="cfg-instagram" class="form-input" value="${p.contact?.instagram || ''}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PROFESIONAL -->
+    <div id="tab-prof" class="config-tab-content">
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Legales</div>
+            <div class="form-grid">
+                <div class="span-2"><label class="form-label">Especialidad (Línea 1)</label><input id="cfg-specialty" class="form-input" value="${prof.specialty || p.title_line_1 || ''}"></div>
+                <div class="span-2"><label class="form-label">Cargo / Detalle (Línea 2)</label><input id="cfg-title2" class="form-input" value="${p.title_line_2 || ''}"></div>
+                <div class="span-2"><label class="form-label">Matrícula MPPS</label><input id="cfg-license" class="form-input" value="${prof.license_number || ''}"></div>
+                <div class="span-2"><label class="form-label">Colegio Médico (CMM)</label><input id="cfg-college" class="form-input" value="${prof.college || ''}"></div>
+                <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="cfg-sig-label" class="form-input" value="${prof.signature_label || ''}"></div>
+                <div class="span-4"><label class="form-label">Pie de Página Legal</label><input id="cfg-legal-footer" class="form-input" value="${prof.legal_footer || ''}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: INSTITUCIÓN -->
+    <div id="tab-inst" class="config-tab-content">
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-hospital"></i> Datos Institucionales</div>
+            <div class="form-grid">
+                <div class="span-2"><label class="form-label">Nombre Institución</label><input id="cfg-inst-name" class="form-input" value="${inst.name || ''}"></div>
+                <div class="span-2"><label class="form-label">Servicio</label><input id="cfg-inst-service" class="form-input" value="${inst.service || ''}"></div>
+                <div class="span-4"><label class="form-label">Dirección</label><input id="cfg-inst-address" class="form-input" value="${inst.address || ''}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PREFERENCIAS -->
+    <div id="tab-prefs" class="config-tab-content">
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-sliders"></i> Preferencias del Sistema</div>
+            <div class="form-grid">
+                <div class="span-2"><label class="form-label">Color Primario</label><input type="color" id="cfg-pcolor" class="form-input" value="${prefs.primary_color || '#0ea5e9'}"></div>
+                <div class="span-2"><label class="form-label">Zoom Default (%)</label><input type="number" id="cfg-zoom" class="form-input" value="${prefs.default_zoom || 60}"></div>
+                <div class="span-2">
+                    <label class="form-label">Firma Digital por Defecto</label>
+                    <select id="cfg-sig-default" class="form-select">
+                        <option value="true" ${prefs.use_digital_signature_default ? 'selected' : ''}>Sí</option>
+                        <option value="false" ${!prefs.use_digital_signature_default ? 'selected' : ''}>No</option>
+                    </select>
+                </div>
+                <div class="span-2">
+                    <label class="form-label">Auto-lock (min)</label>
+                    <input type="number" id="cfg-autolock" class="form-input" value="${sec.auto_lock_minutes || 15}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: ASSETS (UPLOADS) -->
+    <div id="tab-assets" class="config-tab-content">
+        <div class="form-section">
+            <div class="form-section-title"><i class="bi bi-images"></i> Imágenes y Gráficos</div>
+            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:15px;">Seleccione archivos para actualizar su perfil visual.</p>
+            
+            ${renderAssetUploader('Avatar', 'avatar', assets.avatar_path)}
+            ${renderAssetUploader('Encabezado (Header)', 'header', assets.header_path)}
+            ${renderAssetUploader('Pie de Página (Footer)', 'footer', assets.footer_path)}
+            ${renderAssetUploader('Firma Digital', 'signature', assets.signature_path)}
+            ${renderAssetUploader('Sello Húmedo', 'stamp', assets.stamp_path)}
+        </div>
+    </div>
+
+    <div class="config-actions">
+        <button class="icon-btn" onclick="saveFullConfig()" style="width:100%; background:var(--primary); color:white; height:45px; font-size:1rem;">
+            <i class="bi bi-save"></i> GUARDAR CAMBIOS
+        </button>
+    </div>
+    `;
+    
+    configContent.innerHTML = html;
+    document.getElementById('configDrawer').classList.add('open');
+
+    // Inicializar previsualizaciones de imagenes si existen en buffer o ruta
+    initAssetPreviews();
+}
+
+// Helper para generar el HTML del uploader
+function renderAssetUploader(label, key, currentPath) {
+    // Usar placeholder si no hay ruta
+    const src = currentPath && currentPath.length > 10 ? currentPath : '';
+    return `
+    <div class="asset-uploader">
+        <div class="asset-preview" id="preview-${key}">
+            ${src ? `<img src="${src}" onerror="this.style.display='none'">` : '<i class="bi bi-image" style="font-size:1.5rem; color:#64748b;"></i>'}
+        </div>
+        <div class="asset-info">
+            <span class="asset-label">${label}</span>
+            <input type="file" id="input-${key}" accept="image/*" style="font-size:0.75rem; width:100%;">
+        </div>
+    </div>
+    `;
+}
+
+// Exponer función global para tabs
+window.switchConfigTab = (tabName) => {
+    // Botones
+    document.querySelectorAll('.config-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.config-tab-btn[onclick*="'${tabName}'"]`).classList.add('active');
+    
+    // Contenido
+    document.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+};
+
+// Exponer función global para guardar
+window.saveFullConfig = () => {
+    const user = STATE.currentUser;
+    
+    // 1. Mapear campos de texto
+    user.profile.title = $('#cfg-title').value;
+    user.profile.firstname = $('#cfg-firstname').value;
+    user.profile.secondname = $('#cfg-secondname').value;
+    user.profile.lastname = $('#cfg-lastname').value;
+    user.profile.secondlastname = $('#cfg-secondlastname').value;
+    user.profile.bloodtype = $('#cfg-bloodtype').value;
+    user.profile.location = $('#cfg-location').value;
+    
+    user.profile.contact.phone = $('#cfg-phone').value;
+    user.profile.contact.phone2 = $('#cfg-phone2').value;
+    user.profile.contact.email = $('#cfg-email').value;
+    user.profile.contact.email2 = $('#cfg-email2').value;
+    user.profile.contact.instagram = $('#cfg-instagram').value;
+    
+    user.professional.specialty = $('#cfg-specialty').value;
+    user.profile.title_line_1 = $('#cfg-specialty').value; // Sync
+    user.profile.title_line_2 = $('#cfg-title2').value;
+    user.professional.license_number = $('#cfg-license').value;
+    user.professional.college = $('#cfg-college').value;
+    user.professional.signature_label = $('#cfg-sig-label').value;
+    user.professional.legal_footer = $('#cfg-legal-footer').value;
+    
+    user.institution.name = $('#cfg-inst-name').value;
+    user.institution.service = $('#cfg-inst-service').value;
+    user.institution.address = $('#cfg-inst-address').value;
+    
+    user.preferences.primary_color = $('#cfg-pcolor').value;
+    user.preferences.default_zoom = $('#cfg-zoom').value;
+    user.preferences.use_digital_signature_default = $('#cfg-sig-default').value === 'true';
+    user.security.auto_lock_minutes = $('#cfg-autolock').value;
+
+    // 2. Procesar Imágenes (Simulando persistencia via localStorage para sesión actual)
+    ['avatar', 'header', 'footer', 'signature', 'stamp'].forEach(key => {
+        const input = document.getElementById(`input-${key}`);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                // Guardar en localStorage persistente
+                localStorage.setItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`, base64);
+                
+                // Actualizar state con data URI temporal para visualización inmediata
+                user.assets[`${key}_path`] = base64;
+                
+                // Refrescar UI
+                const preview = document.getElementById(`preview-${key}`);
+                preview.innerHTML = `<img src="${base64}">`;
+                
+                // Si es el avatar, refrescar toolbar
+                if(key === 'avatar') renderToolbar();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    });
+
+    // Guardar config JSON completa en localStorage para persistencia entre recargas
+    try {
+        localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user));
+        flash('Configuración guardada correctamente');
+        log('Configuración actualizada en localStorage.');
+    } catch (e) {
+        showErr('Error guardando: ' + e.message);
+    }
+    
+    setTimeout(() => {
+        document.getElementById('configDrawer').classList.remove('open');
+    }, 1000);
+};
+
+// Inicializar lógica de carga de imagenes
+function initAssetPreviews() {
+    ['avatar', 'header', 'footer', 'signature', 'stamp'].forEach(key => {
+        const input = document.getElementById(`input-${key}`);
+        if(!input) return;
+        
+        // Chequear si hay una imagen en localStorage del usuario
+        const savedImg = localStorage.getItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`);
+        if (savedImg) {
+            const preview = document.getElementById(`preview-${key}`);
+            if(preview) preview.innerHTML = `<img src="${savedImg}">`;
+        }
+        
+        // Listener para preview inmediato
+        input.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                const url = URL.createObjectURL(e.target.files[0]);
+                const preview = document.getElementById(`preview-${key}`);
+                if(preview) preview.innerHTML = `<img src="${url}">`;
+            }
+        });
+    });
+}
+
+export function initToolbarEvents() { 
+    renderToolbar(); 
+}
 
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId); 
@@ -455,11 +606,10 @@ window.openDocGlobal = function(kind, cardId) {
     STATE.currentPreviewDoc = kind; 
     STATE.UI.isPreviewMode = true;
     
-    const mod = kind === 'INF' ? ServiceLoader.get('informe') : ServiceLoader.get('recipe');
-    const html = kind === 'INF' ? mod.buildReportHTML(card) : mod.buildRecipeHTML(card);
+    let html = kind === 'INF' 
+        ? ServiceLoader.get('informe').buildReportHTML(card) 
+        : ServiceLoader.get('recipe').buildRecipeHTML(card);
     
     document.getElementById('docPreview').innerHTML = html; 
     renderToolbar();
 };
-`
-}
