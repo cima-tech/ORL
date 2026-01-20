@@ -1,6 +1,6 @@
 // app/logic/start.js
 import { log, loadUserConfig, STATE } from 'brain';
-import { ServiceLoader } from 'service_loader';
+import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
 
 export const StartManager = {
@@ -39,7 +39,6 @@ export const StartManager = {
         if(!list) return;
         
         list.innerHTML = users.map(u => {
-            // Intentar cargar imagen desde localStorage si existe
             const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
             const hasImg = savedImg || (u.avatar && u.avatar !== "");
             const avatarHtml = hasImg 
@@ -169,6 +168,5 @@ function handleVisitClicks(e) {
     if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
 }
 
-// Exportar funciones al global scope
 window.selectUser = selectUser;
 window.verifyPassword = verifyPassword;
