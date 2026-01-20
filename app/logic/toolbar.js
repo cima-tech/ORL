@@ -2,6 +2,10 @@
 import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js'; // Importa el archivo limpio
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
+import { DrawersManager } from './drawers.js'; // Importación del nuevo módulo
+
+// Exponer globalmente para que funcionen los onclick de los HTML templates
+window.DrawersManager = DrawersManager;
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
@@ -28,6 +32,10 @@ function getNavGroupHTML(isSidebar) {
             <div class="icon-row">
                 <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión">
                     <i class="bi bi-person-circle"></i>
+                </button>
+                <!-- NUEVO BOTÓN PARA CREAR USUARIO -->
+                <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="window.DrawersManager.openCreateUser()">
+                    <i class="bi bi-person-plus"></i>
                 </button>
             </div>
             ${!isSidebar ? '<span class="group-label">Login</span>' : ''}
