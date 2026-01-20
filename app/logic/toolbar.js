@@ -1,14 +1,13 @@
 // app/logic/toolbar.js
-import { $, $$, STATE, rotateWallpaper, log, flash } from 'brain';
+import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js';
-import { saveCurrentHistory, resetStory, handleAddConsulta, getSearchResults, loadHistoryRecord } from './engine.js';
+import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 
 /* ================= COMPONENTES UI ================= */
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
     
-    // FIX: Acceso correcto al perfil
     const profile = STATE.currentUser?.profile || {};
     const assets = STATE.currentUser?.assets || {};
     const preferences = STATE.currentUser?.preferences || {};
@@ -19,11 +18,9 @@ function getNavGroupHTML(isSidebar) {
     const name = profile.firstname ? `${profile.firstname} ${profile.lastname || ''}`.trim() : "Usuario";
     const role = profile.specialty || profile.role || "";
 
-    // FIX: Avatar mapping correcto desde user.json
     let avatarPath = assets.avatar_path || "";
-    // Limpieza de ruta relativa si es necesario para visualización
+    // Ajuste de ruta relativa para visualización
     if (avatarPath && !avatarPath.startsWith('http') && !avatarPath.startsWith('data:')) {
-        // Ajuste simple de ruta, asumiendo estructura de carpetas estándar
         if (!avatarPath.startsWith('./') && !avatarPath.startsWith('/')) {
             avatarPath = './' + avatarPath;
         }
@@ -149,8 +146,6 @@ export function renderToolbar() {
     const previewShell = document.getElementById('previewShell');
     const form = document.getElementById('patientForm');
     const visits = document.getElementById('visitsContainer');
-
-
 
     if (STATE.UI.isPreviewMode && STATE.currentUser.profile.id !== "guest") {
         previewShell.classList.remove('hidden');
@@ -338,6 +333,44 @@ function rotateTheme() {
     log(`Tema cambiado a: ${nextTheme}`);
 }
 
+// Función local para manejar agregar consulta (evitando dependencia rota de engine.js)
+function handleAddConsulta() {
+    if(!STATE.UI.isStoryOpen) return;
+    if (!$("#primer_nombre")?.value) { 
+        showErr('Ingrese nombre primero'); 
+        return; 
+    }
+
+    const ConsultService = ServiceLoader.get('consult');
+    $("#visitsContainer").classList.remove('hidden');
+
+    const existingCards = $("#visitsContainer").querySelectorAll('.visit-card');
+    const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
+    const newCard = ConsultService.createVisitCard(type);
+    
+    if (type === 'Primera') {
+        const pVal = $("#antecedentes_personales")?.value || "";
+        const fVal = $("#antecedentes_familiares")?.value || "";
+        const tP = newCard.querySelector('.txt-antecedentes-personales');
+        const tF = newCard.querySelector('.txt-antecedentes-familiares');
+        if(tP) tP.value = pVal;
+        if(tF) tF.value = fVal;
+        flash('1ra Consulta creada');
+    } else if (type === 'Sucesiva' && existingCards.length > 0) {
+        const last = existingCards[0];
+        const fields = ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'];
+        fields.forEach(sel => {
+            const src = last.querySelector(sel);
+            const tgt = newCard.querySelector(sel);
+            if(src && tgt) tgt.value = src.value;
+        });
+        flash('Consulta sucesiva');
+    }
+
+    $("#visitsContainer").insertBefore(newCard, $("#visitsContainer").firstChild);
+    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 /* ================= CONFIG DRAWER (MEJORADO COMPLETO) ================= */
 
 function openConfigDrawer() {
@@ -353,7 +386,6 @@ function openConfigDrawer() {
     const doc = user.documents || {};
     const assets = user.assets || {};
 
-    // Buffer temporal para imagenes cargadas (Base64)
     if (!window.tempImageBuffer) window.tempImageBuffer = {};
 
     const html = `
@@ -365,7 +397,6 @@ function openConfigDrawer() {
         <button class="config-tab-btn" onclick="switchConfigTab('assets')">Imágenes</button>
     </div>
 
-    <!-- TAB: PERFIL -->
     <div id="tab-perfil" class="config-tab-content active">
         <div class="form-section">
             <div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div>
@@ -391,7 +422,6 @@ function openConfigDrawer() {
         </div>
     </div>
 
-    <!-- TAB: PROFESIONAL -->
     <div id="tab-prof" class="config-tab-content">
         <div class="form-section">
             <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Legales</div>
@@ -406,7 +436,6 @@ function openConfigDrawer() {
         </div>
     </div>
 
-    <!-- TAB: INSTITUCIÓN -->
     <div id="tab-inst" class="config-tab-content">
         <div class="form-section">
             <div class="form-section-title"><i class="bi bi-hospital"></i> Datos Institucionales</div>
@@ -418,7 +447,6 @@ function openConfigDrawer() {
         </div>
     </div>
 
-    <!-- TAB: PREFERENCIAS -->
     <div id="tab-prefs" class="config-tab-content">
         <div class="form-section">
             <div class="form-section-title"><i class="bi bi-sliders"></i> Preferencias del Sistema</div>
@@ -440,7 +468,6 @@ function openConfigDrawer() {
         </div>
     </div>
 
-    <!-- TAB: ASSETS (UPLOADS) -->
     <div id="tab-assets" class="config-tab-content">
         <div class="form-section">
             <div class="form-section-title"><i class="bi bi-images"></i> Imágenes y Gráficos</div>
@@ -464,13 +491,10 @@ function openConfigDrawer() {
     configContent.innerHTML = html;
     document.getElementById('configDrawer').classList.add('open');
 
-    // Inicializar previsualizaciones de imagenes si existen en buffer o ruta
     initAssetPreviews();
 }
 
-// Helper para generar el HTML del uploader
 function renderAssetUploader(label, key, currentPath) {
-    // Usar placeholder si no hay ruta
     const src = currentPath && currentPath.length > 10 ? currentPath : '';
     return `
     <div class="asset-uploader">
@@ -485,22 +509,17 @@ function renderAssetUploader(label, key, currentPath) {
     `;
 }
 
-// Exponer función global para tabs
 window.switchConfigTab = (tabName) => {
-    // Botones
     document.querySelectorAll('.config-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`.config-tab-btn[onclick*="'${tabName}'"]`).classList.add('active');
     
-    // Contenido
     document.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
 };
 
-// Exponer función global para guardar
 window.saveFullConfig = () => {
     const user = STATE.currentUser;
     
-    // 1. Mapear campos de texto
     user.profile.title = $('#cfg-title').value;
     user.profile.firstname = $('#cfg-firstname').value;
     user.profile.secondname = $('#cfg-secondname').value;
@@ -516,7 +535,7 @@ window.saveFullConfig = () => {
     user.profile.contact.instagram = $('#cfg-instagram').value;
     
     user.professional.specialty = $('#cfg-specialty').value;
-    user.profile.title_line_1 = $('#cfg-specialty').value; // Sync
+    user.profile.title_line_1 = $('#cfg-specialty').value;
     user.profile.title_line_2 = $('#cfg-title2').value;
     user.professional.license_number = $('#cfg-license').value;
     user.professional.college = $('#cfg-college').value;
@@ -532,31 +551,24 @@ window.saveFullConfig = () => {
     user.preferences.use_digital_signature_default = $('#cfg-sig-default').value === 'true';
     user.security.auto_lock_minutes = $('#cfg-autolock').value;
 
-    // 2. Procesar Imágenes (Simulando persistencia via localStorage para sesión actual)
     ['avatar', 'header', 'footer', 'signature', 'stamp'].forEach(key => {
         const input = document.getElementById(`input-${key}`);
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64 = e.target.result;
-                // Guardar en localStorage persistente
                 localStorage.setItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`, base64);
-                
-                // Actualizar state con data URI temporal para visualización inmediata
                 user.assets[`${key}_path`] = base64;
                 
-                // Refrescar UI
                 const preview = document.getElementById(`preview-${key}`);
                 preview.innerHTML = `<img src="${base64}">`;
                 
-                // Si es el avatar, refrescar toolbar
                 if(key === 'avatar') renderToolbar();
             };
             reader.readAsDataURL(input.files[0]);
         }
     });
 
-    // Guardar config JSON completa en localStorage para persistencia entre recargas
     try {
         localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user));
         flash('Configuración guardada correctamente');
@@ -570,20 +582,17 @@ window.saveFullConfig = () => {
     }, 1000);
 };
 
-// Inicializar lógica de carga de imagenes
 function initAssetPreviews() {
     ['avatar', 'header', 'footer', 'signature', 'stamp'].forEach(key => {
         const input = document.getElementById(`input-${key}`);
         if(!input) return;
         
-        // Chequear si hay una imagen en localStorage del usuario
         const savedImg = localStorage.getItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`);
         if (savedImg) {
             const preview = document.getElementById(`preview-${key}`);
             if(preview) preview.innerHTML = `<img src="${savedImg}">`;
         }
         
-        // Listener para preview inmediato
         input.addEventListener('change', (e) => {
             if (e.target.files[0]) {
                 const url = URL.createObjectURL(e.target.files[0]);
