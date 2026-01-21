@@ -1,10 +1,10 @@
 // app/logic/toolbar.js
 import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
-import { ServiceLoader } from './service_loader.js'; 
+import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
-import { DrawersManager } from './drawers.js'; // Importación del nuevo módulo
+import { DrawersManager } from './drawers.js';
 
-// Exponer globalmente para que funcionen los onclick de los HTML templates
+// Exponer globalmente
 window.DrawersManager = DrawersManager;
 
 function getNavGroupHTML(isSidebar) {
@@ -33,7 +33,6 @@ function getNavGroupHTML(isSidebar) {
                 <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión">
                     <i class="bi bi-person-circle"></i>
                 </button>
-                <!-- NUEVO BOTÓN PARA CREAR USUARIO -->
                 <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="DrawersManager.UserCreator.open()">
                     <i class="bi bi-person-plus"></i>
                 </button>
@@ -41,6 +40,41 @@ function getNavGroupHTML(isSidebar) {
             ${!isSidebar ? '<span class="group-label">Login</span>' : ''}
         </div>`;
     }
+
+    const userMenu = `
+    <div class="user-menu-wrapper">
+        <button id="btnUserAvatar" class="avatar-circle" title="${name}">
+            ${avatarPath 
+                ? `<img src="${avatarPath}" onerror="this.style.display='none'; this.parentNode.innerText='${initials}';" alt="Avatar">` 
+                : initials}
+        </button>
+        <div id="userDropdown" class="user-dropdown hidden">
+            <div class="dropdown-header">
+                <h4>${title} ${name}</h4>
+                <p>${role}</p>
+            </div>
+            <button id="btnUserConfig" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración</button>
+            <button id="btnChangeTheme" class="dropdown-item"><i class="bi bi-palette"></i> Cambiar Tema</button>
+            <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar"></i> Alternar Barra/Menú</button>
+            <button id="btnChangeWallpaper" class="dropdown-item"><i class="bi bi-arrow-repeat"></i> Fondo</button>
+            <div class="dropdown-divider"></div>
+            <button id="btnLogout" class="dropdown-item text-danger"><i class="bi bi-power"></i> Salir</button>
+        </div>
+    </div>`;
+
+    return `
+    <div class="toolbar-group">
+        <div class="icon-row">
+            ${isSidebar ? userMenu : ''} 
+            <button class="icon-btn" title="Dashboard" onclick="window.changeMode('DASHBOARD')" style="${activeStyle('DASHBOARD')}"><i class="bi bi-speedometer2"></i></button>
+            <button class="icon-btn" title="Consulta" onclick="window.changeMode('CONSULTATION')" style="${activeStyle('CONSULTATION')}"><i class="bi bi-heart-pulse"></i></button>
+            <button class="icon-btn" title="Agenda" onclick="window.changeMode('AGENDA')" style="${activeStyle('AGENDA')}"><i class="bi bi-calendar-week"></i></button>
+            <button class="icon-btn" title="Facturación" onclick="window.changeMode('BILLING')" style="${activeStyle('BILLING')}"><i class="bi bi-receipt"></i></button>
+            ${!isSidebar ? userMenu : ''} 
+        </div>
+        ${!isSidebar ? '<span class="group-label">Navegación</span>' : ''}
+    </div>`;
+}
 
 function getHistoryGroupHTML() {
     if (STATE.currentUser.profile.id === "guest") return '';
@@ -137,13 +171,18 @@ function bindEvents() {
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
-    document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open')));
+    document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
+    
+    document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => {
+        btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open');
+    }));
     
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
         e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
         renderToolbar();
     });
+    
     document.getElementById('btnUserConfig')?.addEventListener('click', (e) => { e.stopPropagation(); DrawersManager.Config.open(); });
     document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => { e.stopPropagation(); rotateTheme(); });
     
@@ -152,6 +191,7 @@ function bindEvents() {
         resetStory(); STATE.UI.isStoryOpen = true; 
         ServiceLoader.get('patient').initializeNewPatient(); renderToolbar(); 
     });
+    
     document.getElementById('btnClose')?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     
     document.getElementById('btnOpen')?.addEventListener('click', () => { 
@@ -164,7 +204,9 @@ function bindEvents() {
     });
     
     document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
+    
     document.getElementById('btnDeleteLast')?.addEventListener('click', () => { if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); });
+    
     document.getElementById('btnExitPreview')?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
     document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
         STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); 
@@ -230,13 +272,6 @@ function rotateTheme() {
     localStorage.setItem('CIMA_THEME', nextTheme);
     log(`Tema: ${nextTheme}`);
 }
-
-// Funciones Stub por compatibilidad (si las llamadas antiguas se rompieran)
-function openConfigDrawer() { DrawersManager.Config.open(); }
-function saveFullConfig() { DrawersManager.Config.save(); }
-function renderAssetUploader(l, k, p) { return DrawersManager.Config.renderAssetUploader(l, k, p); }
-function switchConfigTab(t) { return DrawersManager.Config.switchTab(t); }
-function initAssetPreviews() { return DrawersManager.Config.initAssetPreviews(); }
 
 export function initToolbarEvents() { renderToolbar(); }
 
