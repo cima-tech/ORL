@@ -31,8 +31,7 @@
         <h3><i class="bi bi-gear"></i> Configuración</h3>
         <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
     </div>
-    <div class="drawer-content" id="config-content">
-        </div>
+    <div class="drawer-content" id="config-content"></div>
 </div>
 
 <div id="createUserDrawer" class="config-drawer">
@@ -41,6 +40,15 @@
         <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="drawer-content" id="create-user-content"></div>
+</div>
+
+<div id="exportDrawer" class="config-drawer">
+    <div class="drawer-header">
+        <h3><i class="bi bi-share-fill"></i> Exportar Documentos</h3>
+        <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="drawer-content" id="export-content" style="padding: 20px;">
+        </div>
 </div>
 
 <div id="ui-mount-point"></div>
@@ -90,7 +98,8 @@
     "toolbar": "./app/logic/toolbar.js",
     "engine": "./app/logic/engine.js",
     "service_loader": "./app/logic/service_loader.js",
-    "start": "./app/logic/start.js"
+    "start": "./app/logic/start.js",
+    "export_manager": "./app/logic/export_manager.js"
   }
 }
 </script>
