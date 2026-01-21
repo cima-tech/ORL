@@ -1,15 +1,14 @@
-// app/services/consultation/models/ORL-001/recipe-indicaciones.js
+// app/services/consultation/models/GEN-001/recipe-indicaciones.js
 
-// Imports limpios usando el Mapa
+// Imports limpios 
 import { $, STATE, fmtDate } from 'brain';
-// CORRECCIÓN: Import relativo
-import { CIMA_DATA } from './consult.js';
+// CORRECCIÓN: Eliminado import circular de CIMA_DATA
 
 // ==========================================
 // 1. LÓGICA DE UI (DROPDOWNS EN CONSULTA)
 // ==========================================
 
-export function renderIndicacionesDropdowns(card) {
+export function renderIndicacionesDropdowns(card, dataOptions) {
     const container = card.querySelector('.indicaciones-dropdowns');
     if (!container) return;
     
@@ -34,9 +33,11 @@ export function renderIndicacionesDropdowns(card) {
         medsByCategory[category].push(chip.textContent);
     });
 
-    // Generar Selectores
+    // Generar Selectores (Usando dataOptions pasado como argumento)
+    const optionsSource = dataOptions?.INDICACIONES_OPTIONS || {};
+
     Object.entries(medsByCategory).forEach(([category, meds]) => {
-        const options = CIMA_DATA.INDICACIONES_OPTIONS[category] || CIMA_DATA.INDICACIONES_OPTIONS["Otros"];
+        const options = optionsSource[category] || optionsSource["Otros"] || ["Tomar según indicación médica."];
         
         meds.forEach(med => {
             const row = document.createElement('div');
@@ -110,7 +111,12 @@ export function buildRecipeHTML(card) {
     const headerImg = assets.header_path ? `<img src="${assets.header_path}" style="width:100%; max-height:80px; object-fit:contain;">` : '';
     const footerImg = assets.footer_path ? `<img src="${assets.footer_path}" style="width:100%; max-height:60px; object-fit:contain;">` : '';
     
-    // Bloque de Firma (Específico con MPPS/CMM)
+    // D. Bloque de Firma
+    // Intentar obtener datos del usuario, fallback a genérico si es necesario
+    const drName = STATE.currentUser?.profile?.name || "Dr. Médico General";
+    const drSpec = STATE.currentUser?.professional?.specialty || STATE.currentUser?.profile?.title_line_1 || "Medicina General";
+    const drCode = (STATE.currentUser?.professional?.license_number) ? `MPPS: ${STATE.currentUser.professional.license_number}` : "";
+
     const firmaBlock = `
         <div style="height:120px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin-top:auto;">
             ${hasSign && assets.signature_path ? `<img src="${assets.signature_path}" style="position:absolute; bottom:40px; width:140px;">` : ''}
@@ -118,15 +124,15 @@ export function buildRecipeHTML(card) {
             
             <div style="text-align:center; font-size:0.75rem; color:#000; line-height:1.2;">
                 <div style="font-weight:bold; font-size:0.9rem; border-top:1px solid #000; padding-top:4px; width:220px; margin:0 auto 2px auto;">
-                    Dra. Valentina González Yanez
+                    ${drName}
                 </div>
-                Otorrinolaringología<br>
-                <span style="font-size:0.7rem;">MPPS=72004 CMM=18929</span>
+                ${drSpec}<br>
+                <span style="font-size:0.7rem;">${drCode}</span>
             </div>
         </div>
     `;
 
-    // D. Estructura HTML (Grid de 2 Columnas)
+    // E. Estructura HTML (Grid de 2 Columnas)
     return `
         <div class="doc-page doc-letter land" style="padding:30px 40px; display:grid; grid-template-columns: 1fr 1fr; gap:50px;">
             
@@ -190,24 +196,15 @@ export function updateRecipeTextbox(card) {
     }
 }
 
-export function updateIndicacionesSection(card) {
-    // Mantenemos esta función por compatibilidad, pero delegamos al render
-    // La lógica de generación de texto ahora vive en 'syncIndicacionesText' 
-    // y se activa vía dropdowns.
-    
-    // Si queremos generar un texto base inicial sin dropdowns (fallback):
-    /* const txtInd = card.querySelector('.txt-indicaciones');
-    if (txtInd && !txtInd.dataset.userEdited && !card.querySelector('.indication-select')) {
-        // Lógica antigua de generación simple si no hay dropdowns
-    }
-    */
-}
-
 function updatePlanTratamiento(card, indicacionesText) {
     const txtPlan = card.querySelector('.txt-plan');
+    // En medicina general el plan es un campo diferente, verificamos si existe
+    // En GEN-001 se llama txt-plan
     if (!txtPlan || txtPlan.dataset.userEdited === '1') return;
     
-    const contacto = "\n\nNOTA DE SEGURIDAD:\nAvisar eventualidad si persisten síntomas a pesar del Tratamiento indicado o empeoramiento de síntomas a los teléfonos de contacto o acudir a la Emergencia.";
-    
-    txtPlan.value = indicacionesText + contacto;
+    // Solo actualizamos si está vacío para no borrar notas de dieta/ejercicio
+    if (txtPlan.value.trim() === "") {
+        const contacto = "\n\nNOTA:\nEn caso de fiebre persistente (>38.5°C) por más de 48h, dificultad respiratoria o deterioro del estado general, acudir a emergencia.";
+        txtPlan.value = "Tratamiento farmacológico según indicaciones adjuntas.\n" + contacto;
+    }
 }
