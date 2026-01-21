@@ -1,4 +1,4 @@
-import { log, loadUserConfig, STATE, flash } from 'brain'; // <-- AÑADIDO flash AQUÍ
+import { log, loadUserConfig, STATE, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
 import { DrawersManager } from './drawers.js';
@@ -107,7 +107,7 @@ async function finishLogin() {
             if(PatientService) PatientService.toggleConditionalFields();
             const name = STATE.currentUser?.profile?.firstname || "Usuario";
             log(`Bienvenido/a, ${name}`);
-            flash(`Sesión iniciada: ${name}`); // <-- AHORA SÍ FUNCIONARÁ
+            flash(`Sesión iniciada: ${name}`); 
         }, 300);
 
     } catch (e) { 
@@ -138,7 +138,7 @@ function handleVisitClicks(e) {
     // NUEVO: Botón unificado de documentos
     if (e.target.closest('.btn-docs')) {
         const card = e.target.closest('.visit-card');
-        if(card) window.openDocGlobal('INF', card.id); // Abre Informe por defecto
+        if(card) window.openDocGlobal('INF', card.id); 
     }
     
     // Compatibilidad por si acaso queda algún botón viejo
