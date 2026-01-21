@@ -26,26 +26,14 @@ export const StartManager = {
             }
         });
 
-        // 3. Inicializar HTML de Drawers
-        DrawersManager.init();
+        // 3. Inicializar HTML de Drawers y Lógica de Login
+        // Esto ahora se encarga de cargar el catálogo y pintar el login form
+        await DrawersManager.init();
 
-        // 4. Cargar usuarios
-        try {
-            const response = await fetch('./app/catalog/users.json');
-            const originalUsers = await response.json();
-            const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-            const mergedUsers = [...originalUsers, ...localDB];
-            
-            DrawersManager.Login.renderList(mergedUsers);
-        } catch (e) { 
-            console.error(e); 
-            log("Error cargando lista de usuarios", true); 
-        }
-
-        // 5. Inicializar toolbar
+        // 4. Inicializar toolbar (Estado Guest)
         initToolbarEvents();
         
-        // 6. Aplicar tema
+        // 5. Aplicar tema
         const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
         document.body.className = `theme-${savedTheme}`;
         
@@ -53,16 +41,8 @@ export const StartManager = {
     },
 
     async refreshUserList() {
-        try {
-            const response = await fetch('./app/catalog/users.json');
-            const originalUsers = await response.json();
-            const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-            const mergedUsers = [...originalUsers, ...localDB];
-            
-            if (DrawersManager && DrawersManager.Login) {
-                DrawersManager.Login.renderList(mergedUsers);
-            }
-        } catch(e) { console.error(e); }
+        // Método de compatibilidad, llama al init de nuevo para recargar catálogo
+        if (DrawersManager) await DrawersManager.init();
     }
 };
 
@@ -135,13 +115,11 @@ function handleVisitClicks(e) {
         e.target.classList.toggle('active');
     }
     
-    // NUEVO: Botón unificado de documentos
     if (e.target.closest('.btn-docs')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('INF', card.id); 
     }
     
-    // Compatibilidad por si acaso queda algún botón viejo
     if (e.target.closest('.btn-inf')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('INF', card.id);
@@ -154,5 +132,4 @@ function handleVisitClicks(e) {
 
 window.finishLogin = finishLogin;
 window.refreshUserList = () => StartManager.refreshUserList();
-window.selectUser = (id, path) => DrawersManager.Login.selectUser(id, path);
-window.verifyPassword = (id) => DrawersManager.Login.verifyPassword(id);
+// selectUser y verifyPassword ya no se exponen globalmente porque el nuevo login lo maneja internamente
