@@ -6,38 +6,49 @@ import { updateRecipeTextbox, renderIndicacionesDropdowns } from './recipe-indic
 // 1. DATA (CONFIGURACIÓN MÉDICA)
 // ==========================================
 export const CIMA_DATA = {
-  MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
+  MOTIVOS: ["Consulta General", "Chequeo Rutina", "Certificado Salud", "Dolor Abdominal", "Cefalea", "Fiebre", "Tos", "Malestar General", "Diarrea", "Vómitos", "Hipertensión", "Control Diabetes", "Dolor Muscular"],
   
-  ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
+  ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Traumatismos", "Hospitalizaciones"],
   
-  DX: ["Otocerumen Bilateral","Otocerumen Derecho","Otocerumen Izquierdo","Otitis Externa Bilateral","Otitis Externa Derecha","Otitis Externa Izquierda","Otitis Media Aguda Bilateral","Otitis Media Aguda Derecha","Otitis Media Aguda Izquierda","Otitis Media Crónica Perforada Bilateral","Otitis Media Crónica Perforada Derecha","Otitis Media Crónica Perforada Izquierda","Otitis Media Crónica Sucurativa","Otitis Media Crónica Colestetomatosa","Hipoacusia Neurosensorial Profunda Bilateral","Hipoacusia Neurosensorial Profunda Derecha","Hipoacusia Neurosensorial Profunda Izquierda","Hipoacusia Conductiva Leve Bilateral","Hipoacusia Conductiva Leve Derecha","Hipoacusia Conductiva Leve Izquierda","Presbiacusia","Otitis Media Serosa Bilateral","Otitis Media Serosa Derecha","Otitis Media Serosa Izquierda","Faringoamigdalitis Aguda","Tonsilitis Recurrente","Otitis Media Aguda Recurrente","Alto Riesgo Biológico Para Hipoacusia","Rinopatía Obstructiva","Rinitis Alérgica","Poliposis Nasal","Rinosinusitis Aguda Maxiloetmoidal","Rinosinusitis Aguda Maxilar","Rinosinusitis Maxilar Crónica","Rinosinusitis Crónica Con Poliposis Nasal","Lesión En Cuerda Vocal Derecha","Lesión En Cuerda Vocal Izquierda","Parálisis De Cuerda Vocal Bilateral","Parálisis De Cuerda Vocal Derecha","Parálisis De Cuerda Vocal Izquierda","Epistaxis Anterior","Epistaxis Anteroposterior","Epistaxis Posterior","Frenillo Lingual","Antecedente Quirúrgico"],
+  DX: ["Hipertensión Arterial", "Diabetes Mellitus T2", "Síndrome Viral", "Infección Respiratoria Alta", "Infección Urinaria", "Gastroenteritis Aguda", "Cefalea Tensional", "Migraña", "Lumbago", "Dermatitis", "Rinitis Alérgica", "Faringitis Aguda", "Bronquitis Aguda", "Anemia", "Dislipidemia"],
   
   RECIPE_MEDS: {
-    "Esteroides Nasales": ["Solución Fisiológica","Flinas / Nasonex / Elocon / Flixonase / Nimarin / Budenas (Spray Nasal)","Flinas - Spray Nasal","Nasonex - Spray Nasal","Elocon - Spray Nasal","Flixonase - Spray Nasal","Nimarin - Spray Nasal","Budenas - Spray Nasal","Momentasona o Fluticasona - Spray Nasal"],
-    "Antialérgicos": ["Desloratadina - Tabletas 5 mg","Desloratadina - Jarabe","Loratadina - Tabletas 10 mg","Loratadina - Jarabe","Cetirizina - Tabletas 10 mg","Cetirizina - Jarabe","Levocetirizina - Tabletas 5 mg","Levocetirizina - Jarabe","Rinolast - Tabletas","Rinolast - Jarabe","Fexofenadina - Tabletas 120 mg","Fexofenadina - Jarabe","Claricort - Tabletas","Lorecort - Jarabe","Montelukast - Tabletas 4 mg","Montelukast - Tabletas 5 mg","Montelukast - Tabletas 10 mg","Rinomax - Gotas Nasales","Bactroban, Bacitracina, Mupirocina, Muprovan - crema o ungüento"],
-    "Gotas óticas": ["Quinotic, Quinotic HC, (Gotas Óticas)","Otalex (Gotas Óticas)","Poliótico (Gotas Óticas)","Otirilin o Aceite de Bebé (Gotas)"],
-    "Protector Gástrico": ["Pantoprazol ó Esomeprazol - Tabletas de 20 mg","Pantoprazol - Tabletas 40 mg"],
-    "Antibióticos": ["Amoxicilina / Acido Clavulánico - Tabletas 875/125 mg","Amoxicilina / Acido Clavulánico - Suspensión 600 mg / 5 ml","Amoxicilina - Tabletas 500 mg","Amoxicilina - Jarabe","Sultamicilina - Tabletas 750 mg","Sultamicilina - Suspensión 250 mg / 5 ml","Levofloxacina- Tabletas 500 mg","Levofloxacina- Tabletas 750 mg","Moxifloxacina, Moxen, Avelox - Comprimidos 400 mg"],
-    "Otros": ["Pulmolix - Sobres","Betahistina - 8 mg","Betahistina - 16 mg","Betahistina - 24 mg","Viajesan - Comprimidos"]
+    "Analgésicos/Antipiréticos": ["Acetaminofén 500mg", "Acetaminofén 1g", "Ibuprofeno 400mg", "Ibuprofeno 600mg", "Diclofenac Potásico 50mg", "Ketoprofeno 100mg", "Dipirona 500mg"],
+    "Antibióticos": ["Amoxicilina 500mg", "Amoxicilina/Clavulánico 875/125mg", "Azitromicina 500mg", "Ciprofloxacina 500mg", "Levofloxacina 500mg", "Cefadroxilo 500mg", "Trimetroprim/Sulfametoxazol"],
+    "Gastrointestinales": ["Omeprazol 20mg", "Pantoprazol 40mg", "Domperidona 10mg", "Metoclopramida 10mg", "Probióticos", "Suero Oral"],
+    "Respiratorios": ["Loratadina 10mg", "Cetirizina 10mg", "Desloratadina 5mg", "Jarabe Antitusígeno", "Salbutamol Inhalador", "Budesonida Inhalador"],
+    "Crónicos/Metabólicos": ["Losartán Potásico 50mg", "Losartán Potásico 100mg", "Amlodipina 5mg", "Enalapril 10mg", "Metformina 500mg", "Metformina 850mg", "Metformina 1000mg", "Glibenclamida 5mg", "Atorvastatina 20mg"],
+    "Vitaminas/Otros": ["Complejo B", "Vitamina C", "Ácido Fólico", "Hierro", "Calcio + Vit D"]
   },
   
   INDICACIONES_OPTIONS: {
-    "Esteroides Nasales": ["Realizar lavados nasales cada 12 horas por 7 días.","Colocar dos aplicaciones en cada fosa nasal cada 12 horas por 1 mes.","Colocar una aplicación en cada fosa nasal cada 12 horas por 1 mes."],
-    "Antialérgicos": ["Tomar 1 tableta diaria por 1 mes.","Dar vía oral 1 cc una vez al día por 1 mes.","Dar vía oral 2 cc una vez al día por 1 mes.","Dar vía oral 3 cc una vez al día por 1 mes.","Dar vía oral 4 cc una vez al día por 1 mes.","Dar vía oral 5 cc una vez al día por 1 mes.","Tomar 1 tableta cada 12 horas por 7 días.","Dar vía oral 1 cc cada 12 horas por 7 días.","Dar vía oral 2 cc cada 12 horas por 7 días.","Dar vía oral 3 cc cada 12 horas por 7 días.","Dar vía oral 4 cc cada 12 horas por 7 días.","Dar vía oral 5 cc cada 12 horas por 7 días.","Colocar 3 Gotas en cada fosa nasal cada 8 horas por 5 días.","Colocar 1 aplicación en cada fosa nasal cada 12 horas por 7 días.","Tomar 1 tableta diaria por 3 meses."],
-    "Gotas óticas": ["Aplicar 3 Gotas en cada oído cada 12 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en cada oído cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído izquierdo cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído izquierdo cada 12 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído derecho cada 8 horas por 7 días. No mojar los oídos.","Aplicar 3 Gotas en oído derecho cada 12 horas por 7 días. No mojar los oídos."],
-    "Protector Gástrico": ["Tomar 1 tableta diaria por 3 meses.","Tomar 1 tableta diaria antes del desayuno por 1 mes.","Tomar 1 tableta antes del desayuno y 1 Tableta antes la cena por 1 mes."],
-    "Antibióticos": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días.","Dar vía oral 1 cc cada 12 horas por 10 días.","Dar vía oral 2 cc cada 12 horas por 10 días.","Dar vía oral 3 cc cada 12 horas por 10 días.","Dar vía oral 4 cc cada 12 horas por 10 días.","Dar vía oral 5 cc cada 12 horas por 10 días.","Dar vía oral 6 cc cada 12 horas por 10 días."],
-    "Otros": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días."]
+    "Analgésicos/Antipiréticos": ["Tomar 1 tableta cada 6 horas por 3 días si hay dolor/fiebre.", "Tomar 1 tableta cada 8 horas por 3 días.", "Tomar 1 tableta cada 12 horas si hay dolor.", "Tomar 1 tableta S.O.S dolor."],
+    "Antibióticos": ["Tomar 1 tableta cada 8 horas por 7 días.", "Tomar 1 tableta cada 12 horas por 7 días.", "Tomar 1 tableta cada 12 horas por 10 días.", "Tomar 1 tableta cada 24 horas por 3 días.", "Tomar 1 tableta cada 24 horas por 5 días."],
+    "Gastrointestinales": ["Tomar 1 cápsula en ayunas por 1 mes.", "Tomar 1 tableta 30 min antes de cada comida.", "Tomar 1 tableta cada 8 horas por 3 días.", "Tomar 1 sobre diluido en agua después de cada evacuación."],
+    "Respiratorios": ["Tomar 1 tableta diaria por 7 días.", "Tomar 10ml cada 8 horas por 5 días.", "Realizar 2 puff cada 4-6 horas.", "Realizar lavados nasales frecuentes."],
+    "Crónicos/Metabólicos": ["Tomar 1 tableta diaria por la mañana (orden permanente).", "Tomar 1 tableta diaria con el almuerzo.", "Tomar 1 tableta en la noche.", "Tomar 1 tableta cada 12 horas."],
+    "Vitaminas/Otros": ["Tomar 1 tableta diaria con el desayuno por 1 mes.", "Tomar 1 tableta diaria."]
   },
 
-  STUDIES: {
-    
-    "electrocardiograma",
-    "prueba de esfuerzo",
-    "prueba gay",
-    "examen de prostata",
-    "tacto rectal",
-   };
+  // CORRECCIÓN SINTAXIS: Se cambia {} por []
+  STUDIES: [
+    "Electrocardiograma",
+    "Prueba de Esfuerzo",
+    "Rayos X de Tórax",
+    "Perfil 20",
+    "Hematología Completa",
+    "Examen de Orina",
+    "Heces",
+    "Perfil Lipídico",
+    "Perfil Tiroideo",
+    "Ecosonograma Abdominal",
+    "Ecosonograma Renal",
+    "Tacto Rectal",
+    "Antígeno Prostático (PSA)"
+   ],
+
+   ADDITIONAL_STUDIES: ["Espirometría", "Holter de Ritmo", "MAPA"]
+};
 
 // ==========================================
 // 2. TEMPLATE HTML (LA VISTA DE LA TARJETA)
@@ -46,8 +57,8 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
     <div class="visit-header">
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
-             <span class="badge">${type}</span>
-             <span style="font-weight:600;">Consulta ORL</span>
+             <span class="badge" style="background:#10b981; color:white;">${type}</span>
+             <span style="font-weight:600;">Medicina General</span>
           </div>
           <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
              Creado: ${fmtDateTime(createdTime)} por ${createdBy}
@@ -102,56 +113,47 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
       <div class="form-section">
         <div class="form-section-title">2. Examen Físico</div>
         
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-emoji-neutral"></i> Cara</div>
-          <label class="form-label">Hallazgos</label>
-          <input class="form-input txt-exam-cara" placeholder="Hallazgos...">
-          <div class="chips chips-exam-cara" style="margin-top: 8px;"></div>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="col">
+                <label class="form-label">Tensión Arterial</label>
+                <input class="form-input txt-exam-ta" placeholder="120/80 mmHg">
+            </div>
+            <div class="col">
+                <label class="form-label">Frecuencia Cardíaca</label>
+                <input class="form-input txt-exam-fc" placeholder="lpm">
+            </div>
+            <div class="col">
+                <label class="form-label">Frecuencia Resp.</label>
+                <input class="form-input txt-exam-fr" placeholder="rpm">
+            </div>
+            <div class="col">
+                <label class="form-label">Temperatura</label>
+                <input class="form-input txt-exam-temp" placeholder="°C">
+            </div>
+            <div class="col">
+                <label class="form-label">SatO2</label>
+                <input class="form-input txt-exam-sat" placeholder="%">
+            </div>
+            <div class="col">
+                <label class="form-label">Peso Actual</label>
+                <input class="form-input txt-exam-peso" placeholder="kg">
+            </div>
         </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Derecho</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-oido-derecho" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-oido-derecho" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Izquierdo</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-oido-izquierdo" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-oido-izquierdo" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-droplet"></i> Nariz</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-nariz" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-nariz" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-mic"></i> Orofaringe</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-orofaringe" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-orofaringe" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-person-standing"></i> Cuello</div>
-          <label class="form-label">Hallazgos</label>
-          <input class="form-input txt-exam-cuello" placeholder="Hallazgos...">
-          <div class="chips chips-exam-cuello" style="margin-top: 8px;"></div>
+
+        <div class="exam-area" style="margin-top:15px;">
+          <div class="exam-area-title">Hallazgos Generales</div>
+          <label class="form-label">Descripción</label>
+          <textarea class="form-input txt-exam-general" rows="3" placeholder="Cabeza, cuello, tórax, abdomen, extremidades..."></textarea>
         </div>
       </div>
       
       <div class="form-section">
-        <div class="form-section-title">3. Estudios</div>
+        <div class="form-section-title">3. Estudios Solicitados</div>
         <div class="row">
           <div class="col">
             <label class="form-label">Seleccionar Estudios</label>
             <div class="chips chips-studies" style="margin-top: 8px;"></div>
-            <div id="studies-content-${cardId}" style="margin-top: 16px;"></div>
+            <textarea class="form-input txt-estudios-solicitados" rows="3" style="margin-top:10px;" placeholder="Detalle de estudios..."></textarea>
           </div>
         </div>
       </div>
@@ -185,8 +187,8 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
         
         <div class="row">
           <div class="col">
-            <label class="form-label">Plan / Tratamiento Final</label>
-            <textarea class="form-input txt-plan" rows="8" placeholder="(hereda de indicaciones + texto legal)"></textarea>
+            <label class="form-label">Plan / Recomendaciones</label>
+            <textarea class="form-input txt-plan" rows="4" placeholder="Dieta, ejercicios, reposo, control..."></textarea>
           </div>
         </div>
       </div>
@@ -222,15 +224,6 @@ function createChip(label, type = 'normal') {
     return s;
 }
 
-function createChipGroup(title, items, container) {
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'chip-group';
-    groupDiv.innerHTML = `<div class="chip-group-title" style="font-size:0.75rem; color:#60a5fa; margin:5px 0;">${title}</div><div class="chips"></div>`;
-    const chipsDiv = groupDiv.querySelector('.chips');
-    items.forEach(item => chipsDiv.appendChild(createChip(item)));
-    container.appendChild(groupDiv);
-}
-
 // Función principal exportada
 export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
@@ -263,36 +256,10 @@ export function createVisitCard(type = 'Primera') {
     CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
     CIMA_DATA.ANTECEDENTES.forEach(a => antFamContainer.appendChild(createChip(a)));
     
-    const caraContainer = wrap.querySelector('.chips-exam-cara');
-    CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
-    
-    const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
-    CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
-
-    const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
-        createChipGroup(group, items, odContainer);
-    });
-    
-    const oiContainer = wrap.querySelector('.chips-exam-oido-izquierdo');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => {
-        createChipGroup(group, items, oiContainer);
-    });
-    
-    const narizContainer = wrap.querySelector('.chips-exam-nariz');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => {
-        createChipGroup(group, items, narizContainer);
-    });
-    
-    const oroContainer = wrap.querySelector('.chips-exam-orofaringe');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => {
-        createChipGroup(group, items, oroContainer);
-    });
-
     // Estudios
     const studiesContainer = wrap.querySelector('.chips-studies');
-    Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
-        studiesContainer.appendChild(createChip(studyName, 'study-complex'));
+    CIMA_DATA.STUDIES.forEach(studyName => {
+        studiesContainer.appendChild(createChip(studyName, 'study-simple'));
     });
     CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
         studiesContainer.appendChild(createChip(studyName, 'study-simple'));
@@ -309,7 +276,7 @@ export function createVisitCard(type = 'Primera') {
         groupDiv.dataset.group = group; 
         
         groupDiv.innerHTML = `
-          <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
+          <div style="font-weight: 600; color: #10b981; margin: 8px 0;">${group}</div>
           <div class="chips"></div>
         `;
         const chipsBox = groupDiv.querySelector('.chips');
@@ -341,65 +308,26 @@ export function createVisitCard(type = 'Primera') {
         const { label, active } = e.detail;
         const target = e.target;
 
-        // A. Estudios
+        // Estudios (Lista Simple)
         if (target.closest('.chips-studies')) {
-            const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
-            const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
-            
-            if (active) {
-                const studyDiv = document.createElement('div');
-                studyDiv.id = uniqueId;
-                studyDiv.className = 'study-content';
-                studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6;";
-
-                let innerHTML = `<div style="font-weight:700; margin-bottom:5px;">${label}</div>`;
-                innerHTML += `<textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
-                
-                if (CIMA_DATA.STUDIES[label]) {
-                    innerHTML += `<div class="study-sub-chips" style="margin-top:10px;"></div>`;
+            const textarea = wrap.querySelector('.txt-estudios-solicitados');
+            if (textarea) {
+                let current = textarea.value.split('\n').map(l => l.trim()).filter(l => l);
+                if (active) {
+                    if (!current.includes(label)) current.push(label);
+                } else {
+                    current = current.filter(l => l !== label);
                 }
-                
-                studyDiv.innerHTML = innerHTML;
-                contentArea.appendChild(studyDiv);
-
-                if (CIMA_DATA.STUDIES[label]) {
-                    const subContainer = studyDiv.querySelector('.study-sub-chips');
-                    Object.entries(CIMA_DATA.STUDIES[label]).forEach(([groupTitle, items]) => {
-                        createChipGroup(groupTitle, items, subContainer);
-                    });
-                }
-            } else {
-                const el = document.getElementById(uniqueId);
-                if (el) el.remove();
+                textarea.value = current.join('\n');
             }
         }
 
-        // B. Sub-Chips Estudios
-        if (target.closest('.study-sub-chips')) {
-            const studyDiv = target.closest('.study-content');
-            const textarea = studyDiv.querySelector('textarea');
-            const activeSubChips = Array.from(studyDiv.querySelectorAll('.chip.on'));
-            
-            const grouped = {};
-            activeSubChips.forEach(c => {
-                const group = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
-                if(!grouped[group]) grouped[group] = [];
-                grouped[group].push(c.textContent);
-            });
-
-            let text = "";
-            Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
-            textarea.value = text;
-        }
-
-        // C. Inputs Normales
+        // Inputs Normales (Motivo, DX, Antecedentes)
         const simpleInputs = [
             { cont: '.chips-motivo', input: '.txt-motivo' },
             { cont: '.chips-dx', input: '.txt-dx' },
             { cont: '.chips-antecedentes-personales', input: '.txt-antecedentes-personales' },
-            { cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' },
-            { cont: '.chips-exam-cara', input: '.txt-exam-cara' },
-            { cont: '.chips-exam-cuello', input: '.txt-exam-cuello' }
+            { cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' }
         ];
         
         simpleInputs.forEach(item => {
@@ -412,36 +340,11 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
-        // D. Examen Agrupado
-        const groupedExamInputs = [
-            { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
-            { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
-            { cont: '.chips-exam-nariz', input: '.txt-exam-nariz' },
-            { cont: '.chips-exam-orofaringe', input: '.txt-exam-orofaringe' }
-        ];
-
-        groupedExamInputs.forEach(item => {
-            if (target.closest(item.cont)) {
-                const input = wrap.querySelector(item.input);
-                if (input && !input.dataset.userEdited) {
-                    const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
-                    const grouped = {};
-                    chips.forEach(c => {
-                        const g = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
-                        if(!grouped[g]) grouped[g] = [];
-                        grouped[g].push(c.textContent);
-                    });
-                    let text = "";
-                    Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
-                    input.value = text.trim();
-                }
-            }
-        });
-
-        // E. Recipe (Llamando a las funciones importadas)
+        // Recipe (Llamando a las funciones importadas, pasando CIMA_DATA)
         if (target.closest('.recipe-chips-container')) {
             updateRecipeTextbox(wrap);
-            renderIndicacionesDropdowns(wrap);
+            // CORRECCIÓN: Se pasa CIMA_DATA explícitamente para evitar dependencia circular
+            renderIndicacionesDropdowns(wrap, CIMA_DATA);
         }
     });
 
