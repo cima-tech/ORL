@@ -2,9 +2,8 @@ import { $, $$, STATE, loadUserConfig, log, flash, showErr } from 'brain';
 
 export const DrawersManager = {
     
-    // --- INICIALIZACIÓN ---
     init() {
-        // 1. Inyectar Drawer de Login
+        // 1. Inyectar Drawer de Login (Si no existe en index.html)
         if (!document.getElementById('loginDrawer')) {
             const loginHTML = `
             <div id="loginDrawer" class="login-drawer">
@@ -43,12 +42,22 @@ export const DrawersManager = {
             document.body.insertAdjacentHTML('beforeend', createUserHTML);
         }
 
-        // 4. Consola (Ya existe en HTML, pero aseguramos listeners si es necesario)
-        // Nota: Inyectamos HTML solo si falta. El listener global de ESC está en start.js.
+        // 4. Inyectar Drawer de Consola (System Log)
+        if (!document.getElementById('consoleDrawer')) {
+            const consoleHTML = `
+            <div id="consoleDrawer">
+                <div class="console-header">
+                    <span>SYSTEM LOG (Ctrl+Shift+L)</span>
+                    <span class="toggle-console">▼</span>
+                </div>
+                <div id="consoleContent"></div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', consoleHTML);
+        }
 
-        // Bindear eventos globales de cierre para TODOS los drawers
+        // 5. Bindear eventos globales de cierre para TODOS los drawers
         document.querySelectorAll('.btn-close-drawer').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', () => {
                 btn.closest('.login-drawer, .config-drawer').classList.remove('open');
             });
         });
@@ -67,9 +76,8 @@ export const DrawersManager = {
                 const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
                 const hasImg = savedImg || (u.avatar && u.avatar !== "");
                 const avatarHtml = hasImg 
-                    ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>` 
+                    ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>`
                     : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
-
                 const roleDisplay = u.specialty || u.role;
 
                 return `
@@ -104,26 +112,34 @@ export const DrawersManager = {
                 try { 
                     STATE.currentUser = JSON.parse(localConfig); 
                     log("Config local cargada para " + id); 
-                } catch(e) { loadUserConfig(configPath); } 
+                } catch(e) { loadUserConfig(configPath).then(() => {
+                    // Si falla JSON, intentamos seguir...
+                    // Pero si loadUserConfig falla, el sistema crashea.
+                    // Asumimos que loadUserConfig es robusto.
+                }); 
             } else { 
-                loadUserConfig(configPath); 
-            }
-
-            const pwd = STATE.currentUser.profile.password;
-
-            if (pwd) { 
-                const area = document.getElementById(`pwd-area-${id}`); 
-                area.classList.remove('hidden'); 
-                document.getElementById(`pwd-input-${id}`).focus(); 
-            } else { 
-                // Disparar evento de login exitoso para que start.js tome el control
-                window.dispatchEvent(new CustomEvent('login-success')); 
+                // Aquí es donde se carga el usuario
+                loadUserConfig(configPath).then(() => {
+                    if(STATE.currentUser.profile.password) {
+                        document.getElementById(`pwd-area-${id}`).classList.remove('hidden');
+                        document.getElementById(`pwd-input-${id}`).focus();
+                    } else {
+                        // Sin contraseña, login automático
+                        window.DrawersManager.Login.verifyPassword(id, true); // true para bypass chequeo de input vacío
+                    }
+                });
             }
         },
-        verifyPassword(id) {
+        verifyPassword(id, isAuto = false) {
             const input = document.getElementById(`pwd-input-${id}`);
-            const actual = STATE.currentUser.profile.password;
-            if (input.value === actual) {
+            const actual = STATE.currentUser?.profile?.password;
+            if (!actual) {
+                // Si no hay usuario en memoria, error crítico (el sistema no inició sesión)
+                showErr("Error: Sesión no iniciada");
+                return;
+            }
+
+            if (isAuto || input.value === actual) {
                 // Éxito
                 document.getElementById('loginDrawer').classList.remove('open');
                 window.dispatchEvent(new CustomEvent('login-success'));
@@ -150,7 +166,6 @@ export const DrawersManager = {
             const sec = user.security || {};
             const assets = user.assets || {};
 
-            // Buffer temporal para imagenes
             if (!window.tempImageBuffer) window.tempImageBuffer = {};
 
             const html = `
@@ -162,71 +177,49 @@ export const DrawersManager = {
                 <button class="config-tab-btn" onclick="window.DrawersManager.Config.switchTab('assets')">Imágenes</button>
             </div>
             <div id="tab-perfil" class="config-tab-content active">
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div>
-                    <div class="form-grid">
-                        <div class="span-1"><label class="form-label">Título</label><input id="cfg-title" class="form-input" value="${p.title || ''}"></div>
-                        <div class="span-1"><label class="form-label">Primer Nombre</label><input id="cfg-firstname" class="form-input" value="${p.firstname || ''}"></div>
-                        <div class="span-1"><label class="form-label">Segundo Nombre</label><input id="cfg-secondname" class="form-input" value="${p.secondname || ''}"></div>
-                        <div class="span-1"><label class="form-label">Primer Apellido</label><input id="cfg-lastname" class="form-input" value="${p.lastname || ''}"></div>
-                        <div class="span-1"><label class="form-label">Segundo Apellido</label><input id="cfg-secondlastname" class="form-input" value="${p.secondlastname || ''}"></div>
-                        <div class="span-1"><label class="form-label">Tipo Sangre</label><input id="cfg-bloodtype" class="form-input" value="${p.bloodtype || ''}"></div>
-                        <div class="span-4"><label class="form-label">Ubicación</label><input id="cfg-location" class="form-input" value="${p.location || ''}"></div>
-                    </div>
-                </div>
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-telephone"></i> Contacto</div>
-                    <div class="form-grid">
-                        <div class="span-2"><label class="form-label">Teléfono Principal</label><input id="cfg-phone" class="form-input" value="${p.contact?.phone || ''}"></div>
-                        <div class="span-2"><label class="form-label">Teléfono Secundario</label><input id="cfg-phone2" class="form-input" value="${p.contact?.phone2 || ''}"></div>
-                        <div class="span-2"><label class="form-label">Email Principal</label><input id="cfg-email" class="form-input" value="${p.contact?.email || ''}"></div>
-                        <div class="span-2"><label class="form-label">Email Alternativo</label><input id="cfg-email2" class="form-input" value="${p.contact?.email2 || ''}"></div>
-                        <div class="span-4"><label class="form-label">Instagram</label><input id="cfg-instagram" class="form-input" value="${p.contact?.instagram || ''}"></div>
-                    </div>
-                </div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div><div class="form-grid">
+                    <div class="span-1"><label class="form-label">Título</label><input id="cfg-title" class="form-input" value="${p.title || ''}"></div>
+                    <div class="span-1"><label class="form-label">Primer Nombre</label><input id="cfg-firstname" class="form-input" value="${p.firstname || ''}"></div>
+                    <div class="span-1"><label class="form-label">Segundo Nombre</label><input id="cfg-secondname" class="form-input" value="${p.secondname || ''}"></div>
+                    <div class="span-1"><label class="form-label">Primer Apellido</label><input id="cfg-lastname" class="form-input" value="${p.lastname || ''}"></div>
+                    <div class="span-1"><label class="form-label">Segundo Apellido</label><input id="cfg-secondlastname" class="form-input" value="${p.secondlastname || ''}"></div>
+                    <div class="span-1"><label class="form-label">Tipo Sangre</label><input id="cfg-bloodtype" class="form-input" value="${p.bloodtype || ''}"></div>
+                    <div class="span-4"><label class="form-label">Ubicación</label><input id="cfg-location" class="form-input" value="${p.location || ''}"></div>
+                </div></div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-telephone"></i> Contacto</div><div class="form-grid">
+                    <div class="span-2"><label class="form-label">Teléfono Principal</label><input id="cfg-phone" class="form-input" value="${p.contact?.phone || ''}"></div>
+                    <div class="span-2"><label class="form-label">Teléfono Secundario</label><input id="cfg-phone2" class="form-input" value="${p.contact?.phone2 || ''}"></div>
+                    <div class="span-2"><label class="form-label">Email Principal</label><input id="cfg-email" class="form-input" value="${p.contact?.email || ''}"></div>
+                    <div class="span-2"><label class="form-label">Email Alternativo</label><input id="cfg-email2" class="form-input" value="${p.contact?.email2 || ''}"></div>
+                    <div class="span-4"><label class="form-label">Instagram</label><input id="cfg-instagram" class="form-input" value="${p.contact?.instagram || ''}"></div>
+                </div></div>
             </div>
             <div id="tab-prof" class="config-tab-content">
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Legales</div>
-                    <div class="form-grid">
-                        <div class="span-2"><label class="form-label">Especialidad (Línea 1)</label><input id="cfg-specialty" class="form-input" value="${prof.specialty || p.title_line_1 || ''}"></div>
-                        <div class="span-2"><label class="form-label">Cargo / Detalle (Línea 2)</label><input id="cfg-title2" class="form-input" value="${p.title_line_2 || ''}"></div>
-                        <div class="span-2"><label class="form-label">Matrícula MPPS</label><input id="cfg-license" class="form-input" value="${prof.license_number || ''}"></div>
-                        <div class="span-2"><label class="form-label">Colegio Médico (CMM)</label><input id="cfg-college" class="form-input" value="${prof.college || ''}"></div>
-                        <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="cfg-sig-label" class="form-input" value="${prof.signature_label || ''}"></div>
-                        <div class="span-4"><label class="form-label">Pie de Página Legal</label><input id="cfg-legal-footer" class="form-input" value="${prof.legal_footer || ''}"></div>
-                    </div>
-                </div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Legales</div><div class="form-grid">
+                    <div class="span-2"><label class="form-label">Especialidad (Línea 1)</label><input id="cfg-specialty" class="form-input" value="${prof.specialty || p.title_line_1 || ''}"></div>
+                    <div class="span-2"><label class="form-label">Cargo / Detalle (Línea 2)</label><input id="cfg-title2" class="form-input" value="${p.title_line_2 || ''}"></div>
+                    <div class="span-2"><label class="form-label">Matrícula MPPS</label><input id="cfg-license" class="form-input" value="${prof.license_number || ''}"></div>
+                    <div class="span-2"><label class="form-label">Colegio Médico (CMM)</label><input id="cfg-college" class="form-input" value="${prof.college || ''}"></div>
+                    <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="cfg-sig-label" class="form-input" value="${prof.signature_label || ''}"></div>
+                    <div class="span-4"><label class="form-label">Pie de Página Legal</label><input id="cfg-legal-footer" class="form-input" value="${prof.legal_footer || ''}"></div>
+                </div></div>
             </div>
             <div id="tab-inst" class="config-tab-content">
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-hospital"></i> Datos Institucionales</div>
-                    <div class="form-grid">
-                        <div class="span-2"><label class="form-label">Nombre Institución</label><input id="cfg-inst-name" class="form-input" value="${inst.name || ''}"></div>
-                        <div class="span-2"><label class="form-label">Servicio</label><input id="cfg-inst-service" class="form-input" value="${inst.service || ''}"></div>
-                        <div class="span-4"><label class="form-label">Dirección</label><input id="cfg-inst-address" class="form-input" value="${inst.address || ''}"></div>
-                    </div>
-                </div>
-            </div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-hospital"></i> Datos Institucionales</div><div class="form-grid">
+                    <div class="span-2"><label class="form-label">Nombre Institución</label><input id="cfg-inst-name" class="form-input" value="${inst.name || ''}"></div>
+                    <div class="span-2"><label class="form-label">Servicio</label><input id="cfg-inst-service" class="form-input" value="${inst.service || ''}"></div>
+                    <div class="span-4"><label class="form-label">Dirección</label><input id="cfg-inst-address" class="form-input" value="${inst.address || ''}"></div>
+                </div></div>
             <div id="tab-prefs" class="config-tab-content">
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-sliders"></i> Preferencias</div>
-                    <div class="form-grid">
-                        <div class="span-2"><label class="form-label">Color Primario</label><input type="color" id="cfg-pcolor" class="form-input" value="${prefs.primary_color || '#0ea5e9'}"></div>
-                        <div class="span-2"><label class="form-label">Zoom Default (%)</label><input type="number" id="cfg-zoom" class="form-input" value="${prefs.default_zoom || 60}"></div>
-                        <div class="span-2"><label class="form-label">Firma Digital por Defecto</label>
-                            <select id="cfg-sig-default" class="form-select">
-                                <option value="true" ${prefs.use_digital_signature_default ? 'selected' : ''}>Sí</option>
-                                <option value="false" ${!prefs.use_digital_signature_default ? 'selected' : ''}>No</option>
-                            </select>
-                        </div>
-                        <div class="span-2"><label class="form-label">Auto-lock (min)</label><input type="number" id="cfg-autolock" class="form-input" value="${sec.auto_lock_minutes || 15}"></div>
-                    </div>
-                </div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-sliders"></i> Preferencias</div><div class="form-grid">
+                    <div class="span-2"><label class="form-label">Color Primario</label><input type="color" id="cfg-pcolor" class="form-input" value="${prefs.primary_color || '#0ea5e9'}"></div>
+                    <div class="span-2"><label class="form-label">Zoom Default (%)</label><input type="number" id="cfg-zoom" class="form-input" value="${prefs.default_zoom || 60}"></div>
+                    <div class="span-2"><label class="form-label">Firma Digital por Defecto</label><select id="cfg-sig-default" class="form-select"><option value="true" ${prefs.use_digital_signature_default ? 'selected' : ''}>Sí</option><option value="false" ${!prefs.use_digital_signature_default ? 'selected' : ''}>No</option></select></div>
+                    <div class="span-2"><label class="form-label">Auto-lock (min)</label><input type="number" id="cfg-autolock" class="form-input" value="${sec.auto_lock_minutes || 15}"></div>
+                </div></div>
             </div>
             <div id="tab-assets" class="config-tab-content">
-                <div class="form-section">
-                    <div class="form-section-title"><i class="bi bi-images"></i> Imágenes</div>
+                <div class="form-section"><div class="form-section-title"><i class="bi bi-images"></i> Imágenes</div>
                     ${this.renderAssetUploader('Avatar', 'avatar', assets.avatar_path)}
                     ${this.renderAssetUploader('Encabezado (Header)', 'header', assets.header_path)}
                     ${this.renderAssetUploader('Pie de Página (Footer)', 'footer', assets.footer_path)}
@@ -257,7 +250,6 @@ export const DrawersManager = {
             user.profile.secondlastname = $('#cfg-secondlastname').value;
             user.profile.bloodtype = $('#cfg-bloodtype').value;
             user.profile.location = $('#cfg-location').value;
-            
             user.profile.contact.phone = $('#cfg-phone').value;
             user.profile.contact.phone2 = $('#cfg-phone2').value;
             user.profile.contact.email = $('#cfg-email').value;
@@ -289,76 +281,47 @@ export const DrawersManager = {
                         const base64 = e.target.result;
                         localStorage.setItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`, base64);
                         user.assets[`${key}_path`] = base64;
-                        
                         document.getElementById(`preview-${key}`).innerHTML = `<img src="${base64}">`;
                         
                         if(key === 'avatar') {
-                            // Refrescar toolbar para ver la foto nueva
-                            // Nota: Se asume que toolbar.js está expuesto globalmente o se puede re-renderizar vía evento.
-                            // Lo más limpio es disparar un evento.
-                            window.dispatchEvent(new CustomEvent('user-avatar-updated'));
+                            // Refrescar toolbar
+                            import('./toolbar.js').then(m => m.renderToolbar());
                         }
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             });
 
-            try { 
-                localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); 
-                flash('Guardado.'); 
-            } catch(e) { 
-                showErr('Error: ' + e.message); 
-            }
-            
-            setTimeout(() => {
-                document.getElementById('configDrawer').list.remove('open');
-            }, 1000);
+            try { localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); flash('Guardado.'); } catch(e) { showErr('Error: ' + e.message); }
+            setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 1000);
         },
         renderAssetUploader(label, key, currentPath) {
             const src = currentPath && currentPath.length > 10 ? currentPath : '';
-            return `<div class="asset-uploader">
-                <div class="asset-preview" id="preview-${key}">${src ? `<img src="${src}" onerror="this.style.display='none'">` : '<i class="bi bi-image" style="font-size:1.5rem; color:#64748b;"></i>'}</div>
-                <div class="asset-info">
-                    <span class="asset-label">${label}</span>
-                    <input type="file" id="input-${key}" accept="image/*" style="font-size:0.75rem; width:100%;">
-                </div>
-            </div>`;
+            return `<div class="asset-uploader"><div class="asset-preview" id="preview-${key}">${src ? `<img src="${src}" onerror="this.style.display='none'">` : '<i class="bi bi-image" style="font-size:1.5rem; color:#64748b;"></i>'}</div><div class="asset-info"><span class="asset-label">${label}</span><input type="file" id="input-${key}" accept="image/*" style="font-size:0.75rem; width:100%;"></div></div>`;
         },
         initAssetPreviews() {
             ['avatar', 'header', 'footer', 'signature', 'stamp'].forEach(key => {
                 const input = document.getElementById(`input-${key}`);
                 if(!input) return;
-                
                 const savedImg = localStorage.getItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`);
-                if (savedImg) { 
-                    const preview = document.getElementById(`preview-${key}`); 
-                    if(preview) preview.innerHTML = `<img src="${savedImg}">`; 
-                }
+                if (savedImg) { const preview = document.getElementById(`preview-${key}`); if(preview) preview.innerHTML = `<img src="${savedImg}">`; }
                 input.addEventListener('change', (e) => {
-                    if (e.target.files[0]) { 
-                        const url = URL.createObjectURL(e.target.files[0]); 
-                        const preview = document.getElementById(`preview-${key}`); 
-                        if(preview) preview.innerHTML = `<img src="${url}">`; 
-                    }
+                    if (e.target.files[0]) { const url = URL.createObjectURL(e.target.files[0]); const preview = document.getElementById(`preview-${key}`); if(preview) preview.innerHTML = `<img src="${url}">`; }
                 });
             });
         }
     },
 
-    // --- MÓDULO CREAR USUARIO ---
+    // --- MODULO CREAR USUARIO ---
     UserCreator: {
         open() {
             const content = document.getElementById('create-user-content');
             if (!content) return;
-            
-            // Generar ID sugerido buscando el más alto
-            let nextIdNum = 3; // Default u003
+            let nextIdNum = 3; 
             try {
                 const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
                 const allIds = localDB.map(u => parseInt(u.id.replace('u', '')));
-                if(allIds.length > 0) {
-                    nextIdNum = Math.max(...allIds) + 1;
-                }
+                if(allIds.length > 0) nextIdNum = Math.max(...allIds) + 1;
             } catch(e) { console.warn("Error calculando ID", e); }
             const nextId = `u${String(nextIdNum).padStart(3, '0')}`;
 
@@ -376,17 +339,10 @@ export const DrawersManager = {
                         <div class="span-2"><label class="form-label">Usuario *</label><input id="new-username" class="form-input" placeholder="Ej: mlopez"></div>
                         <div class="span-2"><label class="form-label">Contraseña *</label><input id="new-password" type="password" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Rol *</label>
-                            <select id="new-role" class="form-select">
-                                <option value="doctor">Médico</option>
-                                <option value="assistant">Asistente</option>
-                                <option value="admin">Administrador</option>
-                            </select>
+                            <select id="new-role" class="form-select"><option value="doctor">Médico</option><option value="assistant">Asistente</option><option value="admin">Administrador</option></select>
                         </div>
                         <div class="span-2"><label class="form-label">Modelo por Defecto</label>
-                            <select id="new-model" class="form-select">
-                                <option value="ORL-001">Otorrinolaringología</option>
-                                <option value="GEN-001">Medicina General</option>
-                            </select>
+                            <select id="new-model" class="form-select"><option value="ORL-001">Otorrinolaringología</option><option value="GEN-001">Medicina General</option></select>
                         </div>
                         <div class="span-4"><label class="form-label">ID Generado</label><input class="form-input" value="${nextId}" readonly style="opacity:0.7"></div>
                     </div>
@@ -410,7 +366,7 @@ export const DrawersManager = {
                 <div class="form-section">
                     <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Profesionales</div>
                     <div class="form-grid">
-                        <div class="span-4"><label class="form-label">Especialidad</label><input id="new-specialty" class="form-input" placeholder="Especialidad para membretes"></div>
+                        <div class="span-4"><label class="form-label">Especialidad</label><input id="new-specialty" class="form-input" placeholder="Especialidad para miembros"></div>
                         <div class="span-2"><label class="form-label">Matrícula</label><input id="new-license" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Colegio Médico</label><input id="new-college" class="form-input"></div>
                         <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="new-sig-label" class="form-input"></div>
@@ -440,21 +396,28 @@ export const DrawersManager = {
             const password = $('#new-password').value;
             const firstname = $('#new-firstname').value;
             const lastname = $('#new-lastname').value;
-            if(!username || !password || !firstname || !lastname) { showErr("Los campos Usuario, Contraseña y Nombres son obligatorios"); return; }
-            
+
+            if(!username || !password || !firstname || !lastname) {
+                showErr("Los campos Usuario, Contraseña y Nombres son obligatorios");
+                return;
+            }
+
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-            if(localDB.find(u => u.username === username)) { showErr("El nombre de usuario ya existe en esta sesión"); return; }
+            if(localDB.find(u => u.username === username)) {
+                showErr("El nombre de usuario ya existe en esta sesión");
+                return;
+            }
 
             const newUser = {
                 id: userId,
                 username: username,
                 password: password,
-                name: `${firstname} ${lastname}`, // Usado en login list
+                name: `${firstname} ${lastname}`,
                 title: $('#new-title').value || '',
                 specialty: $('#new-specialty').value || '',
                 role: $('#new-role').value,
-                avatar: '', // Se rellena si sube imagen
-                config_path: `local/user_${userId}.json`, // Ruta ficticia
+                avatar: '', 
+                config_path: `local/user_${userId}.json`, 
                 profile: {
                     id: userId,
                     role: $('#new-role').value,
@@ -494,14 +457,12 @@ export const DrawersManager = {
 
             localStorage.setItem(`CIMA_USER_CONFIG_${userId}`, JSON.stringify(newUser));
 
-            // Procesar Imágenes si existen
             ['avatar', 'signature', 'stamp'].forEach(key => {
                 const input = document.getElementById(`input-new-${key}`);
                 if (input && input.files && input.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        const base64 = e.target.result;
-                        localStorage.setItem(`CIMA_IMG_${userId}_${key}`, base64);
+                        localStorage.setItem(`CIMA_IMG_${userId}_${key}`, e.target.result);
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
@@ -533,5 +494,4 @@ export const DrawersManager = {
     }
 };
 
-// Exponer globalmente para que funcionen los onclick de los HTML templates
 window.DrawersManager = DrawersManager;
