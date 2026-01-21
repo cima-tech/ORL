@@ -1,7 +1,9 @@
-import { $, $$, STATE, loadUserConfig, log, flash, showErr } from 'brain';
+import { $, STATE, log, flash, showErr } from 'brain';
+import { loadUserConfig } from './service_loader.js'; // Importamos directamente el service loader para evitar loops
 
 export const DrawersManager = {
     
+    // --- INICIALIZACIÓN ---
     init() {
         // 1. Inyectar Drawer de Login (Si no existe en index.html)
         if (!document.getElementById('loginDrawer')) {
@@ -55,15 +57,25 @@ export const DrawersManager = {
             document.body.insertAdjacentHTML('beforeend', consoleHTML);
         }
 
-        // 5. Bindear eventos globales de cierre para TODOS los drawers
+        // Bindear eventos globales de cierre para todos los drawers
         document.querySelectorAll('.btn-close-drawer').forEach(btn => {
             btn.addEventListener('click', () => {
-                btn.closest('.login-drawer, .config-drawer').classList.remove('open');
+                btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open');
             });
         });
+
+        // Eventos de Consola
+        const consoleHeader = document.querySelector('#consoleDrawer .console-header');
+        const consoleToggle = document.querySelector('#consoleDrawer .toggle-console');
+        if(consoleHeader && consoleToggle) {
+            consoleHeader.addEventListener('click', () => {
+                document.getElementById('consoleDrawer').classList.toggle('open');
+                consoleToggle.textContent = document.getElementById('consoleDrawer').classList.contains('open') ? '▲' : '▼';
+            });
+        }
     },
 
-    // --- MODULO LOGIN ---
+    // --- MÓDULO LOGIN ---
     Login: {
         open() {
             document.getElementById('loginDrawer').classList.add('open');
@@ -76,13 +88,13 @@ export const DrawersManager = {
                 const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
                 const hasImg = savedImg || (u.avatar && u.avatar !== "");
                 const avatarHtml = hasImg 
-                    ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>`
+                    ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>` 
                     : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
                 const roleDisplay = u.specialty || u.role;
 
                 return `
                 <div class="user-wrapper" id="user-wrapper-${u.id}">
-                    <div class="user-card-content" onclick="window.DrawersManager.Login.selectUser('${u.id}', '${u.config_path}')">
+                    <div class="user-card-content" onclick="DrawersManager.Login.selectUser('${u.id}', '${u.config_path}')">
                         ${avatarHtml}
                         <div class="user-info">
                             <h3>${u.name}</h3>
@@ -94,7 +106,7 @@ export const DrawersManager = {
                         <div style="position:relative;">
                             <input type="password" id="pwd-input-${u.id}" class="login-input" 
                                    placeholder="Contraseña" 
-                                   onkeypress="if(event.key==='Enter') window.DrawersManager.Login.verifyPassword('${u.id}')"
+                                   onkeypress="if(event.key==='Enter') DrawersManager.Login.verifyPassword('${u.id}')" 
                                    onclick="event.stopPropagation(); this.focus()">
                             <i class="bi bi-lock-fill" style="position:absolute; right:10px; top:10px; color:#64748b;"></i>
                         </div>
@@ -112,34 +124,28 @@ export const DrawersManager = {
                 try { 
                     STATE.currentUser = JSON.parse(localConfig); 
                     log("Config local cargada para " + id); 
-                } catch(e) { loadUserConfig(configPath).then(() => {
-                    // Si falla JSON, intentamos seguir...
-                    // Pero si loadUserConfig falla, el sistema crashea.
-                    // Asumimos que loadUserConfig es robusto.
-                }); 
+                } catch(e) { loadUserConfig(configPath); } 
             } else { 
-                // Aquí es donde se carga el usuario
-                loadUserConfig(configPath).then(() => {
-                    if(STATE.currentUser.profile.password) {
-                        document.getElementById(`pwd-area-${id}`).classList.remove('hidden');
-                        document.getElementById(`pwd-input-${id}`).focus();
-                    } else {
-                        // Sin contraseña, login automático
-                        window.DrawersManager.Login.verifyPassword(id, true); // true para bypass chequeo de input vacío
-                    }
-                });
-            }
-        },
-        verifyPassword(id, isAuto = false) {
-            const input = document.getElementById(`pwd-input-${id}`);
-            const actual = STATE.currentUser?.profile?.password;
-            if (!actual) {
-                // Si no hay usuario en memoria, error crítico (el sistema no inició sesión)
-                showErr("Error: Sesión no iniciada");
-                return;
+                loadUserConfig(configPath); 
             }
 
-            if (isAuto || input.value === actual) {
+            const pwd = STATE.currentUser.profile.password;
+
+            if (pwd) { 
+                const area = document.getElementById(`pwd-area-${id}`); 
+                area.classList.remove('hidden'); 
+                document.getElementById(`pwd-input-${id}`).focus(); 
+            } else { 
+                window.dispatchEvent(new CustomEvent('login-success'));
+            }
+        },
+        verifyPassword(id) {
+            const input = document.getElementById(`pwd-input-${id}`);
+            const actual = STATE.currentUser?.profile?.password;
+            
+            if (!actual) return; // Evitar crash si state no cargado
+
+            if (input.value === actual) {
                 // Éxito
                 document.getElementById('loginDrawer').classList.remove('open');
                 window.dispatchEvent(new CustomEvent('login-success'));
@@ -152,7 +158,7 @@ export const DrawersManager = {
         }
     },
 
-    // --- MODULO CONFIGURACIÓN ---
+    // --- MÓDULO CONFIGURACIÓN ---
     Config: {
         open() {
             const configContent = document.getElementById('config-content');
@@ -165,7 +171,6 @@ export const DrawersManager = {
             const prefs = user.preferences || {};
             const sec = user.security || {};
             const assets = user.assets || {};
-
             if (!window.tempImageBuffer) window.tempImageBuffer = {};
 
             const html = `
@@ -257,7 +262,7 @@ export const DrawersManager = {
             user.profile.contact.instagram = $('#cfg-instagram').value;
             
             user.professional.specialty = $('#cfg-specialty').value;
-            user.profile.title_line_1 = $('#cfg-specialty').value; // Sync visual
+            user.profile.title_line_1 = $('#cfg-specialty').value;
             user.profile.title_line_2 = $('#cfg-title2').value;
             user.professional.license_number = $('#cfg-license').value;
             user.professional.college = $('#cfg-college').value;
@@ -285,15 +290,24 @@ export const DrawersManager = {
                         
                         if(key === 'avatar') {
                             // Refrescar toolbar
-                            import('./toolbar.js').then(m => m.renderToolbar());
+                            const toolbarEl = document.getElementById('ui-mount-point');
+                            if(toolbarEl) window.DrawersManager.renderToolbar(); // Render local para actualizar in caso de que toolbar.js no reciba evento
                         }
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             });
 
-            try { localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); flash('Guardado.'); } catch(e) { showErr('Error: ' + e.message); }
-            setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 1000);
+            try { 
+                localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); 
+                flash('Guardado.'); 
+            } catch(e) { 
+                showErr('Error: ' + e.message); 
+            }
+            
+            setTimeout(() => {
+                document.getElementById('configDrawer').classList.remove('open');
+            }, 1000);
         },
         renderAssetUploader(label, key, currentPath) {
             const src = currentPath && currentPath.length > 10 ? currentPath : '';
@@ -306,13 +320,17 @@ export const DrawersManager = {
                 const savedImg = localStorage.getItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`);
                 if (savedImg) { const preview = document.getElementById(`preview-${key}`); if(preview) preview.innerHTML = `<img src="${savedImg}">`; }
                 input.addEventListener('change', (e) => {
-                    if (e.target.files[0]) { const url = URL.createObjectURL(e.target.files[0]); const preview = document.getElementById(`preview-${key}`); if(preview) preview.innerHTML = `<img src="${url}">`; }
+                    if (e.target.files[0]) { 
+                        const url = URL.createObjectURL(e.target.files[0]); 
+                        const preview = document.getElementById(`preview-${key}`); 
+                        if(preview) preview.innerHTML = `<img src="${url}">`; 
+                    }
                 });
             });
         }
     },
 
-    // --- MODULO CREAR USUARIO ---
+    // --- MÓDULO CREAR USUARIO ---
     UserCreator: {
         open() {
             const content = document.getElementById('create-user-content');
@@ -321,8 +339,11 @@ export const DrawersManager = {
             try {
                 const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
                 const allIds = localDB.map(u => parseInt(u.id.replace('u', '')));
-                if(allIds.length > 0) nextIdNum = Math.max(...allIds) + 1;
+                if(allIds.length > 0) {
+                    nextIdNum = Math.max(...allIds) + 1;
+                }
             } catch(e) { console.warn("Error calculando ID", e); }
+            
             const nextId = `u${String(nextIdNum).padStart(3, '0')}`;
 
             const html = `
@@ -339,10 +360,17 @@ export const DrawersManager = {
                         <div class="span-2"><label class="form-label">Usuario *</label><input id="new-username" class="form-input" placeholder="Ej: mlopez"></div>
                         <div class="span-2"><label class="form-label">Contraseña *</label><input id="new-password" type="password" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Rol *</label>
-                            <select id="new-role" class="form-select"><option value="doctor">Médico</option><option value="assistant">Asistente</option><option value="admin">Administrador</option></select>
+                            <select id="new-role" class="form-select">
+                                <option value="doctor">Médico</option>
+                                <option value="assistant">Asistente</option>
+                                <option value="admin">Administrador</option>
+                            </select>
                         </div>
                         <div class="span-2"><label class="form-label">Modelo por Defecto</label>
-                            <select id="new-model" class="form-select"><option value="ORL-001">Otorrinolaringología</option><option value="GEN-001">Medicina General</option></select>
+                            <select id="new-model" class="form-select">
+                                <option value="ORL-001">Otorrinolaringología</option>
+                                <option value="GEN-001">Medicina General</option>
+                            </select>
                         </div>
                         <div class="span-4"><label class="form-label">ID Generado</label><input class="form-input" value="${nextId}" readonly style="opacity:0.7"></div>
                     </div>
@@ -366,7 +394,7 @@ export const DrawersManager = {
                 <div class="form-section">
                     <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Profesionales</div>
                     <div class="form-grid">
-                        <div class="span-4"><label class="form-label">Especialidad</label><input id="new-specialty" class="form-input" placeholder="Especialidad para miembros"></div>
+                        <div class="span-4"><label class="form-label">Especialidad</label><input id="new-specialty" class="form-input" placeholder="Especialidad para membretes"></div>
                         <div class="span-2"><label class="form-label">Matrícula</label><input id="new-license" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Colegio Médico</label><input id="new-college" class="form-input"></div>
                         <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="new-sig-label" class="form-input"></div>
@@ -382,7 +410,7 @@ export const DrawersManager = {
                 </div>
             </div>
             <div class="config-actions">
-                <button class="icon-btn" onclick="window.DrawersManager.UserCreator.save('${nextId}')" style="width:100%; background:#10b981; color:white; height:45px; font-size:1rem;">
+                <button class="icon-btn" onclick="DrawersManager.UserCreator.save('${nextId}')" style="width:100%; background:#10b981; color:white; height:45px; font-size:1rem;">
                     <i class="bi bi-person-plus"></i> CREAR USUARIO
                 </button>
             </div>`;
@@ -417,7 +445,7 @@ export const DrawersManager = {
                 specialty: $('#new-specialty').value || '',
                 role: $('#new-role').value,
                 avatar: '', 
-                config_path: `local/user_${userId}.json`, 
+                config_path: `local/user_${userId}.json`,
                 profile: {
                     id: userId,
                     role: $('#new-role').value,
@@ -454,7 +482,6 @@ export const DrawersManager = {
             };
             localDB.push(newUser);
             localStorage.setItem('CIMA_USERS_DB', JSON.stringify(localDB));
-
             localStorage.setItem(`CIMA_USER_CONFIG_${userId}`, JSON.stringify(newUser));
 
             ['avatar', 'signature', 'stamp'].forEach(key => {
@@ -462,7 +489,8 @@ export const DrawersManager = {
                 if (input && input.files && input.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        localStorage.setItem(`CIMA_IMG_${userId}_${key}`, e.target.result);
+                        const base64 = e.target.result;
+                        localStorage.setItem(`CIMA_IMG_${userId}_${key}`, base64);
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
@@ -470,6 +498,7 @@ export const DrawersManager = {
 
             flash(`Usuario ${username} creado correctamente`);
             document.getElementById('createUserDrawer').classList.remove('open');
+            
             if(window.refreshUserList) window.refreshUserList();
         },
         switchTab(tabName) {
