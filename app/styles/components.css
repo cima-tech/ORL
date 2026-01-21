@@ -55,7 +55,7 @@
 .btn-danger { background: #ef4444; color: white; }
 .btn-danger:hover { background: #dc2626; }
 
-/* Ghost Buttons */
+/* Ghost Buttons (Corrección de Estilo) */
 .btn-ghost {
     background: transparent;
     color: #94a3b8;
@@ -73,7 +73,7 @@
     font-size: 0.75rem;
 }
 
-/* Patient Navigation */
+/* Patient Navigation (Corrección de Estilo) */
 .patient-nav {
     display: flex;
     justify-content: flex-end;
