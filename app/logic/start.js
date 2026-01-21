@@ -27,7 +27,7 @@ export const StartManager = {
         });
 
         // 3. Inicializar HTML de Drawers y Lógica de Login
-        // Esto ahora se encarga de cargar el catálogo y pintar el login form
+        // Esto carga el catálogo y pinta el formulario de login automáticamente
         await DrawersManager.init();
 
         // 4. Inicializar toolbar (Estado Guest)
@@ -41,7 +41,7 @@ export const StartManager = {
     },
 
     async refreshUserList() {
-        // Método de compatibilidad, llama al init de nuevo para recargar catálogo
+        // Recargar el drawer de login si es necesario (ej. usuario nuevo creado)
         if (DrawersManager) await DrawersManager.init();
     }
 };
@@ -132,4 +132,3 @@ function handleVisitClicks(e) {
 
 window.finishLogin = finishLogin;
 window.refreshUserList = () => StartManager.refreshUserList();
-// selectUser y verifyPassword ya no se exponen globalmente porque el nuevo login lo maneja internamente
