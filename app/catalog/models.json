@@ -1,12 +1,12 @@
-{
-  "ORL-001": {
-    "id": "ORL-001",
-    "name": "Otorrinolaringología",
-    "path": "./app/services/consultation/models/ORL-001"
+[
+  {
+    "id": "u001",
+    "config_path": "app/user/u001/user.json",
+    "active": true
   },
-  "GEN-001": {
-    "id": "GEN-001",
-    "name": "Medicina General",
-    "path": "./app/services/consultation/models/GEN-001"
+  {
+    "id": "u002",
+    "config_path": "app/user/u002/user.json",
+    "active": true
   }
-}
+]
