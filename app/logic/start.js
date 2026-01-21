@@ -5,7 +5,15 @@ import { DrawersManager } from './drawers.js';
 
 export const StartManager = {
     async init() {
-        // Inicializar eventos globales de teclado
+        console.log("--> StartManager.init() iniciado");
+        
+        // 1. Registrar el listener DE INMEDIATO, antes de hacer nada más
+        document.addEventListener('login-success', () => {
+            console.log("--> Evento login-success capturado en StartManager");
+            finishLogin();
+        });
+
+        // 2. Eventos globales de teclado
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'L') {
                 const drawer = document.getElementById('consoleDrawer');
@@ -18,17 +26,14 @@ export const StartManager = {
             }
         });
 
-        // Inicializar HTML de Drawers
+        // 3. Inicializar HTML de Drawers
         DrawersManager.init();
 
-        // Cargar usuarios (JSON + LocalStorage)
+        // 4. Cargar lista de usuarios
         try {
             const response = await fetch('./app/catalog/users.json');
             const originalUsers = await response.json();
-            
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-            
-            // Fusionar arrays
             const mergedUsers = [...originalUsers, ...localDB];
             
             DrawersManager.Login.renderList(mergedUsers);
@@ -37,18 +42,16 @@ export const StartManager = {
             log("Error cargando lista de usuarios", true); 
         }
 
-        // Inicializar UI base
+        // 5. Inicializar toolbar (Estado Guest)
         initToolbarEvents();
         
-        // Aplicar tema
+        // 6. Aplicar tema
         const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
         document.body.className = `theme-${savedTheme}`;
-
-        // Listener para finalizar login
-        document.addEventListener('login-success', finishLogin);
+        
+        console.log("--> StartManager.init() completado. Esperando Login...");
     },
 
-    // --- CORRECCIÓN AQUÍ: Se agregó 'async' ---
     async refreshUserList() {
         try {
             const response = await fetch('./app/catalog/users.json');
@@ -63,74 +66,29 @@ export const StartManager = {
     }
 };
 
-// --- FUNCIONES GLOBALES DE LOGIN ---
-
-// Esta función debe ser ASYNC para usar AWAIT dentro
-async function selectUser(id, configPath) {
-    document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
-    
-    const localConfigKey = `CIMA_USER_CONFIG_${id}`;
-    const localConfigJSON = localStorage.getItem(localConfigKey);
-    
-    // Lógica de carga robusta
-    if (localConfigJSON) { 
-        try { 
-            STATE.currentUser = JSON.parse(localConfigJSON); 
-            log("Configuración local cargada para " + id); 
-        } catch(e) { 
-            await loadUserConfig(configPath);
-        }
-    } else { 
-        await loadUserConfig(configPath); 
-    }
-
-    // Verificar si requiere contraseña
-    const pwd = STATE.currentUser?.profile?.password;
-
-    if (pwd) { 
-        const area = document.getElementById(`pwd-area-${id}`); 
-        if (area) {
-            area.classList.remove('hidden'); 
-            const input = document.getElementById(`pwd-input-${id}`);
-            if (input) input.focus();
-        }
-    } else { 
-        window.dispatchEvent(new CustomEvent('login-success'));
-    }
-}
-
-function verifyPassword(id) {
-    const input = document.getElementById(`pwd-input-${id}`);
-    const actual = STATE.currentUser?.profile?.password;
-    
-    if (input && actual && input.value === actual) { 
-        window.dispatchEvent(new CustomEvent('login-success'));
-    } else { 
-        if (input) {
-            input.style.borderColor = "#ef4444"; 
-            input.classList.add('shake');
-            log("Contraseña incorrecta", true);
-            setTimeout(() => { 
-                input.style.borderColor = ""; 
-                input.classList.remove('shake'); 
-            }, 500);
-        }
-    }
-}
+// --- FUNCIÓN PRINCIPAL DE ARRANQUE DEL SISTEMA ---
 
 async function finishLogin() {
+    console.log("--> Ejecutando finishLogin()...");
+    
+    // Asegurar cierre del drawer visualmente
     const loginDrawer = document.getElementById('loginDrawer');
     if (loginDrawer) loginDrawer.classList.remove('open');
     
     try {
         log("Iniciando módulos del sistema...");
         
-        if (!await ServiceLoader.init()) {
-            throw new Error("Fallo crítico en ServiceLoader");
+        // Carga dinámica de módulos
+        const loaded = await ServiceLoader.init();
+        if (!loaded) {
+            throw new Error("ServiceLoader devolvió false");
         }
         
+        // IMPORTANTE: Re-renderizar la toolbar para mostrar iconos de usuario
+        console.log("--> Re-renderizando Toolbar...");
         initToolbarEvents();
         
+        // Configurar lógica de pacientes
         const PatientService = ServiceLoader.get('patient');
         
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
@@ -138,30 +96,33 @@ async function finishLogin() {
 
         const form = document.getElementById('patientForm');
         if (form) {
-            form.addEventListener('change', (e) => {
+            // Remover listeners viejos clonando el nodo (truco rápido) o simplemente reasignar
+            // Para simplicidad, asumimos reasignación segura:
+            form.onchange = (e) => {
                  const id = e.target.id;
                  if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(id)) {
                      PatientService.updatePatientHeader();
                  }
                  if(id.includes('nacimiento')) PatientService.calcularCampos();
                  if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
-            });
+            };
         }
         
         const visits = document.getElementById('visitsContainer');
         if (visits) {
-            visits.addEventListener('click', handleVisitClicks);
+            visits.onclick = handleVisitClicks;
         }
 
         setTimeout(() => {
             if(PatientService) PatientService.toggleConditionalFields();
             const name = STATE.currentUser?.profile?.firstname || "Usuario";
             log(`Bienvenido/a, ${name}`);
+            flash(`Sesión iniciada: ${name}`);
         }, 300);
 
     } catch (e) { 
-        console.error(e); 
-        log(e.message, true); 
+        console.error("--> Error en finishLogin:", e); 
+        log("Error crítico al iniciar: " + e.message, true); 
     }
 }
 
@@ -194,7 +155,10 @@ function handleVisitClicks(e) {
     }
 }
 
-// Exponer funciones al scope global
-window.selectUser = selectUser;
-window.verifyPassword = verifyPassword;
+// EXPOSICIÓN GLOBAL (CRÍTICO PARA EL FALLBACK)
+window.finishLogin = finishLogin;
 window.refreshUserList = () => StartManager.refreshUserList();
+// (selectUser y verifyPassword ya no son necesarios globalmente aquí porque DrawersManager los maneja internamente, 
+// pero los dejamos por compatibilidad si tienes código legacy en HTML)
+window.selectUser = (id, path) => DrawersManager.Login.selectUser(id, path);
+window.verifyPassword = (id) => DrawersManager.Login.verifyPassword(id);
