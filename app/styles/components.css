@@ -506,34 +506,46 @@
 }
 
 /* =========================================
-   ESTILOS DE DOCUMENTO (PAPEL) - CORREGIDO
+   ESTILOS DE DOCUMENTO (PAPEL) - NUEVO
    ========================================= */
 .doc-page {
-    background-color: white !important; /* Fondo blanco forzado */
-    color: black !important;            /* Texto negro forzado */
+    background-color: white !important; /* Fuerza fondo blanco */
+    color: black !important;            /* Fuerza texto negro */
     
-    /* Tamaño Carta Exacto (Portrait) */
+    /* TAMAÑO CARTA EXACTO */
     width: 21.59cm;
     height: 27.94cm;
     
-    /* Manejo de desbordamiento */
+    /* EVITAR CRECIMIENTO INFINITO */
     overflow: hidden;
     
     margin: 20px auto;
-    padding: 2cm;
-    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    padding: 1.5cm 2cm;                /* Margen interno ajustado */
+    box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Sombra 3D */
     position: relative;
     font-family: 'Times New Roman', serif;
 }
 
-/* Tamaño Carta Exacto (Landscape / Récipe) */
+/* Modo Horizontal (Récipe) */
 .doc-page.land {
     width: 27.94cm;
     height: 21.59cm;
+    padding: 1.5cm;
 }
 
 .doc-header img, .doc-footer img {
     max-width: 100%;
     display: block;
     margin: 0 auto;
+}
+
+.doc-wrap {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.doc-body {
+    flex: 1;
+    overflow: hidden; /* Cortar texto si es muy largo */
 }
