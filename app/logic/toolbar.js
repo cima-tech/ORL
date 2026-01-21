@@ -1,6 +1,6 @@
 // app/logic/toolbar.js
-import { $, $$, STATE, log, flash, showErr } from 'brain';
-import { ServiceLoader } from './service_loader.js'; 
+import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
+import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 import { DrawersManager } from './drawers.js';
 
@@ -19,9 +19,7 @@ function getNavGroupHTML(isSidebar) {
 
     let avatarPath = assets.avatar_path || "";
     if (avatarPath && !avatarPath.startsWith('http') && !avatarPath.startsWith('data:')) {
-        if (!avatarPath.startsWith('./') && !avatarPath.startsWith('/')) {
-            avatarPath = './' + avatarPath;
-        }
+        if (!avatarPath.startsWith('./') && !avatarPath.startsWith('/')) avatarPath = './' + avatarPath;
     }
 
     const initials = (profile.firstname ? profile.firstname[0] : '') + (profile.lastname ? profile.lastname[0] : '');
@@ -30,12 +28,8 @@ function getNavGroupHTML(isSidebar) {
         return `
         <div class="toolbar-group">
             <div class="icon-row">
-                <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión">
-                    <i class="bi bi-person-circle"></i>
-                </button>
-                <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="DrawersManager.UserCreator.open()">
-                    <i class="bi bi-person-plus"></i>
-                </button>
+                <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión"><i class="bi bi-person-circle"></i></button>
+                <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="DrawersManager.UserCreator.open()"><i class="bi bi-person-plus"></i></button>
             </div>
             ${!isSidebar ? '<span class="group-label">Login</span>' : ''}
         </div>`;
@@ -44,15 +38,10 @@ function getNavGroupHTML(isSidebar) {
     const userMenu = `
     <div class="user-menu-wrapper">
         <button id="btnUserAvatar" class="avatar-circle" title="${name}">
-            ${avatarPath 
-                ? `<img src="${avatarPath}" onerror="this.style.display='none'; this.parentNode.innerText='${initials}';" alt="Avatar">` 
-                : initials}
+            ${avatarPath ? `<img src="${avatarPath}" onerror="this.style.display='none'; this.parentNode.innerText='${initials}';" alt="Avatar">` : initials}
         </button>
         <div id="userDropdown" class="user-dropdown hidden">
-            <div class="dropdown-header">
-                <h4>${title} ${name}</h4>
-                <p>${role}</p>
-            </div>
+            <div class="dropdown-header"><h4>${title} ${name}</h4><p>${role}</p></div>
             <button id="btnUserConfig" class="dropdown-item"><i class="bi bi-person-gear"></i> Configuración</button>
             <button id="btnChangeTheme" class="dropdown-item"><i class="bi bi-palette"></i> Cambiar Tema</button>
             <button id="btnToggleLayout" class="dropdown-item"><i class="bi bi-layout-sidebar"></i> Alternar Barra/Menú</button>
@@ -172,58 +161,34 @@ function bindEvents() {
 
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
     
-    // Listener global para cierre de drawers
-    document.querySelectorAll('.btn-close-drawer').forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.closest('.login-drawer, .config-drawer').classList.remove('open');
-        });
-    });
-    
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
         e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
         renderToolbar();
     });
-    
     document.getElementById('btnUserConfig')?.addEventListener('click', (e) => { e.stopPropagation(); DrawersManager.Config.open(); });
-    
     document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => { e.stopPropagation(); rotateTheme(); });
     
     document.getElementById('btnNew')?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar historia actual?")) return; 
-        resetStory(); 
-        STATE.UI.isStoryOpen = true; 
+        resetStory(); STATE.UI.isStoryOpen = true; 
         ServiceLoader.get('patient').initializeNewPatient(); renderToolbar(); 
     });
-    
     document.getElementById('btnClose')?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     
     document.getElementById('btnOpen')?.addEventListener('click', () => { 
         const query = prompt("Buscar paciente (nombre o documento):");
         if(query) {
             const results = getSearchResults(query);
-            if(results.length > 0) {
-                loadHistoryRecord(results[0]);
-            } else {
-                alert("No se encontraron resultados.");
-            }
+            if(results.length > 0) loadHistoryRecord(results[0]);
+            else alert("No se encontraron resultados.");
         }
     });
     
     document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
-    
-    document.getElementById('btnDeleteLast')?.addEventListener('click', () => { 
-        if(confirm("¿Borrar última consulta?")) { 
-            document.getElementById('visitsContainer').firstChild?.remove(); 
-        }
-    });
-    
+    document.getElementById('btnDeleteLast')?.addEventListener('click', () => { if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); });
     document.getElementById('btnExitPreview')?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
-    
-    document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
-        STATE.USE_SIG = !STATE.USE_SIG; 
-        window.switchDoc(STATE.currentPreviewDoc); 
-    });
+    document.getElementById('btnToggleSign')?.addEventListener('click', () => { STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); });
 
     const avatarBtn = document.getElementById('btnUserAvatar');
     const userDropdown = document.getElementById('userDropdown');
@@ -233,26 +198,18 @@ function bindEvents() {
             userDropdown.classList.toggle('hidden');
         });
         document.addEventListener('click', (e) => {
-            if(!userDropdown.classList.contains('hidden') && 
-               !userDropdown.contains(e.target) && 
-               !avatarBtn.contains(e.target)) {
+            if(!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
                 userDropdown.classList.add('hidden');
             }
         });
     }
 
     document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
-    
     document.getElementById('btnLogout')?.addEventListener('click', () => {
         if(confirm("¿Salir?")) {
             STATE.currentUser = { profile: { id:"guest", role:"guest", username:"guest", title:"", firstname:"Usuario", lastname:"", title_line_1:"", contact:{}, location:"" }, preferences:{ theme:"glass", default_model:"ORL-001" }, assets:{} };
             resetStory(); renderToolbar(); log("Sesión cerrada");
         }
-    });
-
-    // Listener para actualizar avatar si se sube desde Configuración
-    document.addEventListener('user-avatar-updated', () => {
-        renderToolbar();
     });
 }
 
@@ -294,35 +251,21 @@ function rotateTheme() {
     log(`Tema: ${nextTheme}`);
 }
 
-// --- FUNCIONES PERDIDAS EN TU CÓDIGO (RESTAURADAS) ---
+// Funciones Stub por compatibilidad con llamadas anteriores (si algún código antiguo llamaba estas funciones directamente en lugar de DrawersManager)
 
 function openConfigDrawer() {
-    // Lógica movida a DrawersManager, pero manteniendo el stub aquí para compatibilidad o llamadas directas si es necesario.
-    // Delegamos a DrawersManager.Config.open()
     DrawersManager.Config.open();
 }
 
 function saveFullConfig() {
-    // Delegamos a DrawersManager.Config.save()
     DrawersManager.Config.save();
 }
 
 function renderAssetUploader(label, key, currentPath) {
-    // Helper para renderizar inputs de imagen dentro de Config
-    // Delegamos a DrawersManager.Config.renderAssetUploader
     return DrawersManager.Config.renderAssetUploader(label, key, currentPath);
 }
 
-function switchConfigTab(tabName) {
-    // Delegamos a DrawersManager.Config.switchTab
-    document.querySelectorAll('.config-tabs .config-tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.config-tabs .config-tab-btn[onclick*="'${tabName}'"]`).classList.add('active');
-    document.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(`tab-${tabName}`).classList.add('active');
-}
-
 function initAssetPreviews() {
-    // Delegamos a DrawersManager.Config.initAssetPreviews
     DrawersManager.Config.initAssetPreviews();
 }
 
