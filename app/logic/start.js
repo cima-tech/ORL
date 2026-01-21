@@ -1,7 +1,7 @@
 import { log, loadUserConfig, STATE } from 'brain';
-import { ServiceLoader } from './service_loader.js'; // Importa el archivo limpio
+import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
-import { DrawersManager } from './drawers.js'; // Importar para inicializar
+import { DrawersManager } from './drawers.js';
 
 export const StartManager = {
     async init() {
@@ -14,7 +14,10 @@ export const StartManager = {
             }
         });
 
-        // Cargar usuarios HYBRIDA (JSON + LocalStorage)
+        // Inicializar DrawersManager (Inyección HTML)
+        DrawersManager.init();
+
+        // Cargar usuarios HÍBRIDA (JSON + LocalStorage)
         try {
             // 1. Fetch original
             const response = await fetch('./app/catalog/users.json');
@@ -26,7 +29,7 @@ export const StartManager = {
             // 3. Fusionar (Prioridad a LocalStorage si hay conflicto por id/username, aqui solo concatenamos)
             const mergedUsers = [...originalUsers, ...localDB];
             
-            this.renderUserList(mergedUsers);
+            DrawersManager.Login.renderList(mergedUsers);
         } catch (e) { 
             console.error(e); 
             log("Error cargando usuarios", true); 
@@ -35,54 +38,23 @@ export const StartManager = {
         // Inicializar toolbar
         initToolbarEvents();
         
-        // Inicializar DrawersManager (Inyecta HTML nuevo)
-        DrawersManager.init();
-        
         // Aplicar tema guardado
-        const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
-        document.body.className = `theme-${savedTheme}`;
+        const savedTheme = localStorage.getItem('CIMA_USERS_THEME') || 'glass'; // Nota: CIMA_USERS_THEME para no mezclar con CIMA_THEME general si quisieras separarlos.
+        // Usando CIMA_THEME para consistencia.
+        const theme = localStorage.getItem('CIMA_THEME') || 'glass';
+        document.body.className = `theme-${theme}`;
+
+        // Escuchar evento de login exitoso disparado por DrawersManager
+        document.addEventListener('login-success', finishLogin);
     },
 
-    renderUserList(users) {
-        const list = document.getElementById('user-list-container');
-        if(!list) return;
-        list.innerHTML = users.map(u => {
-            const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
-            const hasImg = savedImg || (u.avatar && u.avatar !== "");
-            const avatarHtml = hasImg 
-                ? `<div class="user-avatar-lg" style="background-image: url('${savedImg || u.avatar}'); background-size:cover;"></div>` 
-                : `<div class="user-avatar-lg">${u.username.substring(0,2).toUpperCase()}</div>`;
-
-            const roleDisplay = u.specialty || u.role;
-
-            return `
-            <div class="user-wrapper" id="user-wrapper-${u.id}">
-                <div class="user-card-content" onclick="selectUser('${u.id}', '${u.config_path}')">
-                    ${avatarHtml}
-                    <div class="user-info">
-                        <h3>${u.name}</h3>
-                        <p>${roleDisplay}</p>
-                        <span class="username">@${u.username}</span>
-                    </div>
-                </div>
-                <div id="pwd-area-${u.id}" class="password-area hidden">
-                    <div style="position:relative;">
-                        <input type="password" id="pwd-input-${u.id}" class="login-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') verifyPassword('${u.id}')" onclick="event.stopPropagation(); this.focus()">
-                        <i class="bi bi-lock-fill" style="position:absolute; right:10px; top:10px; color:#64748b;"></i>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-    },
-
-    // Nueva función para refrescar la lista tras crear usuario
     async refreshUserList() {
         try {
             const response = await fetch('./app/catalog/users.json');
             const originalUsers = await response.json();
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
             const mergedUsers = [...originalUsers, ...localDB];
-            this.renderUserList(mergedUsers);
+            DrawersManager.Login.renderList(mergedUsers);
         } catch(e) { console.error(e); }
     }
 };
@@ -109,7 +81,8 @@ async function selectUser(id, configPath) {
         area.classList.remove('hidden'); 
         document.getElementById(`pwd-input-${id}`).focus(); 
     } else { 
-        finishLogin(); 
+        // Disparar evento para que start.js tome el control
+        window.dispatchEvent(new CustomEvent('login-success'));
     }
 }
 
@@ -117,7 +90,8 @@ function verifyPassword(id) {
     const input = document.getElementById(`pwd-input-${id}`);
     const actual = STATE.currentUser.profile.password;
     if (input.value === actual) { 
-        finishLogin(); 
+        // Disparar evento
+        window.dispatchEvent(new CustomEvent('login-success'));
     } else { 
         input.style.borderColor = "#ef4444"; 
         input.classList.add('shake'); 
