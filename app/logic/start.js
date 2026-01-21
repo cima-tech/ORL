@@ -1,4 +1,3 @@
-// app/logic/start.js
 import { log, loadUserConfig, STATE } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
@@ -6,81 +5,94 @@ import { DrawersManager } from './drawers.js';
 
 export const StartManager = {
     async init() {
-        // Inicializar eventos globales
+        // Inicializar eventos globales de teclado
         document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && e.key === 'L') document.getElementById('consoleDrawer')?.classList.toggle('open');
+            if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+                const drawer = document.getElementById('consoleDrawer');
+                if (drawer) drawer.classList.toggle('open');
+            }
             if (e.key === 'Escape') {
-                document.querySelector('.login-drawer.open')?.classList.remove('open');
-                document.querySelector('.config-drawer.open')?.classList.remove('open');
+                document.querySelectorAll('.login-drawer.open, .config-drawer.open').forEach(el => {
+                    el.classList.remove('open');
+                });
             }
         });
 
-        // Inicializar DrawersManager
+        // Inicializar HTML de Drawers
         DrawersManager.init();
 
-        // Cargar usuarios
+        // Cargar usuarios (JSON + LocalStorage)
         try {
             const response = await fetch('./app/catalog/users.json');
             const originalUsers = await response.json();
             
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
             
+            // Fusionar arrays
             const mergedUsers = [...originalUsers, ...localDB];
             
             DrawersManager.Login.renderList(mergedUsers);
         } catch (e) { 
             console.error(e); 
-            log("Error cargando usuarios", true); 
+            log("Error cargando lista de usuarios", true); 
         }
 
-        // Inicializar toolbar
+        // Inicializar UI base
         initToolbarEvents();
         
         // Aplicar tema
         const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
         document.body.className = `theme-${savedTheme}`;
 
-        // Evento de login
+        // Listener para finalizar login
         document.addEventListener('login-success', finishLogin);
     },
 
+    // --- CORRECCIÓN AQUÍ: Se agregó 'async' ---
     async refreshUserList() {
         try {
             const response = await fetch('./app/catalog/users.json');
             const originalUsers = await response.json();
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
             const mergedUsers = [...originalUsers, ...localDB];
-            DrawersManager.Login.renderList(mergedUsers);
+            
+            if (DrawersManager && DrawersManager.Login) {
+                DrawersManager.Login.renderList(mergedUsers);
+            }
         } catch(e) { console.error(e); }
     }
 };
 
 // --- FUNCIONES GLOBALES DE LOGIN ---
 
+// Esta función debe ser ASYNC para usar AWAIT dentro
 async function selectUser(id, configPath) {
     document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
     
-    const localConfig = localStorage.getItem(`CIMA_USER_CONFIG_${id}`);
+    const localConfigKey = `CIMA_USER_CONFIG_${id}`;
+    const localConfigJSON = localStorage.getItem(localConfigKey);
     
-    if(localConfig) { 
+    // Lógica de carga robusta
+    if (localConfigJSON) { 
         try { 
-            STATE.currentUser = JSON.parse(localConfig); 
-            log("Config local cargada para " + id); 
+            STATE.currentUser = JSON.parse(localConfigJSON); 
+            log("Configuración local cargada para " + id); 
         } catch(e) { 
-            await loadUserConfig(configPath); 
+            await loadUserConfig(configPath);
         }
     } else { 
         await loadUserConfig(configPath); 
     }
 
+    // Verificar si requiere contraseña
     const pwd = STATE.currentUser?.profile?.password;
 
     if (pwd) { 
         const area = document.getElementById(`pwd-area-${id}`); 
-        if(area) {
+        if (area) {
             area.classList.remove('hidden'); 
             const input = document.getElementById(`pwd-input-${id}`);
-            if(input) input.focus();
+            if (input) input.focus();
         }
     } else { 
         window.dispatchEvent(new CustomEvent('login-success'));
@@ -94,45 +106,59 @@ function verifyPassword(id) {
     if (input && actual && input.value === actual) { 
         window.dispatchEvent(new CustomEvent('login-success'));
     } else { 
-        if(input) {
+        if (input) {
             input.style.borderColor = "#ef4444"; 
             input.classList.add('shake');
             log("Contraseña incorrecta", true);
-            setTimeout(() => { input.style.borderColor = ""; input.classList.remove('shake'); }, 500);
+            setTimeout(() => { 
+                input.style.borderColor = ""; 
+                input.classList.remove('shake'); 
+            }, 500);
         }
     }
 }
 
 async function finishLogin() {
     const loginDrawer = document.getElementById('loginDrawer');
-    if(loginDrawer) loginDrawer.classList.remove('open');
+    if (loginDrawer) loginDrawer.classList.remove('open');
     
     try {
-        log("Cargando módulos...");
-        if (!await ServiceLoader.init()) throw new Error("Fallo en ServiceLoader");
+        log("Iniciando módulos del sistema...");
+        
+        if (!await ServiceLoader.init()) {
+            throw new Error("Fallo crítico en ServiceLoader");
+        }
         
         initToolbarEvents();
         
         const PatientService = ServiceLoader.get('patient');
+        
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
 
         const form = document.getElementById('patientForm');
-        if(form) form.addEventListener('change', (e) => {
-             if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(e.target.id)) PatientService.updatePatientHeader();
-             if(e.target.id.includes('nacimiento')) PatientService.calcularCampos();
-             if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
-        });
+        if (form) {
+            form.addEventListener('change', (e) => {
+                 const id = e.target.id;
+                 if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(id)) {
+                     PatientService.updatePatientHeader();
+                 }
+                 if(id.includes('nacimiento')) PatientService.calcularCampos();
+                 if(e.target.type === 'checkbox') PatientService.toggleConditionalFields();
+            });
+        }
         
         const visits = document.getElementById('visitsContainer');
-        if(visits) visits.addEventListener('click', handleVisitClicks);
+        if (visits) {
+            visits.addEventListener('click', handleVisitClicks);
+        }
 
         setTimeout(() => {
             if(PatientService) PatientService.toggleConditionalFields();
-            if(STATE.currentUser?.profile?.firstname) {
-                log(`Bienvenido/a ${STATE.currentUser.profile.firstname}`);
-            }
+            const name = STATE.currentUser?.profile?.firstname || "Usuario";
+            log(`Bienvenido/a, ${name}`);
         }, 300);
+
     } catch (e) { 
         console.error(e); 
         log(e.message, true); 
@@ -140,30 +166,35 @@ async function finishLogin() {
 }
 
 function handleVisitClicks(e) {
-    const btn = e.target.closest('.visit-toggle-btn');
-    if(btn) { 
-        const body = btn.closest('.visit-card').querySelector('.visit-body');
-        body.classList.toggle('hidden'); 
-        const i = btn.querySelector('i'); 
+    const btnToggle = e.target.closest('.visit-toggle-btn');
+    if (btnToggle) { 
+        const card = btnToggle.closest('.visit-card');
+        const body = card.querySelector('.visit-body');
+        const icon = btnToggle.querySelector('i'); 
+        
+        body.classList.toggle('hidden');
         if (body.classList.contains('hidden')) {
-            i.className = 'bi bi-chevron-right';
+            icon.className = 'bi bi-chevron-right';
         } else {
-            i.className = 'bi bi-chevron-down';
+            icon.className = 'bi bi-chevron-down';
         }
     }
-    if(e.target.classList.contains('chip')) e.target.classList.toggle('active');
+
+    if (e.target.classList.contains('chip')) {
+        e.target.classList.toggle('active');
+    }
     
-    if(e.target.closest('.btn-inf')) {
+    if (e.target.closest('.btn-inf')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('INF', card.id);
     }
-    if(e.target.closest('.btn-rp')) {
+    if (e.target.closest('.btn-rp')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('RP', card.id);
     }
 }
 
-// Exponer funciones necesarias al objeto window
+// Exponer funciones al scope global
 window.selectUser = selectUser;
 window.verifyPassword = verifyPassword;
 window.refreshUserList = () => StartManager.refreshUserList();
