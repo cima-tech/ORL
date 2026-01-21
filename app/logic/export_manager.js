@@ -3,7 +3,7 @@ import { ServiceLoader } from './service_loader.js';
 
 export const ExportManager = {
     
-    // Generar y descargar (PDF/Imagen)
+    // Generar y descargar (Imagen)
     async processExport(card, options) {
         if (!card) return showErr('No hay consulta seleccionada');
         
@@ -36,6 +36,10 @@ export const ExportManager = {
 
                 // 3. Renderizar imagen
                 const docPage = tempDiv.querySelector('.doc-page');
+                
+                // Esperar a que carguen imágenes locales si las hay
+                await new Promise(resolve => setTimeout(resolve, 300));
+
                 const canvas = await html2canvas(docPage, {
                     scale: 2, 
                     useCORS: true,
@@ -53,7 +57,7 @@ export const ExportManager = {
                 const filename = `CIMA-${patientId}-${item.name}-${ddmmyy}.png`;
 
                 this.downloadCanvas(canvas, filename);
-                await new Promise(r => setTimeout(r, 500)); // Pausa para evitar bloqueo de descargas
+                await new Promise(r => setTimeout(r, 800)); // Pausa entre descargas
             }
 
             flash("Exportación completada");
