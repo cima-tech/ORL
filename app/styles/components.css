@@ -224,7 +224,7 @@
     background: rgba(15, 23, 42, 0.98);
     backdrop-filter: blur(20px);
     z-index: 3000;
-    transition: transform var(--transition-speed) ease;
+    transition: transform 0.3s ease;
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
@@ -260,7 +260,7 @@
 .drawer-header h3 {
     margin: 0;
     font-size: 1.2rem;
-    color: var(--text-main);
+    color: #f8fafc;
 }
 
 .drawer-content {
@@ -343,8 +343,8 @@
 }
 
 .config-tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: #0ea5e9;
+    border-bottom-color: #0ea5e9;
     font-weight: 600;
 }
 
@@ -377,7 +377,7 @@
 }
 
 .asset-uploader:hover {
-    border-color: var(--primary);
+    border-color: #0ea5e9;
 }
 
 .asset-preview {
@@ -409,96 +409,7 @@
     margin-bottom: 4px;
 }
 
-/* Login List */
-.user-list {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.user-wrapper {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.2s;
-}
-
-.user-wrapper:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.06);
-}
-
-.user-card-content {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    cursor: pointer;
-}
-
-.user-avatar-lg {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
-    overflow: hidden;
-}
-
-.user-avatar-lg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.user-info h3 {
-    margin: 0;
-    font-size: 1rem;
-    color: white;
-}
-
-.user-info p {
-    margin: 2px 0 0;
-    font-size: 0.8rem;
-    color: #94a3b8;
-}
-
-.username {
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-.password-area {
-    padding: 0 15px 15px 15px;
-    animation: slideDown 0.2s;
-}
-
-.login-input {
-    width: 100%;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    color: white;
-}
-
-.login-input:focus {
-    border-color: var(--primary);
-    outline: none;
-}
-
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
+/* Config Actions */
 .config-actions {
     padding: 15px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -506,7 +417,155 @@
 }
 
 /* =========================================
-   ESTILOS DE DOCUMENTO (PAPEL) - CORREGIDO
+   LOGIN MODERNO (ENTERPRISE)
+   ========================================= */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.login-form label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-left: 5px;
+}
+
+.login-form .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.login-form .input-wrapper i.bi {
+    position: absolute;
+    left: 15px;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.login-form input:focus {
+    border-color: #0ea5e9;
+    background: rgba(255,255,255,0.1);
+    outline: none;
+}
+
+.eye-btn {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.btn-login-action {
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-login-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3);
+}
+
+.recents-section {
+    margin-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 20px;
+}
+
+.recents-title {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.recents-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.recent-user-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    width: 60px;
+}
+
+.recent-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #334155;
+    background-size: cover;
+    border: 2px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+    transition: all 0.2s;
+}
+
+.recent-user-item:hover .recent-avatar {
+    border-color: #0ea5e9;
+    transform: scale(1.1);
+}
+
+.recent-user-item span {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+}
+
+.login-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-top: 20px;
+}
+
+.login-footer a {
+    color: #0ea5e9;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* =========================================
+   ESTILOS DE DOCUMENTO (PAPEL)
    ========================================= */
 .doc-page {
     background-color: white !important; /* Fuerza fondo blanco */
@@ -516,7 +575,7 @@
     width: 21.59cm;
     height: 27.94cm;
     
-    /* Manejo de desbordamiento: Cortar contenido extra */
+    /* Manejo de desbordamiento */
     overflow: hidden;
     
     margin: 20px auto;
