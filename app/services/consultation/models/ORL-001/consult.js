@@ -255,4 +255,304 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
         <div class="row">
           <div class="col">
             <label class="form-label">Seleccionar Estudios</label>
-            <div class="chips chips-studies" style="margin-
+            <div class="chips chips-studies" style="margin-top: 8px;"></div>
+            <div id="studies-content-${cardId}" style="margin-top: 16px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-title">4. Diagnóstico y Plan</div>
+        
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Diagnóstico</label>
+            <input class="form-input txt-dx" placeholder="(se llena con chips + libre)">
+            <div class="chips chips-dx" style="margin-top: 8px;"></div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Medicamentos / RP</label>
+            <textarea class="form-input txt-recipe" rows="4" placeholder="(seleccione medicamentos)"></textarea>
+            <div class="recipe-chips-container" style="margin-top: 8px;"></div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Indicaciones (Posología)</label>
+            <div class="indicaciones-dropdowns" style="margin-bottom: 10px;"></div>
+            <textarea class="form-input txt-indicaciones" rows="6" placeholder="(se generan automáticamente)"></textarea>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Plan / Tratamiento Final</label>
+            <textarea class="form-input txt-plan" rows="8" placeholder="(hereda de indicaciones + texto legal)"></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div class="patient-nav">
+        <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})">
+            <i class="bi bi-arrow-up"></i> Subir
+        </button>
+        <button type="button" class="btn btn-ghost btn-small btn-collapse-card">
+            <i class="bi bi-arrows-collapse"></i> Colapsar
+        </button>
+      </div>
+    </div>
+`;
+
+// ==========================================
+// 3. LOGICA DEL COMPONENTE (ENGINE)
+// ==========================================
+
+// Helper para crear chips
+function createChip(label, type = 'normal') {
+    const s = document.createElement('span');
+    s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
+    s.textContent = label;
+    s.dataset.active = '0';
+    
+    s.addEventListener('click', () => {
+        const isActive = s.dataset.active === '1';
+        s.dataset.active = isActive ? '0' : '1';
+        s.classList.toggle('on', !isActive);
+        s.dispatchEvent(new CustomEvent('chip-toggle', { bubbles: true, detail: { label, active: !isActive } }));
+    });
+    return s;
+}
+
+function createChipGroup(title, items, container) {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'chip-group';
+    groupDiv.innerHTML = `<div class="chip-group-title" style="font-size:0.75rem; color:#60a5fa; margin:5px 0;">${title}</div><div class="chips"></div>`;
+    const chipsDiv = groupDiv.querySelector('.chips');
+    items.forEach(item => chipsDiv.appendChild(createChip(item)));
+    container.appendChild(groupDiv);
+}
+
+// Función principal exportada
+export function createVisitCard(type = 'Primera') {
+    STATE.visitIdCounter++;
+    const cardId = 'visit-' + STATE.visitIdCounter;
+    
+    const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
+    const createdTime = new Date().toISOString();
+
+    const wrap = document.createElement('div');
+    wrap.id = cardId;
+    wrap.className = 'card visit-card';
+    wrap.dataset.type = type;
+    wrap.dataset.createdBy = createdBy;
+    wrap.dataset.createdAt = createdTime;
+
+    const edad = $("#edad_auto")?.value || '';
+    const genero = $("#genero")?.value || '';
+    const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
+    const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
+
+    // INYECTAR EL TEMPLATE
+    wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto);
+
+    // --- INYECCIÓN DE CHIPS ---
+    const motivoContainer = wrap.querySelector('.chips-motivo');
+    CIMA_DATA.MOTIVOS.forEach(m => motivoContainer.appendChild(createChip(m)));
+    
+    const antPersContainer = wrap.querySelector('.chips-antecedentes-personales');
+    const antFamContainer = wrap.querySelector('.chips-antecedentes-familiares');
+    CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
+    CIMA_DATA.ANTECEDENTES.forEach(a => antFamContainer.appendChild(createChip(a)));
+    
+    const caraContainer = wrap.querySelector('.chips-exam-cara');
+    CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
+    
+    const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
+    CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
+
+    const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
+        createChipGroup(group, items, odContainer);
+    });
+    
+    const oiContainer = wrap.querySelector('.chips-exam-oido-izquierdo');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => {
+        createChipGroup(group, items, oiContainer);
+    });
+    
+    const narizContainer = wrap.querySelector('.chips-exam-nariz');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => {
+        createChipGroup(group, items, narizContainer);
+    });
+    
+    const oroContainer = wrap.querySelector('.chips-exam-orofaringe');
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => {
+        createChipGroup(group, items, oroContainer);
+    });
+
+    // Estudios
+    const studiesContainer = wrap.querySelector('.chips-studies');
+    Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
+        studiesContainer.appendChild(createChip(studyName, 'study-complex'));
+    });
+    CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
+        studiesContainer.appendChild(createChip(studyName, 'study-simple'));
+    });
+
+    const dxContainer = wrap.querySelector('.chips-dx');
+    CIMA_DATA.DX.forEach(d => dxContainer.appendChild(createChip(d)));
+
+    const recipeContainer = wrap.querySelector('.recipe-chips-container');
+    Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.style.marginBottom = '12px';
+        groupDiv.className = 'recipe-chips-group'; 
+        groupDiv.dataset.group = group; 
+        
+        groupDiv.innerHTML = `
+          <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
+          <div class="chips"></div>
+        `;
+        const chipsBox = groupDiv.querySelector('.chips');
+        meds.forEach(med => chipsBox.appendChild(createChip(med)));
+        recipeContainer.appendChild(groupDiv);
+    });
+
+    // --- EVENT LISTENERS ---
+    
+    wrap.querySelector('.visit-toggle-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const body = wrap.querySelector('.visit-body');
+        const icon = wrap.querySelector('.visit-toggle-btn i');
+        body.classList.toggle('hidden');
+        icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+    });
+
+    wrap.querySelector('.btn-del-visit')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(confirm('¿Eliminar esta consulta?')) wrap.remove();
+    });
+    
+    wrap.querySelector('.btn-collapse-card').addEventListener('click', () => {
+        wrap.querySelector('.visit-body').classList.add('hidden');
+        wrap.querySelector('.visit-toggle-btn i').className = 'bi bi-chevron-right';
+    });
+
+    wrap.addEventListener('chip-toggle', (e) => {
+        const { label, active } = e.detail;
+        const target = e.target;
+
+        // A. Estudios
+        if (target.closest('.chips-studies')) {
+            const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
+            const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
+            
+            if (active) {
+                const studyDiv = document.createElement('div');
+                studyDiv.id = uniqueId;
+                studyDiv.className = 'study-content';
+                studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6;";
+
+                let innerHTML = `<div style="font-weight:700; margin-bottom:5px;">${label}</div>`;
+                innerHTML += `<textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
+                
+                if (CIMA_DATA.STUDIES[label]) {
+                    innerHTML += `<div class="study-sub-chips" style="margin-top:10px;"></div>`;
+                }
+                
+                studyDiv.innerHTML = innerHTML;
+                contentArea.appendChild(studyDiv);
+
+                if (CIMA_DATA.STUDIES[label]) {
+                    const subContainer = studyDiv.querySelector('.study-sub-chips');
+                    Object.entries(CIMA_DATA.STUDIES[label]).forEach(([groupTitle, items]) => {
+                        createChipGroup(groupTitle, items, subContainer);
+                    });
+                }
+            } else {
+                const el = document.getElementById(uniqueId);
+                if (el) el.remove();
+            }
+        }
+
+        // B. Sub-Chips Estudios
+        if (target.closest('.study-sub-chips')) {
+            const studyDiv = target.closest('.study-content');
+            const textarea = studyDiv.querySelector('textarea');
+            const activeSubChips = Array.from(studyDiv.querySelectorAll('.chip.on'));
+            
+            const grouped = {};
+            activeSubChips.forEach(c => {
+                const group = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
+                if(!grouped[group]) grouped[group] = [];
+                grouped[group].push(c.textContent);
+            });
+
+            let text = "";
+            Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
+            textarea.value = text;
+        }
+
+        // C. Inputs Normales
+        const simpleInputs = [
+            { cont: '.chips-motivo', input: '.txt-motivo' },
+            { cont: '.chips-dx', input: '.txt-dx' },
+            { cont: '.chips-antecedentes-personales', input: '.txt-antecedentes-personales' },
+            { cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' },
+            { cont: '.chips-exam-cara', input: '.txt-exam-cara' },
+            { cont: '.chips-exam-cuello', input: '.txt-exam-cuello' }
+        ];
+        
+        simpleInputs.forEach(item => {
+            if (target.closest(item.cont)) {
+                const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
+                const input = wrap.querySelector(item.input);
+                if (input && !input.dataset.userEdited) {
+                    input.value = chips.map(c => c.textContent).join(', ');
+                }
+            }
+        });
+
+        // D. Examen Agrupado
+        const groupedExamInputs = [
+            { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
+            { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
+            { cont: '.chips-exam-nariz', input: '.txt-exam-nariz' },
+            { cont: '.chips-exam-orofaringe', input: '.txt-exam-orofaringe' }
+        ];
+
+        groupedExamInputs.forEach(item => {
+            if (target.closest(item.cont)) {
+                const input = wrap.querySelector(item.input);
+                if (input && !input.dataset.userEdited) {
+                    const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
+                    const grouped = {};
+                    chips.forEach(c => {
+                        const g = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
+                        if(!grouped[g]) grouped[g] = [];
+                        grouped[g].push(c.textContent);
+                    });
+                    let text = "";
+                    Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
+                    input.value = text.trim();
+                }
+            }
+        });
+
+        // E. Recipe (Llamando a las funciones importadas)
+        if (target.closest('.recipe-chips-container')) {
+            updateRecipeTextbox(wrap);
+            renderIndicacionesDropdowns(wrap);
+        }
+    });
+
+    wrap.querySelectorAll('textarea, input[type="text"]').forEach(input => {
+        input.addEventListener('input', () => input.dataset.userEdited = '1');
+    });
+
+    return wrap;
+}
