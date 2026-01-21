@@ -3,6 +3,7 @@ import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 import { DrawersManager } from './drawers.js';
+// (No necesitamos importar ExportManager aquí, DrawersManager lo usa)
 
 // Exponer globalmente
 window.DrawersManager = DrawersManager;
@@ -236,18 +237,9 @@ function bindEvents() {
         }
     });
 
-    // PARCHE TEMPORAL: Exportación simple hasta Fase 2
-    document.getElementById('btnOpenExport')?.addEventListener('click', async () => {
-        try {
-            const element = document.querySelector('.doc-page');
-            if(!element || typeof html2canvas === 'undefined') return alert('Error al exportar');
-            
-            const canvas = await html2canvas(element, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
-            const link = document.createElement('a');
-            link.download = `CIMA_DOC_${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        } catch(e) { console.error(e); }
+    // CAMBIO IMPORTANTE: Abrir el Drawer de Exportación en lugar de descargar directo
+    document.getElementById('btnOpenExport')?.addEventListener('click', () => {
+        DrawersManager.Export.open();
     });
 }
 
