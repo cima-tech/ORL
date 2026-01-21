@@ -15,12 +15,14 @@ export const DrawersManager = {
             // Catálogo unificado (Credenciales)
             this.catalog = [...remoteCatalog, ...localCatalog];
             
-            // Renderizar Login
+            // Renderizar Login INMEDIATAMENTE
             this.Login.render();
 
         } catch (e) {
             console.error("Error cargando catálogo", e);
             log("Error crítico cargando usuarios", true);
+            // Aun con error, intentamos renderizar el login (tal vez hay recientes)
+            this.Login.render();
         }
 
         this.bindEvents();
@@ -37,9 +39,10 @@ export const DrawersManager = {
             </div>`;
 
         const loginHTML = `
-            <div id="loginDrawer" class="login-drawer open"> <div class="drawer-header">
+            <div id="loginDrawer" class="login-drawer open">
+                <div class="drawer-header">
                     <h3><i class="bi bi-person-lock"></i> Acceso Seguro</h3>
-                    </div>
+                </div>
                 <div class="drawer-content" id="login-content" style="padding: 30px;"></div>
             </div>`;
 
@@ -68,7 +71,7 @@ export const DrawersManager = {
         if(ch) ch.addEventListener('click', () => document.getElementById('consoleDrawer').classList.toggle('open'));
     },
 
-    // --- MODULO LOGIN ---
+    // --- MODULO LOGIN (ENTERPRISE STYLE) ---
     Login: {
         open() { document.getElementById('loginDrawer').classList.add('open'); },
         
@@ -117,7 +120,7 @@ export const DrawersManager = {
                         <div class="input-wrapper">
                             <i class="bi bi-key"></i>
                             <input id="login-pass" type="password" placeholder="••••••••" onkeypress="if(event.key==='Enter') DrawersManager.Login.attemptLogin()">
-                            <button class="eye-btn" onclick="DrawersManager.Login.togglePass()" type="button"><i class="bi bi-eye"></i></button>
+                            <button class="eye-btn" type="button" onclick="DrawersManager.Login.togglePass()"><i class="bi bi-eye"></i></button>
                         </div>
                     </div>
 
@@ -150,7 +153,7 @@ export const DrawersManager = {
 
             if (!userInput || !passInput) return showErr("Ingrese credenciales completas");
 
-            // Buscar coincidencia en catalogo
+            // Buscar en el catálogo
             const user = DrawersManager.catalog.find(u => 
                 u.username === userInput || 
                 u.email === userInput || 
@@ -186,7 +189,7 @@ export const DrawersManager = {
 
                 } catch (err) {
                     console.error(err);
-                    showErr("Error cargando perfil: " + err.message);
+                    showErr("Error cargando perfil del usuario: " + err.message);
                 }
             } else {
                 showErr("Usuario o contraseña incorrectos");
@@ -205,7 +208,7 @@ export const DrawersManager = {
         }
     },
 
-    // --- RENDERIZADOR COMPARTIDO (Gemelos) ---
+    // --- RENDERIZADOR COMPARTIDO DE FORMULARIOS (GEMELOS) ---
     renderSharedForm(user = null, isNew = false) {
         const u = user || { 
             profile: { contact: {} }, professional: {}, institution: {}, commercial: { schedule: {} }, preferences: {}, assets: {}, security: {} 
@@ -243,17 +246,9 @@ export const DrawersManager = {
                 <div class="form-grid">
                     <div class="span-1"><label class="form-label">Título</label><input id="${px}title" class="form-input" value="${p.title||''}"></div>
                     <div class="span-1"><label class="form-label">1er Nombre</label><input id="${px}firstname" class="form-input" value="${p.firstname||''}"></div>
-                    <div class="span-1"><label class="form-label">2do Nombre</label><input id="${px}secondname" class="form-input" value="${p.secondname||''}"></div>
-                    <div class="span-1"><label class="form-label">1er Apellido</label><input id="${px}lastname" class="form-input" value="${p.lastname||''}"></div>
-                    <div class="span-1"><label class="form-label">2do Apellido</label><input id="${px}secondlastname" class="form-input" value="${p.secondlastname||''}"></div>
-                    <div class="span-1"><label class="form-label">Tipo Sangre</label><input id="${px}bloodtype" class="form-input" value="${p.bloodtype||''}"></div>
-                    <div class="span-2"><label class="form-label">Ubicación</label><input id="${px}location" class="form-input" value="${p.location||''}"></div>
-                    
-                    <div class="span-2"><label class="form-label">Email Principal</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
-                    <div class="span-2"><label class="form-label">Teléfono Móvil</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
-                    <div class="span-2"><label class="form-label">Email Secundario</label><input id="${px}email2" class="form-input" value="${p.contact?.email2||''}"></div>
-                    <div class="span-2"><label class="form-label">Teléfono Fijo</label><input id="${px}phone2" class="form-input" value="${p.contact?.phone2||''}"></div>
-                    <div class="span-4"><label class="form-label">Instagram</label><input id="${px}instagram" class="form-input" value="${p.contact?.instagram||''}"></div>
+                    <div class="span-2"><label class="form-label">Apellido</label><input id="${px}lastname" class="form-input" value="${p.lastname||''}"></div>
+                    <div class="span-2"><label class="form-label">Email</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
+                    <div class="span-2"><label class="form-label">Teléfono</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
                 </div>
             </div>
         </div>
@@ -266,21 +261,15 @@ export const DrawersManager = {
                     <div class="span-4"><label class="form-label">Subtítulo (Línea 2)</label><input id="${px}title2" class="form-input" value="${p.title_line_2||''}"></div>
                     <div class="span-2"><label class="form-label">Matrícula (MPPS)</label><input id="${px}license" class="form-input" value="${u.professional?.license_number||''}"></div>
                     <div class="span-2"><label class="form-label">Colegio (CMM)</label><input id="${px}college" class="form-input" value="${u.professional?.college||''}"></div>
-                    <div class="span-4"><label class="form-label">Texto Pie de Página Legal</label><input id="${px}legal" class="form-input" value="${u.professional?.legal_footer||''}"></div>
-                    <div class="span-4"><label class="form-label">Etiqueta Firma</label><input id="${px}siglabel" class="form-input" value="${u.professional?.signature_label||''}"></div>
+                    <div class="span-4"><label class="form-label">Firma (Texto)</label><input id="${px}siglabel" class="form-input" value="${u.professional?.signature_label||''}"></div>
                 </div>
             </div>
-
             <div class="form-section">
-                <div class="form-section-title"><i class="bi bi-building"></i> Consultorio y Comercial</div>
+                <div class="form-section-title"><i class="bi bi-building"></i> Consultorio</div>
                 <div class="form-grid">
-                    <div class="span-2"><label class="form-label">Institución</label><input id="${px}inst_name" class="form-input" value="${u.institution?.name||''}"></div>
-                    <div class="span-2"><label class="form-label">Servicio</label><input id="${px}inst_service" class="form-input" value="${u.institution?.service||''}"></div>
-                    <div class="span-4"><label class="form-label">Dirección Fiscal</label><input id="${px}inst_addr" class="form-input" value="${u.institution?.address||''}"></div>
-                    
-                    <div class="span-1"><label class="form-label">Moneda</label><input id="${px}currency" class="form-input" value="${c.currency||'USD'}"></div>
-                    <div class="span-1"><label class="form-label">Honorarios</label><input id="${px}fee" type="number" class="form-input" value="${c.consultation_fee||0}"></div>
-                    <div class="span-2"><label class="form-label">Métodos Pago</label><input id="${px}pay" class="form-input" value="${c.payment_infos||''}" placeholder="Zelle, Efectivo..."></div>
+                    <div class="span-4"><label class="form-label">Dirección</label><input id="${px}inst_addr" class="form-input" value="${u.institution?.address||''}"></div>
+                    <div class="span-2"><label class="form-label">Honorarios</label><input id="${px}fee" type="number" class="form-input" value="${c.consultation_fee||0}"></div>
+                    <div class="span-2"><label class="form-label">Moneda</label><input id="${px}currency" class="form-input" value="${c.currency||'USD'}"></div>
                 </div>
             </div>
         </div>
@@ -289,10 +278,10 @@ export const DrawersManager = {
             <div class="form-section">
                 <div class="form-section-title"><i class="bi bi-images"></i> Gráficos</div>
                 ${this.renderUploader('Avatar', `${px}avatar`, u.assets?.avatar_path)}
-                ${this.renderUploader('Encabezado (Header)', `${px}header`, u.assets?.header_path)}
-                ${this.renderUploader('Pie de Página (Footer)', `${px}footer`, u.assets?.footer_path)}
-                ${this.renderUploader('Firma Digital', `${px}signature`, u.assets?.signature_path)}
-                ${this.renderUploader('Sello Húmedo', `${px}stamp`, u.assets?.stamp_path)}
+                ${this.renderUploader('Firma', `${px}signature`, u.assets?.signature_path)}
+                ${this.renderUploader('Sello', `${px}stamp`, u.assets?.stamp_path)}
+                ${this.renderUploader('Header', `${px}header`, u.assets?.header_path)}
+                ${this.renderUploader('Footer', `${px}footer`, u.assets?.footer_path)}
             </div>
 
             <div class="form-section">
@@ -305,14 +294,12 @@ export const DrawersManager = {
                             <option value="light" ${u.preferences?.theme==='light'?'selected':''}>Light</option>
                          </select>
                     </div>
-                    <div class="span-2"><label class="form-label">Color Primario</label><input type="color" id="${px}color" class="form-input" value="${u.preferences?.primary_color||'#0ea5e9'}"></div>
                     <div class="span-2"><label class="form-label">Modelo Default</label>
                         <select id="${px}model" class="form-select">
                             <option value="ORL-001" ${u.preferences?.default_model==='ORL-001'?'selected':''}>ORL-001</option>
                             <option value="GEN-001" ${u.preferences?.default_model==='GEN-001'?'selected':''}>GEN-001</option>
                         </select>
                     </div>
-                    <div class="span-2"><label class="form-label">Auto-Lock (min)</label><input type="number" id="${px}autolock" class="form-input" value="${u.security?.auto_lock_minutes||15}"></div>
                 </div>
             </div>
         </div>
@@ -321,15 +308,13 @@ export const DrawersManager = {
             <button class="icon-btn" onclick="DrawersManager.${isNew ? 'UserCreator.save' : 'Config.save'}('${isNew ? '' : u.profile.id}')" style="width:100%; background:#10b981; color:white; height:45px; font-size:1rem;">
                 <i class="bi bi-check-lg"></i> ${isNew ? 'CREAR USUARIO' : 'GUARDAR CAMBIOS'}
             </button>
-        </div>
-        `;
+        </div>`;
     },
 
     switchTab(btn, targetId) {
         const parent = btn.closest('.config-tabs').parentElement;
         parent.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
         parent.querySelector('#'+targetId).classList.add('active');
-        
         btn.parentElement.querySelectorAll('.config-tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     },
@@ -449,9 +434,15 @@ export const DrawersManager = {
         },
         save() {
             const px = 'new-';
-            const id = $(`#${px}id`).value;
             const username = $(`#${px}username`).value;
-            if(!username) return showErr("El usuario es obligatorio");
+            const password = $(`#${px}password`).value;
+            const firstname = $(`#${px}firstname`).value;
+
+            if(!username || !password || !firstname) return showErr("Usuario, contraseña y nombre son obligatorios");
+
+            let nextId = 3;
+            DrawersManager.catalog.forEach(x => { const n = parseInt(x.id.replace('u','')); if(n >= nextId) nextId = n + 1; });
+            const id = 'u' + String(nextId).padStart(3,'0');
 
             const newUser = { 
                 id: id, active: true, config_path: `local/user_${id}.json`, 
@@ -476,6 +467,8 @@ export const DrawersManager = {
 
             flash(`Usuario ${username} creado`);
             document.getElementById('createUserDrawer').classList.remove('open');
+            // Recargar login por si acaso
+            DrawersManager.Login.render();
         }
     },
 
