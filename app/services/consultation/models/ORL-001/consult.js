@@ -1,5 +1,4 @@
 import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
-// Import relativo
 import { updateRecipeTextbox, renderIndicacionesDropdowns } from './recipe-indicaciones.js';
 
 // ==========================================
@@ -7,8 +6,11 @@ import { updateRecipeTextbox, renderIndicacionesDropdowns } from './recipe-indic
 // ==========================================
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
+  
   ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
+  
   DX: ["Otocerumen Bilateral","Otocerumen Derecho","Otocerumen Izquierdo","Otitis Externa Bilateral","Otitis Externa Derecha","Otitis Externa Izquierda","Otitis Media Aguda Bilateral","Otitis Media Aguda Derecha","Otitis Media Aguda Izquierda","Otitis Media Crónica Perforada Bilateral","Otitis Media Crónica Perforada Derecha","Otitis Media Crónica Perforada Izquierda","Otitis Media Crónica Sucurativa","Otitis Media Crónica Colestetomatosa","Hipoacusia Neurosensorial Profunda Bilateral","Hipoacusia Neurosensorial Profunda Derecha","Hipoacusia Neurosensorial Profunda Izquierda","Hipoacusia Conductiva Leve Bilateral","Hipoacusia Conductiva Leve Derecha","Hipoacusia Conductiva Leve Izquierda","Presbiacusia","Otitis Media Serosa Bilateral","Otitis Media Serosa Derecha","Otitis Media Serosa Izquierda","Faringoamigdalitis Aguda","Tonsilitis Recurrente","Otitis Media Aguda Recurrente","Alto Riesgo Biológico Para Hipoacusia","Rinopatía Obstructiva","Rinitis Alérgica","Poliposis Nasal","Rinosinusitis Aguda Maxiloetmoidal","Rinosinusitis Aguda Maxilar","Rinosinusitis Maxilar Crónica","Rinosinusitis Crónica Con Poliposis Nasal","Lesión En Cuerda Vocal Derecha","Lesión En Cuerda Vocal Izquierda","Parálisis De Cuerda Vocal Bilateral","Parálisis De Cuerda Vocal Derecha","Parálisis De Cuerda Vocal Izquierda","Epistaxis Anterior","Epistaxis Anteroposterior","Epistaxis Posterior","Frenillo Lingual","Antecedente Quirúrgico"],
+  
   RECIPE_MEDS: {
     "Esteroides Nasales": ["Solución Fisiológica","Flinas / Nasonex / Elocon / Flixonase / Nimarin / Budenas (Spray Nasal)","Flinas - Spray Nasal","Nasonex - Spray Nasal","Elocon - Spray Nasal","Flixonase - Spray Nasal","Nimarin - Spray Nasal","Budenas - Spray Nasal","Momentasona o Fluticasona - Spray Nasal"],
     "Antialérgicos": ["Desloratadina - Tabletas 5 mg","Desloratadina - Jarabe","Loratadina - Tabletas 10 mg","Loratadina - Jarabe","Cetirizina - Tabletas 10 mg","Cetirizina - Jarabe","Levocetirizina - Tabletas 5 mg","Levocetirizina - Jarabe","Rinolast - Tabletas","Rinolast - Jarabe","Fexofenadina - Tabletas 120 mg","Fexofenadina - Jarabe","Claricort - Tabletas","Lorecort - Jarabe","Montelukast - Tabletas 4 mg","Montelukast - Tabletas 5 mg","Montelukast - Tabletas 10 mg","Rinomax - Gotas Nasales","Bactroban, Bacitracina, Mupirocina, Muprovan - crema o ungüento"],
@@ -17,6 +19,7 @@ export const CIMA_DATA = {
     "Antibióticos": ["Amoxicilina / Acido Clavulánico - Tabletas 875/125 mg","Amoxicilina / Acido Clavulánico - Suspensión 600 mg / 5 ml","Amoxicilina - Tabletas 500 mg","Amoxicilina - Jarabe","Sultamicilina - Tabletas 750 mg","Sultamicilina - Suspensión 250 mg / 5 ml","Levofloxacina- Tabletas 500 mg","Levofloxacina- Tabletas 750 mg","Moxifloxacina, Moxen, Avelox - Comprimidos 400 mg"],
     "Otros": ["Pulmolix - Sobres","Betahistina - 8 mg","Betahistina - 16 mg","Betahistina - 24 mg","Viajesan - Comprimidos"]
   },
+  
   INDICACIONES_OPTIONS: {
     "Esteroides Nasales": ["Realizar lavados nasales cada 12 horas por 7 días.","Colocar dos aplicaciones en cada fosa nasal cada 12 horas por 1 mes.","Colocar una aplicación en cada fosa nasal cada 12 horas por 1 mes."],
     "Antialérgicos": ["Tomar 1 tableta diaria por 1 mes.","Dar vía oral 1 cc una vez al día por 1 mes.","Dar vía oral 2 cc una vez al día por 1 mes.","Dar vía oral 3 cc una vez al día por 1 mes.","Dar vía oral 4 cc una vez al día por 1 mes.","Dar vía oral 5 cc una vez al día por 1 mes.","Tomar 1 tableta cada 12 horas por 7 días.","Dar vía oral 1 cc cada 12 horas por 7 días.","Dar vía oral 2 cc cada 12 horas por 7 días.","Dar vía oral 3 cc cada 12 horas por 7 días.","Dar vía oral 4 cc cada 12 horas por 7 días.","Dar vía oral 5 cc cada 12 horas por 7 días.","Colocar 3 Gotas en cada fosa nasal cada 8 horas por 5 días.","Colocar 1 aplicación en cada fosa nasal cada 12 horas por 7 días.","Tomar 1 tableta diaria por 3 meses."],
@@ -25,6 +28,7 @@ export const CIMA_DATA = {
     "Antibióticos": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días.","Dar vía oral 1 cc cada 12 horas por 10 días.","Dar vía oral 2 cc cada 12 horas por 10 días.","Dar vía oral 3 cc cada 12 horas por 10 días.","Dar vía oral 4 cc cada 12 horas por 10 días.","Dar vía oral 5 cc cada 12 horas por 10 días.","Dar vía oral 6 cc cada 12 horas por 10 días."],
     "Otros": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días."]
   },
+
   STUDIES: {
     "Nasofibrolaringoscopia": {
       "Fosas Nasales": ["Permeables","No Permeables"],
@@ -306,11 +310,13 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
 // 3. LOGICA DEL COMPONENTE (ENGINE)
 // ==========================================
 
+// Helper para crear chips
 function createChip(label, type = 'normal') {
     const s = document.createElement('span');
     s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
     s.textContent = label;
     s.dataset.active = '0';
+    
     s.addEventListener('click', () => {
         const isActive = s.dataset.active === '1';
         s.dataset.active = isActive ? '0' : '1';
@@ -329,6 +335,7 @@ function createChipGroup(title, items, container) {
     container.appendChild(groupDiv);
 }
 
+// Función principal exportada
 export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
@@ -343,8 +350,12 @@ export function createVisitCard(type = 'Primera') {
     wrap.dataset.createdBy = createdBy;
     wrap.dataset.createdAt = createdTime;
 
-    const eaAuto = `Paciente...`; // (Simplificado para brevedad, mantener lógica de género/edad)
+    const edad = $("#edad_auto")?.value || '';
+    const genero = $("#genero")?.value || '';
+    const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
+    const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
 
+    // INYECTAR EL TEMPLATE
     wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto);
 
     // --- INYECCIÓN DE CHIPS ---
@@ -382,6 +393,7 @@ export function createVisitCard(type = 'Primera') {
         createChipGroup(group, items, oroContainer);
     });
 
+    // Estudios
     const studiesContainer = wrap.querySelector('.chips-studies');
     Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
         studiesContainer.appendChild(createChip(studyName, 'study-complex'));
@@ -433,6 +445,7 @@ export function createVisitCard(type = 'Primera') {
         const { label, active } = e.detail;
         const target = e.target;
 
+        // A. Estudios
         if (target.closest('.chips-studies')) {
             const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
             const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
@@ -465,6 +478,7 @@ export function createVisitCard(type = 'Primera') {
             }
         }
 
+        // B. Sub-Chips Estudios
         if (target.closest('.study-sub-chips')) {
             const studyDiv = target.closest('.study-content');
             const textarea = studyDiv.querySelector('textarea');
@@ -482,6 +496,7 @@ export function createVisitCard(type = 'Primera') {
             textarea.value = text;
         }
 
+        // C. Inputs Normales
         const simpleInputs = [
             { cont: '.chips-motivo', input: '.txt-motivo' },
             { cont: '.chips-dx', input: '.txt-dx' },
@@ -501,6 +516,7 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
+        // D. Examen Agrupado
         const groupedExamInputs = [
             { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
             { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
@@ -526,6 +542,7 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
+        // E. Recipe (Llamando a las funciones importadas)
         if (target.closest('.recipe-chips-container')) {
             updateRecipeTextbox(wrap);
             renderIndicacionesDropdowns(wrap);
