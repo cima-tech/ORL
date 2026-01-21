@@ -1,5 +1,5 @@
 import { log, loadUserConfig, STATE } from 'brain';
-import { ServiceLoader } from './service_loader.js';
+import { ServiceLoader } from './service_loader.js'; 
 import { initToolbarEvents } from 'toolbar';
 import { DrawersManager } from './drawers.js';
 
@@ -39,12 +39,10 @@ export const StartManager = {
         initToolbarEvents();
         
         // Aplicar tema guardado
-        const savedTheme = localStorage.getItem('CIMA_USERS_THEME') || 'glass'; // Nota: CIMA_USERS_THEME para no mezclar con CIMA_THEME general si quisieras separarlos.
-        // Usando CIMA_THEME para consistencia.
-        const theme = localStorage.getItem('CIMA_THEME') || 'glass';
-        document.body.className = `theme-${theme}`;
+        const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
+        document.body.className = `theme-${savedTheme}`;
 
-        // Escuchar evento de login exitoso disparado por DrawersManager
+        // Escuchar evento de login exitoso
         document.addEventListener('login-success', finishLogin);
     },
 
@@ -81,22 +79,8 @@ async function selectUser(id, configPath) {
         area.classList.remove('hidden'); 
         document.getElementById(`pwd-input-${id}`).focus(); 
     } else { 
-        // Disparar evento para que start.js tome el control
+        // Disparar evento de login exitoso
         window.dispatchEvent(new CustomEvent('login-success'));
-    }
-}
-
-function verifyPassword(id) {
-    const input = document.getElementById(`pwd-input-${id}`);
-    const actual = STATE.currentUser.profile.password;
-    if (input.value === actual) { 
-        // Disparar evento
-        window.dispatchEvent(new CustomEvent('login-success'));
-    } else { 
-        input.style.borderColor = "#ef4444"; 
-        input.classList.add('shake'); 
-        log("Contraseña incorrecta", true); 
-        setTimeout(() => { input.style.borderColor = ""; input.classList.remove('shake'); }, 500); 
     }
 }
 
@@ -138,12 +122,7 @@ async function finishLogin() {
 
 function handleVisitClicks(e) {
     const btn = e.target.closest('.visit-toggle-btn');
-    if(btn) { 
-        btn.closest('.visit-card').querySelector('.visit-body').classList.toggle('hidden'); 
-        const i = btn.querySelector('i'); 
-        i.classList.toggle('bi-chevron-right'); 
-        i.classList.toggle('bi-chevron-down'); 
-    }
+    if(btn) { btn.closest('.visit-card').querySelector('.visit-body').classList.toggle('hidden'); const i = btn.querySelector('i'); i.classList.toggle('bi-chevron-right'); i.classList.toggle('bi-chevron-down'); }
     if(e.target.classList.contains('chip')) e.target.classList.toggle('active');
     if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
     if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
