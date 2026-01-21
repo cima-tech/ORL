@@ -2,22 +2,20 @@ import { $, STATE, log, flash, showErr, loadUserConfig } from 'brain';
 import { ExportManager } from 'export_manager';
 
 export const DrawersManager = {
-    catalog: [], // Almacena el catálogo ligero en memoria
+    catalog: [], 
 
     async init() {
-        // 1. Inyectar HTML Base
         this.injectHTML();
 
-        // 2. Cargar Catálogo de Usuarios (Credenciales)
         try {
             const response = await fetch('./app/catalog/users.json');
             const remoteCatalog = await response.json();
             const localCatalog = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
             
-            // Unificar catálogos
+            // Catálogo unificado (Credenciales)
             this.catalog = [...remoteCatalog, ...localCatalog];
             
-            // Renderizar formulario de login
+            // Renderizar Login
             this.Login.render();
 
         } catch (e) {
@@ -38,15 +36,11 @@ export const DrawersManager = {
                 <div class="drawer-content" id="${id}-content"></div>
             </div>`;
 
-        // Login Drawer (Estructura base)
         const loginHTML = `
-            <div id="loginDrawer" class="login-drawer">
-                <div class="drawer-header">
+            <div id="loginDrawer" class="login-drawer open"> <div class="drawer-header">
                     <h3><i class="bi bi-person-lock"></i> Acceso Seguro</h3>
-                    <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
-                </div>
-                <div class="drawer-content" id="login-content" style="padding: 30px;">
                     </div>
+                <div class="drawer-content" id="login-content" style="padding: 30px;"></div>
             </div>`;
 
         const html = `
@@ -74,7 +68,7 @@ export const DrawersManager = {
         if(ch) ch.addEventListener('click', () => document.getElementById('consoleDrawer').classList.toggle('open'));
     },
 
-    // --- MODULO LOGIN (ENTERPRISE STYLE) ---
+    // --- MODULO LOGIN ---
     Login: {
         open() { document.getElementById('loginDrawer').classList.add('open'); },
         
@@ -82,7 +76,6 @@ export const DrawersManager = {
             const container = document.getElementById('login-content');
             if(!container) return;
 
-            // 1. Obtener Recientes
             let recentsHTML = '';
             try {
                 const recents = JSON.parse(localStorage.getItem('CIMA_RECENT_USERS') || '[]');
@@ -103,7 +96,6 @@ export const DrawersManager = {
                 }
             } catch(e) {}
 
-            // 2. Renderizar Formulario
             container.innerHTML = `
                 <div class="login-form">
                     <div style="text-align:center; margin-bottom:20px;">
@@ -113,7 +105,7 @@ export const DrawersManager = {
                     </div>
 
                     <div class="form-group">
-                        <label>Usuario, Email o Documento</label>
+                        <label>Usuario, Email o Cédula</label>
                         <div class="input-wrapper">
                             <i class="bi bi-person"></i>
                             <input id="login-user" type="text" placeholder="Ej: tudraorl">
@@ -125,7 +117,7 @@ export const DrawersManager = {
                         <div class="input-wrapper">
                             <i class="bi bi-key"></i>
                             <input id="login-pass" type="password" placeholder="••••••••" onkeypress="if(event.key==='Enter') DrawersManager.Login.attemptLogin()">
-                            <button class="eye-btn" onclick="DrawersManager.Login.togglePass()"><i class="bi bi-eye"></i></button>
+                            <button class="eye-btn" onclick="DrawersManager.Login.togglePass()" type="button"><i class="bi bi-eye"></i></button>
                         </div>
                     </div>
 
@@ -158,7 +150,7 @@ export const DrawersManager = {
 
             if (!userInput || !passInput) return showErr("Ingrese credenciales completas");
 
-            // Buscar en el catálogo
+            // Buscar coincidencia en catalogo
             const user = DrawersManager.catalog.find(u => 
                 u.username === userInput || 
                 u.email === userInput || 
@@ -166,64 +158,54 @@ export const DrawersManager = {
             );
 
             if (user && user.password === passInput) {
-                // EXITO: Cargar configuración completa
                 try {
                     log(`Credenciales válidas. Cargando perfil de ${user.name}...`);
                     
-                    // Si es usuario local recién creado, config_path es simbólico, cargamos de localStorage
                     let fullProfile = null;
                     
                     if (user.config_path.startsWith('local/')) {
                         fullProfile = JSON.parse(localStorage.getItem(`CIMA_USER_CONFIG_${user.id}`));
                     } else {
-                        // Usuario del sistema (fetch JSON real)
                         const res = await fetch(user.config_path);
                         fullProfile = await res.json();
                     }
 
                     if (!fullProfile) throw new Error("Perfil corrupto o no encontrado");
 
-                    // Setear Estado Global
                     STATE.currentUser = fullProfile;
 
-                    // Guardar en Recientes
                     this.addToRecents({
                         username: user.username,
                         name: user.name,
                         avatar: fullProfile.assets?.avatar_path || user.avatar
                     });
 
-                    // Finalizar
                     document.getElementById('loginDrawer').classList.remove('open');
                     document.dispatchEvent(new CustomEvent('login-success'));
                     if(window.finishLogin) window.finishLogin();
 
                 } catch (err) {
                     console.error(err);
-                    showErr("Error cargando perfil del usuario: " + err.message);
+                    showErr("Error cargando perfil: " + err.message);
                 }
             } else {
                 showErr("Usuario o contraseña incorrectos");
                 document.getElementById('login-pass').value = '';
-                document.querySelector('.login-form').classList.add('shake');
-                setTimeout(()=>document.querySelector('.login-form').classList.remove('shake'), 500);
             }
         },
 
         addToRecents(userObj) {
             try {
                 let recents = JSON.parse(localStorage.getItem('CIMA_RECENT_USERS') || '[]');
-                // Filtrar si ya existe para ponerlo de primero
                 recents = recents.filter(u => u.username !== userObj.username);
                 recents.unshift(userObj);
-                // Mantener solo 3
                 if (recents.length > 3) recents.pop();
                 localStorage.setItem('CIMA_RECENT_USERS', JSON.stringify(recents));
             } catch(e) {}
         }
     },
 
-    // --- RENDERIZADOR COMPARTIDO DE FORMULARIOS ---
+    // --- RENDERIZADOR COMPARTIDO (Gemelos) ---
     renderSharedForm(user = null, isNew = false) {
         const u = user || { 
             profile: { contact: {} }, professional: {}, institution: {}, commercial: { schedule: {} }, preferences: {}, assets: {}, security: {} 
@@ -241,10 +223,10 @@ export const DrawersManager = {
 
         <div id="tab-perfil-${px}" class="config-tab-content active">
             <div class="form-section">
-                <div class="form-section-title"><i class="bi bi-shield-lock"></i> Cuenta</div>
+                <div class="form-section-title"><i class="bi bi-shield-lock"></i> Cuenta y Acceso</div>
                 <div class="form-grid">
-                    <div class="span-2"><label class="form-label">Usuario</label><input id="${px}username" class="form-input" value="${p.username||''}" ${!isNew ? 'readonly style="opacity:0.7"' : ''}></div>
-                    <div class="span-2"><label class="form-label">Contraseña</label><input id="${px}password" type="password" class="form-input" value="${p.password||''}"></div>
+                    <div class="span-2"><label class="form-label">Usuario (Login)</label><input id="${px}username" class="form-input" value="${p.username||''}" ${!isNew ? 'readonly style="opacity:0.7"' : ''}></div>
+                    <div class="span-2"><label class="form-label">Contraseña</label><input id="${px}password" type="text" class="form-input" value="${p.password||''}"></div>
                     <div class="span-2"><label class="form-label">Rol</label>
                         <select id="${px}role" class="form-select">
                             <option value="doctor" ${p.role==='doctor'?'selected':''}>Médico</option>
@@ -252,16 +234,26 @@ export const DrawersManager = {
                             <option value="admin" ${p.role==='admin'?'selected':''}>Admin</option>
                         </select>
                     </div>
+                     <div class="span-2"><label class="form-label">ID Sistema</label><input id="${px}id" class="form-input" value="${p.id||''}" readonly style="opacity:0.5"></div>
                 </div>
             </div>
+
             <div class="form-section">
                 <div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div>
                 <div class="form-grid">
                     <div class="span-1"><label class="form-label">Título</label><input id="${px}title" class="form-input" value="${p.title||''}"></div>
-                    <div class="span-1"><label class="form-label">Nombre</label><input id="${px}firstname" class="form-input" value="${p.firstname||''}"></div>
-                    <div class="span-2"><label class="form-label">Apellido</label><input id="${px}lastname" class="form-input" value="${p.lastname||''}"></div>
-                    <div class="span-2"><label class="form-label">Email</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
-                    <div class="span-2"><label class="form-label">Teléfono</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
+                    <div class="span-1"><label class="form-label">1er Nombre</label><input id="${px}firstname" class="form-input" value="${p.firstname||''}"></div>
+                    <div class="span-1"><label class="form-label">2do Nombre</label><input id="${px}secondname" class="form-input" value="${p.secondname||''}"></div>
+                    <div class="span-1"><label class="form-label">1er Apellido</label><input id="${px}lastname" class="form-input" value="${p.lastname||''}"></div>
+                    <div class="span-1"><label class="form-label">2do Apellido</label><input id="${px}secondlastname" class="form-input" value="${p.secondlastname||''}"></div>
+                    <div class="span-1"><label class="form-label">Tipo Sangre</label><input id="${px}bloodtype" class="form-input" value="${p.bloodtype||''}"></div>
+                    <div class="span-2"><label class="form-label">Ubicación</label><input id="${px}location" class="form-input" value="${p.location||''}"></div>
+                    
+                    <div class="span-2"><label class="form-label">Email Principal</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
+                    <div class="span-2"><label class="form-label">Teléfono Móvil</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
+                    <div class="span-2"><label class="form-label">Email Secundario</label><input id="${px}email2" class="form-input" value="${p.contact?.email2||''}"></div>
+                    <div class="span-2"><label class="form-label">Teléfono Fijo</label><input id="${px}phone2" class="form-input" value="${p.contact?.phone2||''}"></div>
+                    <div class="span-4"><label class="form-label">Instagram</label><input id="${px}instagram" class="form-input" value="${p.contact?.instagram||''}"></div>
                 </div>
             </div>
         </div>
@@ -270,18 +262,25 @@ export const DrawersManager = {
             <div class="form-section">
                 <div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Profesionales</div>
                 <div class="form-grid">
-                    <div class="span-4"><label class="form-label">Especialidad</label><input id="${px}specialty" class="form-input" value="${u.professional?.specialty||''}"></div>
-                    <div class="span-2"><label class="form-label">Matrícula</label><input id="${px}license" class="form-input" value="${u.professional?.license_number||''}"></div>
-                    <div class="span-2"><label class="form-label">Colegio</label><input id="${px}college" class="form-input" value="${u.professional?.college||''}"></div>
-                    <div class="span-4"><label class="form-label">Firma (Texto)</label><input id="${px}siglabel" class="form-input" value="${u.professional?.signature_label||''}"></div>
+                    <div class="span-4"><label class="form-label">Especialidad (Línea 1)</label><input id="${px}specialty" class="form-input" value="${u.professional?.specialty||''}"></div>
+                    <div class="span-4"><label class="form-label">Subtítulo (Línea 2)</label><input id="${px}title2" class="form-input" value="${p.title_line_2||''}"></div>
+                    <div class="span-2"><label class="form-label">Matrícula (MPPS)</label><input id="${px}license" class="form-input" value="${u.professional?.license_number||''}"></div>
+                    <div class="span-2"><label class="form-label">Colegio (CMM)</label><input id="${px}college" class="form-input" value="${u.professional?.college||''}"></div>
+                    <div class="span-4"><label class="form-label">Texto Pie de Página Legal</label><input id="${px}legal" class="form-input" value="${u.professional?.legal_footer||''}"></div>
+                    <div class="span-4"><label class="form-label">Etiqueta Firma</label><input id="${px}siglabel" class="form-input" value="${u.professional?.signature_label||''}"></div>
                 </div>
             </div>
+
             <div class="form-section">
-                <div class="form-section-title"><i class="bi bi-building"></i> Consultorio</div>
+                <div class="form-section-title"><i class="bi bi-building"></i> Consultorio y Comercial</div>
                 <div class="form-grid">
-                    <div class="span-4"><label class="form-label">Dirección</label><input id="${px}inst_addr" class="form-input" value="${u.institution?.address||''}"></div>
-                    <div class="span-2"><label class="form-label">Honorarios</label><input id="${px}fee" type="number" class="form-input" value="${c.consultation_fee||0}"></div>
-                    <div class="span-2"><label class="form-label">Moneda</label><input id="${px}currency" class="form-input" value="${c.currency||'USD'}"></div>
+                    <div class="span-2"><label class="form-label">Institución</label><input id="${px}inst_name" class="form-input" value="${u.institution?.name||''}"></div>
+                    <div class="span-2"><label class="form-label">Servicio</label><input id="${px}inst_service" class="form-input" value="${u.institution?.service||''}"></div>
+                    <div class="span-4"><label class="form-label">Dirección Fiscal</label><input id="${px}inst_addr" class="form-input" value="${u.institution?.address||''}"></div>
+                    
+                    <div class="span-1"><label class="form-label">Moneda</label><input id="${px}currency" class="form-input" value="${c.currency||'USD'}"></div>
+                    <div class="span-1"><label class="form-label">Honorarios</label><input id="${px}fee" type="number" class="form-input" value="${c.consultation_fee||0}"></div>
+                    <div class="span-2"><label class="form-label">Métodos Pago</label><input id="${px}pay" class="form-input" value="${c.payment_infos||''}" placeholder="Zelle, Efectivo..."></div>
                 </div>
             </div>
         </div>
@@ -290,10 +289,31 @@ export const DrawersManager = {
             <div class="form-section">
                 <div class="form-section-title"><i class="bi bi-images"></i> Gráficos</div>
                 ${this.renderUploader('Avatar', `${px}avatar`, u.assets?.avatar_path)}
-                ${this.renderUploader('Firma', `${px}signature`, u.assets?.signature_path)}
-                ${this.renderUploader('Sello', `${px}stamp`, u.assets?.stamp_path)}
-                ${this.renderUploader('Header', `${px}header`, u.assets?.header_path)}
-                ${this.renderUploader('Footer', `${px}footer`, u.assets?.footer_path)}
+                ${this.renderUploader('Encabezado (Header)', `${px}header`, u.assets?.header_path)}
+                ${this.renderUploader('Pie de Página (Footer)', `${px}footer`, u.assets?.footer_path)}
+                ${this.renderUploader('Firma Digital', `${px}signature`, u.assets?.signature_path)}
+                ${this.renderUploader('Sello Húmedo', `${px}stamp`, u.assets?.stamp_path)}
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-sliders"></i> Sistema</div>
+                <div class="form-grid">
+                    <div class="span-2"><label class="form-label">Tema Visual</label>
+                         <select id="${px}theme" class="form-select">
+                            <option value="glass" ${u.preferences?.theme==='glass'?'selected':''}>Glass (Default)</option>
+                            <option value="liquid" ${u.preferences?.theme==='liquid'?'selected':''}>Liquid</option>
+                            <option value="light" ${u.preferences?.theme==='light'?'selected':''}>Light</option>
+                         </select>
+                    </div>
+                    <div class="span-2"><label class="form-label">Color Primario</label><input type="color" id="${px}color" class="form-input" value="${u.preferences?.primary_color||'#0ea5e9'}"></div>
+                    <div class="span-2"><label class="form-label">Modelo Default</label>
+                        <select id="${px}model" class="form-select">
+                            <option value="ORL-001" ${u.preferences?.default_model==='ORL-001'?'selected':''}>ORL-001</option>
+                            <option value="GEN-001" ${u.preferences?.default_model==='GEN-001'?'selected':''}>GEN-001</option>
+                        </select>
+                    </div>
+                    <div class="span-2"><label class="form-label">Auto-Lock (min)</label><input type="number" id="${px}autolock" class="form-input" value="${u.security?.auto_lock_minutes||15}"></div>
+                </div>
             </div>
         </div>
 
@@ -301,13 +321,15 @@ export const DrawersManager = {
             <button class="icon-btn" onclick="DrawersManager.${isNew ? 'UserCreator.save' : 'Config.save'}('${isNew ? '' : u.profile.id}')" style="width:100%; background:#10b981; color:white; height:45px; font-size:1rem;">
                 <i class="bi bi-check-lg"></i> ${isNew ? 'CREAR USUARIO' : 'GUARDAR CAMBIOS'}
             </button>
-        </div>`;
+        </div>
+        `;
     },
 
     switchTab(btn, targetId) {
         const parent = btn.closest('.config-tabs').parentElement;
         parent.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
         parent.querySelector('#'+targetId).classList.add('active');
+        
         btn.parentElement.querySelectorAll('.config-tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     },
@@ -316,7 +338,9 @@ export const DrawersManager = {
         const src = path && path.length > 20 ? path : '';
         return `
         <div class="asset-uploader">
-            <div class="asset-preview" id="prev-${key}">${src ? `<img src="${src}">` : '<i class="bi bi-image"></i>'}</div>
+            <div class="asset-preview" id="prev-${key}">
+                ${src ? `<img src="${src}">` : '<i class="bi bi-image"></i>'}
+            </div>
             <div class="asset-info">
                 <span class="asset-label">${lbl}</span>
                 <input type="file" id="in-${key}" accept="image/*" style="width:100%" onchange="DrawersManager.handleImageUpload(this, '${key}')">
@@ -351,7 +375,54 @@ export const DrawersManager = {
             localStorage.setItem(`CIMA_USER_CONFIG_${u.profile.id}`, JSON.stringify(u));
             flash("Perfil actualizado");
             setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 500);
-            if(window.DrawersManager.renderToolbar) window.DrawersManager.renderToolbar();
+            if(window.initToolbarEvents) window.initToolbarEvents();
+        },
+        _collectData(u, px) {
+             u.profile.username = $(`#${px}username`).value;
+             u.profile.password = $(`#${px}password`).value;
+             u.profile.role = $(`#${px}role`).value;
+             u.profile.title = $(`#${px}title`).value;
+             u.profile.firstname = $(`#${px}firstname`).value;
+             u.profile.secondname = $(`#${px}secondname`).value;
+             u.profile.lastname = $(`#${px}lastname`).value;
+             u.profile.secondlastname = $(`#${px}secondlastname`).value;
+             u.profile.bloodtype = $(`#${px}bloodtype`).value;
+             u.profile.location = $(`#${px}location`).value;
+             u.profile.contact.email = $(`#${px}email`).value;
+             u.profile.contact.phone = $(`#${px}phone`).value;
+             u.profile.contact.email2 = $(`#${px}email2`).value;
+             u.profile.contact.phone2 = $(`#${px}phone2`).value;
+             u.profile.contact.instagram = $(`#${px}instagram`).value;
+
+             u.professional.specialty = $(`#${px}specialty`).value;
+             u.profile.title_line_2 = $(`#${px}title2`).value;
+             u.professional.license_number = $(`#${px}license`).value;
+             u.professional.college = $(`#${px}college`).value;
+             u.professional.signature_label = $(`#${px}siglabel`).value;
+             u.professional.legal_footer = $(`#${px}legal`).value;
+
+             u.institution.name = $(`#${px}inst_name`).value;
+             u.institution.service = $(`#${px}inst_service`).value;
+             u.institution.address = $(`#${px}inst_addr`).value;
+
+             if(!u.commercial) u.commercial = {};
+             u.commercial.currency = $(`#${px}currency`).value;
+             u.commercial.consultation_fee = $(`#${px}fee`).value;
+             u.commercial.payment_infos = $(`#${px}pay`).value;
+
+             u.preferences.theme = $(`#${px}theme`).value;
+             u.preferences.primary_color = $(`#${px}color`).value;
+             u.preferences.default_model = $(`#${px}model`).value;
+             u.security.auto_lock_minutes = $(`#${px}autolock`).value;
+
+             ['avatar','header','footer','signature','stamp'].forEach(k => {
+                 const temp = localStorage.getItem(`TEMP_IMG_${px}${k}`);
+                 if(temp) {
+                     u.assets[`${k}_path`] = temp;
+                     localStorage.setItem(`CIMA_IMG_${u.profile.id}_${k}`, temp);
+                     localStorage.removeItem(`TEMP_IMG_${px}${k}`);
+                 }
+             });
         }
     },
 
@@ -362,7 +433,6 @@ export const DrawersManager = {
             if(container) {
                 let nextId = 3;
                 try {
-                     // Calcular ID basado en el catálogo en memoria (que incluye locales)
                      DrawersManager.catalog.forEach(x => {
                          const n = parseInt(x.id.replace('u',''));
                          if(n >= nextId) nextId = n + 1;
@@ -379,34 +449,18 @@ export const DrawersManager = {
         },
         save() {
             const px = 'new-';
+            const id = $(`#${px}id`).value;
             const username = $(`#${px}username`).value;
-            const password = $(`#${px}password`).value;
-            const firstname = $(`#${px}firstname`).value;
-
-            if(!username || !password || !firstname) return showErr("Usuario, contraseña y nombre son obligatorios");
-
-            // Crear ID (calculado de nuevo por seguridad)
-            let nextId = 3;
-            DrawersManager.catalog.forEach(x => { const n = parseInt(x.id.replace('u','')); if(n >= nextId) nextId = n + 1; });
-            const id = 'u' + String(nextId).padStart(3,'0');
+            if(!username) return showErr("El usuario es obligatorio");
 
             const newUser = { 
-                id: id,
-                active: true,
-                config_path: `local/user_${id}.json`, 
-                profile: { id: id, contact: {} }, 
-                professional: {}, institution: {}, commercial: {}, preferences: { theme: 'glass', default_model: 'ORL-001' }, assets: {}, security: {} 
+                id: id, active: true, config_path: `local/user_${id}.json`, 
+                profile: { id: id, contact: {} }, professional: {}, institution: {}, commercial: {}, preferences: { theme: 'glass', default_model: 'ORL-001' }, assets: {}, security: {} 
             };
+            DrawersManager.Config._collectData(newUser, px);
 
-            DrawersManager._collectData(newUser, px);
-
-            // 1. Guardar Config Completa
-            localStorage.setItem(`CIMA_USER_CONFIG_${id}`, JSON.stringify(newUser));
-
-            // 2. Actualizar Catálogo Local (Credenciales)
             const entry = {
-                id: id,
-                username: newUser.profile.username,
+                id: id, username: newUser.profile.username,
                 password: newUser.profile.password,
                 name: `${newUser.profile.firstname} ${newUser.profile.lastname || ''}`,
                 role: newUser.profile.role,
@@ -417,8 +471,7 @@ export const DrawersManager = {
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB')||'[]');
             localDB.push(entry);
             localStorage.setItem('CIMA_USERS_DB', JSON.stringify(localDB));
-
-            // 3. Recargar Memoria
+            localStorage.setItem(`CIMA_USER_CONFIG_${id}`, JSON.stringify(newUser));
             DrawersManager.catalog.push(entry);
 
             flash(`Usuario ${username} creado`);
@@ -426,47 +479,6 @@ export const DrawersManager = {
         }
     },
 
-    // Helper para recolectar datos del formulario
-    _collectData(u, px) {
-         u.profile.username = $(`#${px}username`).value;
-         u.profile.password = $(`#${px}password`).value;
-         u.profile.role = $(`#${px}role`).value;
-         u.profile.title = $(`#${px}title`).value;
-         u.profile.firstname = $(`#${px}firstname`).value;
-         u.profile.secondname = $(`#${px}secondname`).value;
-         u.profile.lastname = $(`#${px}lastname`).value;
-         u.profile.secondlastname = $(`#${px}secondlastname`).value;
-         u.profile.bloodtype = $(`#${px}bloodtype`).value;
-         u.profile.location = $(`#${px}location`).value;
-         u.profile.contact.email = $(`#${px}email`).value;
-         u.profile.contact.phone = $(`#${px}phone`).value;
-         u.profile.contact.email2 = $(`#${px}email2`).value;
-         u.profile.contact.phone2 = $(`#${px}phone2`).value;
-         u.profile.contact.instagram = $(`#${px}instagram`).value;
-
-         u.professional.specialty = $(`#${px}specialty`).value;
-         u.professional.license_number = $(`#${px}license`).value;
-         u.professional.college = $(`#${px}college`).value;
-         u.professional.signature_label = $(`#${px}siglabel`).value;
-
-         u.institution.address = $(`#${px}inst_addr`).value;
-         
-         if(!u.commercial) u.commercial = {};
-         u.commercial.currency = $(`#${px}currency`).value;
-         u.commercial.consultation_fee = $(`#${px}fee`).value;
-
-         // Guardar imágenes
-         ['avatar','header','footer','signature','stamp'].forEach(k => {
-             const temp = localStorage.getItem(`TEMP_IMG_${px}${k}`);
-             if(temp) {
-                 u.assets[`${k}_path`] = temp;
-                 localStorage.setItem(`CIMA_IMG_${u.profile.id}_${k}`, temp);
-                 localStorage.removeItem(`TEMP_IMG_${px}${k}`);
-             }
-         });
-    },
-
-    // --- MODULO EXPORT (Se mantiene igual) ---
     Export: {
         open() {
             const content = document.getElementById('export-content');
