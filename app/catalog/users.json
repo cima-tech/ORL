@@ -1,22 +1,22 @@
 [
   {
     "id": "u001",
-    "username": "tudraorl",
-    "name": "Valentina González",
-    "role": "doctor",
-    "title": "Dra.",
-    "specialty": "Otorrinolaringologia",
-    "avatar": "app/user/u001/layout/avatar.png",
-    "config_path": "app/user/u001/user.json"
+    "username": "tudraorl",  // Necesario para buscar al escribir
+    "email": "tudraorl@gmail.com", // Necesario para buscar por email
+    "doc_id": "V-16815618", // Necesario para buscar por cédula
+    "password_hash": "astroyluna", // (En realidad debería ser hash, pero por ahora texto plano)
+    "name": "Valentina González", // Para mostrar el saludo
+    "avatar": "app/user/u001/layout/avatar.png", // Para mostrar en "Recientes"
+    "config_path": "app/user/u001/user.json" // La llave al resto de datos
   },
   {
     "id": "u002",
-    "username": "migueldaza",
-    "name": "Miguel Daza",
-    "role": "doctor",
-    "title": "Dr.",
-    "specialty": "Medicina General",
-    "avatar": "app/user/u002/layout/avatar.png",
-    "config_path": "app/user/u002/user.json"
+    "username": "joeycanache",  // Necesario para buscar al escribir
+    "email": "canachejoey@hotmail.com", // Necesario para buscar por email
+    "doc_id": "V-20684604", // Necesario para buscar por cédula
+    "password_hash": "123456", // (En realidad debería ser hash, pero por ahora texto plano)
+    "name": "Joey Canache", // Para mostrar el saludo
+    "avatar": "app/user/u002/layout/avatar.png", // Para mostrar en "Recientes"
+    "config_path": "app/user/u002/user.json" // La llave al resto de datos
   }
 ]
