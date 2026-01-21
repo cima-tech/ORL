@@ -17,7 +17,7 @@ export const StartManager = {
         // Inicializar DrawersManager (Inyección HTML)
         DrawersManager.init();
 
-        // Cargar usuarios HYBRIDA (JSON + LocalStorage)
+        // Cargar usuarios HÍBRIDA (JSON + LocalStorage)
         try {
             // 1. Fetch original
             const response = await fetch('./app/catalog/users.json');
@@ -26,10 +26,9 @@ export const StartManager = {
             // 2. Fetch local
             const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
             
-            // 3. Fusionar (Prioridad a LocalStorage si hay conflicto por id/username, aqui solo concatenamos)
+            // 3. Fusionar
             const mergedUsers = [...originalUsers, ...localDB];
             
-            // Renderizar lista
             DrawersManager.Login.renderList(mergedUsers);
         } catch (e) { 
             console.error(e); 
@@ -47,35 +46,79 @@ export const StartManager = {
         document.addEventListener('login-success', finishLogin);
     },
 
-    refreshUserList() {
-        // Refresca lista login (Solo lectura y lógica de re-renderizado)
-        if (typeof window.DrawersManager !== 'undefined') {
-            try {
-                const response = await fetch('./app/catalog/users.json');
-                const originalUsers = await response.json();
-                const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-                const mergedUsers = [...originalUsers, ...localDB];
-                DrawersManager.Login.renderList(mergedUsers);
-            } catch(e) { console.error(e); }
-        }
+    async refreshUserList() {
+        try {
+            const response = await fetch('./app/catalog/users.json');
+            const originalUsers = await response.json();
+            const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
+            const mergedUsers = [...originalUsers, ...localDB];
+            DrawersManager.Login.renderList(mergedUsers);
+        } catch(e) { console.error(e); }
     }
 };
+
+// --- LOGICA DE LOGIN Y CARGA ---
 
 async function selectUser(id, configPath) {
     document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
     
-    // Delegar carga de usuario a DrawersManager
-    DrawersManager.Login.selectUser(id, configPath);
+    // Cargar config local si existe (prioridad) o del JSON
+    const localConfig = localStorage.getItem(`CIMA_USER_CONFIG_${id}`);
+    
+    if(localConfig) { 
+        try { 
+            STATE.currentUser = JSON.parse(localConfig); 
+            log("Config local cargada para " + id); 
+        } catch(e) { 
+            // Si falla el parseo local, intentamos cargar del archivo
+            await loadUserConfig(configPath).then(() => {
+                 console.log("Config fallback cargada");
+            }); 
+        }
+    } else { 
+        await loadUserConfig(configPath).then(() => {
+             // Config cargada desde archivo
+        }); 
+    }
+
+    // Verificar si el perfil cargado tiene contraseña
+    const pwd = STATE.currentUser?.profile?.password;
+
+    if (pwd) { 
+        const area = document.getElementById(`pwd-area-${id}`); 
+        if(area) {
+            area.classList.remove('hidden'); 
+            const input = document.getElementById(`pwd-input-${id}`);
+            if(input) input.focus();
+        }
+    } else { 
+        // Si no tiene password, login directo
+        window.dispatchEvent(new CustomEvent('login-success'));
+    }
 }
 
 function verifyPassword(id) {
-    // Delegar verificación a DrawersManager
-    DrawersManager.Login.verifyPassword(id);
+    const input = document.getElementById(`pwd-input-${id}`);
+    const actual = STATE.currentUser?.profile?.password;
+    
+    if (input && actual && input.value === actual) { 
+        // Correcto
+        window.dispatchEvent(new CustomEvent('login-success'));
+    } else { 
+        if(input) {
+            input.style.borderColor = "#ef4444"; 
+            input.classList.add('shake');
+            log("Contraseña incorrecta", true);
+            setTimeout(() => { input.style.borderColor = ""; input.classList.remove('shake'); }, 500);
+        } else {
+            log("Error: Input no encontrado");
+        }
+    }
 }
 
 async function finishLogin() {
     const loginDrawer = document.getElementById('loginDrawer');
-    loginDrawer.classList.remove('open');
+    if(loginDrawer) loginDrawer.classList.remove('open');
     
     try {
         log("Cargando módulos...");
@@ -85,6 +128,8 @@ async function finishLogin() {
         initToolbarEvents();
         
         const PatientService = ServiceLoader.get('patient');
+        
+        // Exponer utilidades globales
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
 
@@ -101,7 +146,9 @@ async function finishLogin() {
 
         setTimeout(() => {
             PatientService.toggleConditionalFields();
-            log(`Bienvenido/a ${STATE.currentUser.profile.firstname}`);
+            if(STATE.currentUser?.profile?.firstname) {
+                log(`Bienvenido/a ${STATE.currentUser.profile.firstname}`);
+            }
         }, 300);
     } catch (e) { 
         console.error(e); 
@@ -111,12 +158,30 @@ async function finishLogin() {
 
 function handleVisitClicks(e) {
     const btn = e.target.closest('.visit-toggle-btn');
-    if(btn) { btn.closest('.visit-card').querySelector('.visit-body').classList.toggle('hidden'); const i = btn.querySelector('i'); i.classList.toggle('bi-chevron-right'); i.classList.toggle('bi-chevron-down'); }
+    if(btn) { 
+        const body = btn.closest('.visit-card').querySelector('.visit-body');
+        body.classList.toggle('hidden'); 
+        const i = btn.querySelector('i'); 
+        if (body.classList.contains('hidden')) {
+            i.className = 'bi bi-chevron-right';
+        } else {
+            i.className = 'bi bi-chevron-down';
+        }
+    }
     if(e.target.classList.contains('chip')) e.target.classList.toggle('active');
-    if(e.target.closest('.btn-inf')) window.openDocGlobal('INF', e.target.closest('.visit-card').id);
-    if(e.target.closest('.btn-rp')) window.openDocGlobal('RP', e.target.closest('.visit-card').id);
+    
+    // Delegación para botones de informe y récipe
+    if(e.target.closest('.btn-inf')) {
+        const card = e.target.closest('.visit-card');
+        if(card) window.openDocGlobal('INF', card.id);
+    }
+    if(e.target.closest('.btn-rp')) {
+        const card = e.target.closest('.visit-card');
+        if(card) window.openDocGlobal('RP', card.id);
+    }
 }
 
+// Exponer funciones necesarias al objeto window
 window.selectUser = selectUser;
 window.verifyPassword = verifyPassword;
 window.refreshUserList = () => StartManager.refreshUserList();
