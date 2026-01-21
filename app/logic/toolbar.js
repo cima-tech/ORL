@@ -235,6 +235,20 @@ function bindEvents() {
             resetStory(); renderToolbar(); log("Sesión cerrada");
         }
     });
+
+    // PARCHE TEMPORAL: Exportación simple hasta Fase 2
+    document.getElementById('btnOpenExport')?.addEventListener('click', async () => {
+        try {
+            const element = document.querySelector('.doc-page');
+            if(!element || typeof html2canvas === 'undefined') return alert('Error al exportar');
+            
+            const canvas = await html2canvas(element, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+            const link = document.createElement('a');
+            link.download = `CIMA_DOC_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch(e) { console.error(e); }
+    });
 }
 
 function handleAddConsulta() {
@@ -275,16 +289,19 @@ function rotateTheme() {
     log(`Tema: ${nextTheme}`);
 }
 
-// Función inicializadora
 export function initToolbarEvents() { renderToolbar(); }
 
-// Función Global para abrir documentos (accesible desde cualquier módulo)
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId); 
     if(!card || STATE.currentUser.profile.id === "guest") return;
     STATE.currentPreviewCard = card; 
     STATE.currentPreviewDoc = kind; 
     STATE.UI.isPreviewMode = true;
-    document.getElementById('docPreview').innerHTML = kind === 'INF' ? ServiceLoader.get('informe').buildReportHTML(card) : ServiceLoader.get('recipe').buildRecipeHTML(card);
+    
+    // CAMBIO IMPORTANTE: Usar el módulo 'documents' unificado
+    const docModule = ServiceLoader.get('documents');
+    const html = kind === 'INF' ? docModule.buildReportHTML(card) : docModule.buildRecipeHTML(card);
+    
+    document.getElementById('docPreview').innerHTML = html;
     renderToolbar();
 };
