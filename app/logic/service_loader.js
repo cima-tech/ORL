@@ -3,9 +3,8 @@ import { STATE, showErr } from 'brain';
 const LOADED_MODULES = { 
     patient: null, 
     consult: null, 
-    informe: null, 
-    recipe: null, 
-    export: null 
+    documents: null, // Módulo unificado de documentos
+    // export: null // (Eliminado, ahora es global)
 };
 
 export const ServiceLoader = {
@@ -25,19 +24,17 @@ export const ServiceLoader = {
             const basePath = new URL(modelConfig.path, document.baseURI).href;
             console.log(`[Loader] Importando desde: ${basePath}`);
 
-            const [modPatient, modConsult, modInforme, modRecipe, modExport] = await Promise.all([
+            // Carga simplificada: Un solo archivo para documentos
+            const [modPatient, modConsult, modDocs] = await Promise.all([
                 import(`${basePath}/patient.js`),
                 import(`${basePath}/consult.js`),
-                import(`${basePath}/informe.js`),
-                import(`${basePath}/recipe-indicaciones.js`),
-                import(`${basePath}/export.js`)
+                import(`${basePath}/documents.js`)
             ]);
 
             LOADED_MODULES.patient = modPatient;
             LOADED_MODULES.consult = modConsult;
-            LOADED_MODULES.informe = modInforme;
-            LOADED_MODULES.recipe = modRecipe;
-            LOADED_MODULES.export = modExport;
+            LOADED_MODULES.documents = modDocs;
+            
             return true;
         } catch (e) {
             console.error(e);
