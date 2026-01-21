@@ -130,6 +130,7 @@ export function renderToolbar() {
     const form = document.getElementById('patientForm');
     const visits = document.getElementById('visitsContainer');
 
+    // Lógica de visibilidad
     if (STATE.UI.isPreviewMode && STATE.currentUser.profile.id !== "guest") {
         previewShell.classList.remove('hidden');
         form.classList.add('hidden');
@@ -170,6 +171,7 @@ function bindEvents() {
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
+    // Eventos de botones
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
     document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
     
@@ -273,8 +275,10 @@ function rotateTheme() {
     log(`Tema: ${nextTheme}`);
 }
 
+// Función inicializadora
 export function initToolbarEvents() { renderToolbar(); }
 
+// Función Global para abrir documentos (accesible desde cualquier módulo)
 window.openDocGlobal = function(kind, cardId) {
     const card = document.getElementById(cardId); 
     if(!card || STATE.currentUser.profile.id === "guest") return;
