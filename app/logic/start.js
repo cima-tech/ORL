@@ -45,20 +45,24 @@ export const StartManager = {
         document.addEventListener('login-success', finishLogin);
     },
 
+    // --- CORRECCIÓN AQUÍ: Se agregó 'async' antes del nombre de la función ---
     async refreshUserList() {
-        try {
-            const response = await fetch('./app/catalog/users.json');
-            const originalUsers = await response.json();
-            const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
-            const mergedUsers = [...originalUsers, ...localDB];
-            DrawersManager.Login.renderList(mergedUsers);
-        } catch(e) { console.error(e); }
+        // Refresca lista login (Solo lectura y lógica de re-renderizado)
+        if (typeof window.DrawersManager !== 'undefined') {
+            try {
+                const response = await fetch('./app/catalog/users.json');
+                const originalUsers = await response.json();
+                const localDB = JSON.parse(localStorage.getItem('CIMA_USERS_DB') || '[]');
+                const mergedUsers = [...originalUsers, ...localDB];
+                window.DrawersManager.Login.renderList(mergedUsers);
+            } catch(e) { console.error(e); }
+        }
     }
 };
 
 // --- FUNCIONES GLOBALES DE LOGIN ---
 
-// Esta función debe ser ASYNC para usar AWAIT dentro
+// Esta función también debe ser ASYNC para usar AWAIT dentro
 async function selectUser(id, configPath) {
     // Limpiar campos de contraseña previos
     document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
