@@ -85,7 +85,6 @@ export const DrawersManager = {
             list.innerHTML = users.map(u => {
                 const savedImg = localStorage.getItem(`CIMA_IMG_${u.id}_avatar`);
                 const hasImg = savedImg || (u.avatar && u.avatar !== "");
-                // Fix visual para avatar
                 const imgStyle = hasImg 
                     ? `background-image: url('${savedImg || u.avatar}'); background-size:cover;` 
                     : '';
@@ -117,15 +116,19 @@ export const DrawersManager = {
             document.querySelectorAll('.password-area').forEach(el => el.classList.add('hidden'));
             
             const localConfig = localStorage.getItem(`CIMA_USER_CONFIG_${id}`);
-            
+            let loaded = false;
+
             if(localConfig) { 
                 try { 
                     STATE.currentUser = JSON.parse(localConfig); 
                     log("Config local cargada: " + id); 
+                    loaded = true;
                 } catch(e) { 
-                    await loadUserConfig(configPath); 
+                    console.warn("JSON local corrupto, cargando remoto...");
                 } 
-            } else { 
+            }
+            
+            if (!loaded) {
                 await loadUserConfig(configPath); 
             }
 
@@ -138,18 +141,17 @@ export const DrawersManager = {
                     setTimeout(() => document.getElementById(`pwd-input-${id}`).focus(), 100);
                 }
             } else { 
-                // CORRECCIÓN: Usar document.dispatchEvent
-                document.dispatchEvent(new CustomEvent('login-success'));
+                // Login directo (sin password)
+                this.triggerSuccess();
             }
         },
         verifyPassword(id) {
             const input = document.getElementById(`pwd-input-${id}`);
+            // Asegurarnos de leer del STATE actual
             const actual = STATE.currentUser?.profile?.password;
             
             if (input && input.value === actual) {
-                document.getElementById('loginDrawer').classList.remove('open');
-                // CORRECCIÓN CRÍTICA: Usar document.dispatchEvent para que start.js lo escuche
-                document.dispatchEvent(new CustomEvent('login-success'));
+                this.triggerSuccess();
             } else {
                 if(input) {
                     input.style.borderColor = "#ef4444";
@@ -157,6 +159,21 @@ export const DrawersManager = {
                     log("Password incorrecto", true);
                     setTimeout(() => { input.style.borderColor = ""; input.classList.remove('shake'); }, 500);
                 }
+            }
+        },
+        triggerSuccess() {
+            console.log("--> Trigger Success Login");
+            document.getElementById('loginDrawer').classList.remove('open');
+            
+            // 1. Despachar evento
+            document.dispatchEvent(new CustomEvent('login-success'));
+            
+            // 2. FALLBACK DIRECTO: Si start.js expuso finishLogin, llamarla directamente
+            if (typeof window.finishLogin === 'function') {
+                console.log("--> Llamando a window.finishLogin() directamente (Fallback)");
+                window.finishLogin();
+            } else {
+                console.warn("--> window.finishLogin no encontrado, esperando listener de evento...");
             }
         }
     },
