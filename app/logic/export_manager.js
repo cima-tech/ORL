@@ -1,82 +1,77 @@
-import { showErr, flash, fmtDate, STATE, $ } from 'brain';
+import { showErr, flash, STATE, $ } from 'brain';
 
 export const ExportManager = {
     
-    async downloadAsPNG(htmlContent, filenamePrefix) {
-        if (!htmlContent) {
-            showErr('No hay contenido para exportar');
+    // Genera un PDF multipágina con los elementos HTML proporcionados
+    async generatePDF(docElements, filename) {
+        if (!docElements || docElements.length === 0) {
+            showErr('No hay documentos seleccionados');
             return;
         }
 
         try {
-            if (typeof html2canvas === 'undefined') throw new Error("Librería gráfica no cargada");
+            if (typeof window.jspdf === 'undefined') throw new Error("Librería PDF no cargada");
+            if (typeof html2canvas === 'undefined') throw new Error("Librería Canvas no cargada");
 
-            // Crear contenedor temporal invisible
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '0px';
-            document.body.appendChild(tempDiv);
-
-            // Esperar un momento para que carguen imágenes (si están en caché es rápido)
-            await new Promise(r => setTimeout(r, 100));
-
-            const docPage = tempDiv.querySelector('.doc-page');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'letter'); // Portrait, Puntos, Carta
             
-            const canvas = await html2canvas(docPage, {
-                scale: 2, // Alta calidad
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false
-            });
-
-            document.body.removeChild(tempDiv);
-
-            // Nombre de archivo
-            const patientId = $("#documento_numero")?.value || 'Paciente';
-            const today = new Date();
-            const ddmmyy = `${String(today.getDate()).padStart(2, '0')}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getFullYear()).slice(-2)}`;
-            const filename = `CIMA-${patientId}-${filenamePrefix}-${ddmmyy}.png`;
-
-            // Descargar
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+            // Recorrer cada documento seleccionado
+            for (let i = 0; i < docElements.length; i++) {
+                const htmlString = docElements[i];
                 
-                flash(`Descargado: ${filename}`);
-            }, 'image/png');
+                // Renderizar HTML en un contenedor temporal invisible
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlString;
+                tempDiv.style.width = '21.59cm'; // Ancho carta exacto
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                document.body.appendChild(tempDiv);
+                
+                const element = tempDiv.querySelector('.doc-page');
 
-        } catch (err) {
-            console.error(err);
-            showErr('Error al exportar: ' + err.message);
+                // Detectar orientación
+                const isLand = element.classList.contains('land');
+                
+                // Renderizar a Canvas
+                const canvas = await html2canvas(element, {
+                    scale: 2, // Calidad Alta
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                document.body.removeChild(tempDiv);
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                
+                // Dimensiones PDF (Letter: 612 x 792 pt)
+                const pdfW = isLand ? 792 : 612;
+                const pdfH = isLand ? 612 : 792;
+
+                // Agregar página (si no es la primera)
+                if (i > 0) pdf.addPage('letter', isLand ? 'l' : 'p');
+                else if (isLand) pdf.deletePage(1), pdf.addPage('letter', 'l'); // Ajustar primera si es landscape
+
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+            }
+
+            pdf.save(filename);
+            flash('PDF descargado correctamente');
+
+        } catch (e) {
+            console.error(e);
+            showErr('Error generando PDF: ' + e.message);
         }
     },
 
-    shareWhatsApp(cardId) {
-        const card = document.getElementById(cardId);
-        if (!card) return;
-        
-        const phone = $("#tel_principal")?.value || '';
-        const pNombre = $("#primer_nombre")?.value || 'Paciente';
-        const fecha = fmtDate(card.querySelector('.visit-date')?.value);
-        const drName = STATE.currentUser?.profile?.name || 'Su Doctor';
-
-        const mensaje = `Hola ${pNombre}, le envío los documentos de su consulta médica del día ${fecha}.\n\nAtte. ${drName}`;
-        
-        const phoneClean = phone.replace(/[^0-9]/g, '');
-        
-        if (phoneClean) {
-            const url = `https://wa.me/${phoneClean}?text=${encodeURIComponent(mensaje)}`;
-            window.open(url, '_blank');
-        } else {
-            showErr('El paciente no tiene número telefónico registrado');
+    // Comparte el texto vía WhatsApp
+    shareWhatsApp(phone, text) {
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        if (!cleanPhone) {
+            showErr('El paciente no tiene número válido');
+            return;
         }
+        const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
     }
 };
