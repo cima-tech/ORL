@@ -1,4 +1,5 @@
 import { $, STATE, log, flash, showErr, loadUserConfig } from 'brain';
+import { ExportManager } from 'export_manager';
 
 export const DrawersManager = {
     
@@ -42,7 +43,20 @@ export const DrawersManager = {
             document.body.insertAdjacentHTML('beforeend', html);
         }
 
-        // 4. Console Drawer
+        // 4. Drawer Exportación (NUEVO)
+        if (!document.getElementById('exportDrawer')) {
+            const html = `
+            <div id="exportDrawer" class="config-drawer">
+                <div class="drawer-header">
+                    <h3><i class="bi bi-share-fill"></i> Exportar</h3>
+                    <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="drawer-content" id="export-content" style="padding:20px;"></div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        // 5. Console Drawer
         if (!document.getElementById('consoleDrawer')) {
             const html = `
             <div id="consoleDrawer">
@@ -55,7 +69,7 @@ export const DrawersManager = {
             document.body.insertAdjacentHTML('beforeend', html);
         }
 
-        // Bindear cierres
+        // Bindear cierres globales
         document.querySelectorAll('.btn-close-drawer').forEach(btn => {
             btn.addEventListener('click', () => {
                 const drawer = btn.closest('.login-drawer, .config-drawer');
@@ -141,13 +155,11 @@ export const DrawersManager = {
                     setTimeout(() => document.getElementById(`pwd-input-${id}`).focus(), 100);
                 }
             } else { 
-                // Login directo (sin password)
                 this.triggerSuccess();
             }
         },
         verifyPassword(id) {
             const input = document.getElementById(`pwd-input-${id}`);
-            // Asegurarnos de leer del STATE actual
             const actual = STATE.currentUser?.profile?.password;
             
             if (input && input.value === actual) {
@@ -162,18 +174,11 @@ export const DrawersManager = {
             }
         },
         triggerSuccess() {
-            console.log("--> Trigger Success Login");
             document.getElementById('loginDrawer').classList.remove('open');
-            
-            // 1. Despachar evento
             document.dispatchEvent(new CustomEvent('login-success'));
             
-            // 2. FALLBACK DIRECTO: Si start.js expuso finishLogin, llamarla directamente
             if (typeof window.finishLogin === 'function') {
-                console.log("--> Llamando a window.finishLogin() directamente (Fallback)");
                 window.finishLogin();
-            } else {
-                console.warn("--> window.finishLogin no encontrado, esperando listener de evento...");
             }
         }
     },
@@ -376,6 +381,55 @@ export const DrawersManager = {
             flash("Usuario creado");
             document.getElementById('createUserDrawer').classList.remove('open');
             if(window.refreshUserList) window.refreshUserList();
+        }
+    },
+
+    // --- NUEVO MÓDULO EXPORTACIÓN ---
+    Export: {
+        open() {
+            const content = document.getElementById('export-content');
+            if(!content) return;
+            
+            // Render del contenido del Drawer
+            content.innerHTML = `
+            <div class="form-section">
+                <div class="form-section-title">Seleccionar Documentos</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="checkbox-group" style="padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                        <input type="checkbox" id="chk-informe" checked>
+                        <label for="chk-informe" style="font-size:1.1rem;">📄 Informe Médico</label>
+                    </div>
+                    <div class="checkbox-group" style="padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                        <input type="checkbox" id="chk-recipe" checked>
+                        <label for="chk-recipe" style="font-size:1.1rem;">💊 Récipe e Indicaciones</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section" style="margin-top:20px;">
+                <div class="form-section-title">Acciones</div>
+                <button class="btn btn-primary" onclick="DrawersManager.Export.download()" style="width:100%; justify-content:center; margin-bottom:10px; padding:12px;">
+                    <i class="bi bi-download"></i> Descargar (Imagen/PDF)
+                </button>
+                <button class="btn btn-success" onclick="DrawersManager.Export.share()" style="width:100%; justify-content:center; padding:12px;">
+                    <i class="bi bi-whatsapp"></i> Compartir WhatsApp
+                </button>
+            </div>
+            `;
+            
+            document.getElementById('exportDrawer').classList.add('open');
+        },
+        download() {
+            const inf = document.getElementById('chk-informe').checked;
+            const rec = document.getElementById('chk-recipe').checked;
+            
+            // Usar la tarjeta actual de consulta
+            const card = STATE.currentPreviewCard;
+            ExportManager.processExport(card, { informe: inf, recipe: rec });
+        },
+        share() {
+            const card = STATE.currentPreviewCard;
+            ExportManager.shareViaWhatsApp(card);
         }
     }
 };
