@@ -1,11 +1,11 @@
 import { $, STATE, log, flash, showErr } from 'brain';
-import { loadUserConfig } from './service_loader.js'; // Importamos directamente el service loader para evitar loops
+import { loadUserConfig } from './service_loader.js'; // Importamos directamente el service loader para evitar loops y errores críticos
 
 export const DrawersManager = {
     
-    // --- INICIALIZACIÓN ---
+    // --- INICIALIZACIÓN (Inyección de HTML) ---
     init() {
-        // 1. Inyectar Drawer de Login (Si no existe en index.html)
+        // 1. Inyectar Drawer de Login (Si no existe)
         if (!document.getElementById('loginDrawer')) {
             const loginHTML = `
             <div id="loginDrawer" class="login-drawer">
@@ -45,6 +45,7 @@ export const DrawersManager = {
         }
 
         // 4. Inyectar Drawer de Consola (System Log)
+        // Nota: Si ya existe en index.html, no lo rompemos, pero si el usuario lo borró por error, lo re-creamos.
         if (!document.getElementById('consoleDrawer')) {
             const consoleHTML = `
             <div id="consoleDrawer">
@@ -57,7 +58,7 @@ export const DrawersManager = {
             document.body.insertAdjacentHTML('beforeend', consoleHTML);
         }
 
-        // Bindear eventos globales de cierre para todos los drawers
+        // 5. Bindear eventos globales de cierre para todos los drawers
         document.querySelectorAll('.btn-close-drawer').forEach(btn => {
             btn.addEventListener('click', () => {
                 btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open');
@@ -124,9 +125,26 @@ export const DrawersManager = {
                 try { 
                     STATE.currentUser = JSON.parse(localConfig); 
                     log("Config local cargada para " + id); 
-                } catch(e) { loadUserConfig(configPath); } 
+                } catch(e) { 
+                    loadUserConfig(configPath).then(() => {
+                        // Si falla JSON, intentamos seguir...
+                    log("Intentando cargar JSON fallido...", true);
+                    alert("Error cargando configuración del archivo JSON. Se usará configuración local antigua si existe, o Guest.");
+                    if(!STATE.currentUser || STATE.currentUser.profile.id === "guest") {
+                        throw new Error("Fallo crítico: No se pudo cargar usuario.");
+                    }
+                }); 
             } else { 
-                loadUserConfig(configPath); 
+                loadUserConfig(configPath).then(() => {
+                     // Si falla JSON, intentamos seguir...
+                     log("Intentando cargar JSON fallido...", true);
+                }); 
+            }
+
+            // Chequear si el usuario se cargó correctamente antes de mostrar input de contraseña
+            if (!STATE.currentUser) {
+                alert("Error: No se pudo cargar la información del usuario.");
+                return;
             }
 
             const pwd = STATE.currentUser.profile.password;
@@ -134,8 +152,10 @@ export const DrawersManager = {
             if (pwd) { 
                 const area = document.getElementById(`pwd-area-${id}`); 
                 area.classList.remove('hidden'); 
-                document.getElementById(`pwd-input-${id}`).focus(); 
+                const input = document.getElementById(`pwd-input-${id}`);
+                if(input) input.focus();
             } else { 
+                // Sin contraseña -> Login automático
                 window.dispatchEvent(new CustomEvent('login-success'));
             }
         },
@@ -175,11 +195,11 @@ export const DrawersManager = {
 
             const html = `
             <div class="config-tabs">
-                <button class="config-tab-btn active" onclick="window.DrawersManager.Config.switchTab('perfil')">Perfil</button>
-                <button class="config-tab-btn" onclick="window.DrawersManager.Config.switchTab('prof')">Profesional</button>
-                <button class="config-tab-btn" onclick="window.DrawersManager.Config.switchTab('inst')">Institución</button>
-                <button class="config-tab-btn" onclick="window.DrawersManager.Config.switchTab('prefs')">Preferencias</button>
-                <button class="config-tab-btn" onclick="window.DrawersManager.Config.switchTab('assets')">Imágenes</button>
+                <button class="config-tab-btn active" onclick="DrawersManager.Config.switchTab('perfil')">Perfil</button>
+                <button class="config-tab-btn" onclick="DrawersManager.Config.switchTab('prof')">Profesional</button>
+                <button class="config-tabs-btn" onclick="DrawersManager.Config.switchTab('inst')">Institución</button>
+                <button class="config-tabs-btn" onclick="DrawersManager.Config.switchTab('prefs')">Preferencias</button>
+                <button class="config-tabs-btn" onclick="DrawersManager.Config.switchTab('assets')">Imágenes</button>
             </div>
             <div id="tab-perfil" class="config-tab-content active">
                 <div class="form-section"><div class="form-section-title"><i class="bi bi-person"></i> Datos Personales</div><div class="form-grid">
@@ -196,9 +216,9 @@ export const DrawersManager = {
                     <div class="span-2"><label class="form-label">Teléfono Secundario</label><input id="cfg-phone2" class="form-input" value="${p.contact?.phone2 || ''}"></div>
                     <div class="span-2"><label class="form-label">Email Principal</label><input id="cfg-email" class="form-input" value="${p.contact?.email || ''}"></div>
                     <div class="span-2"><label class="form-label">Email Alternativo</label><input id="cfg-email2" class="form-input" value="${p.contact?.email2 || ''}"></div>
+                    <div class="span-2"><label class="form-label">Instagram</label><input id="cfg-instagram" class="form-input" value="${p.contact?.instagram || ''}"></div>
                     <div class="span-4"><label class="form-label">Instagram</label><input id="cfg-instagram" class="form-input" value="${p.contact?.instagram || ''}"></div>
                 </div></div>
-            </div>
             <div id="tab-prof" class="config-tab-content">
                 <div class="form-section"><div class="form-section-title"><i class="bi bi-briefcase"></i> Datos Legales</div><div class="form-grid">
                     <div class="span-2"><label class="form-label">Especialidad (Línea 1)</label><input id="cfg-specialty" class="form-input" value="${prof.specialty || p.title_line_1 || ''}"></div>
@@ -208,7 +228,6 @@ export const DrawersManager = {
                     <div class="span-4"><label class="form-label">Etiqueta de Firma</label><input id="cfg-sig-label" class="form-input" value="${prof.signature_label || ''}"></div>
                     <div class="span-4"><label class="form-label">Pie de Página Legal</label><input id="cfg-legal-footer" class="form-input" value="${prof.legal_footer || ''}"></div>
                 </div></div>
-            </div>
             <div id="tab-inst" class="config-tab-content">
                 <div class="form-section"><div class="form-section-title"><i class="bi bi-hospital"></i> Datos Institucionales</div><div class="form-grid">
                     <div class="span-2"><label class="form-label">Nombre Institución</label><input id="cfg-inst-name" class="form-input" value="${inst.name || ''}"></div>
@@ -222,7 +241,6 @@ export const DrawersManager = {
                     <div class="span-2"><label class="form-label">Firma Digital por Defecto</label><select id="cfg-sig-default" class="form-select"><option value="true" ${prefs.use_digital_signature_default ? 'selected' : ''}>Sí</option><option value="false" ${!prefs.use_digital_signature_default ? 'selected' : ''}>No</option></select></div>
                     <div class="span-2"><label class="form-label">Auto-lock (min)</label><input type="number" id="cfg-autolock" class="form-input" value="${sec.auto_lock_minutes || 15}"></div>
                 </div></div>
-            </div>
             <div id="tab-assets" class="config-tab-content">
                 <div class="form-section"><div class="form-section-title"><i class="bi bi-images"></i> Imágenes</div>
                     ${this.renderAssetUploader('Avatar', 'avatar', assets.avatar_path)}
@@ -287,27 +305,15 @@ export const DrawersManager = {
                         localStorage.setItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`, base64);
                         user.assets[`${key}_path`] = base64;
                         document.getElementById(`preview-${key}`).innerHTML = `<img src="${base64}">`;
-                        
-                        if(key === 'avatar') {
-                            // Refrescar toolbar
-                            const toolbarEl = document.getElementById('ui-mount-point');
-                            if(toolbarEl) window.DrawersManager.renderToolbar(); // Render local para actualizar in caso de que toolbar.js no reciba evento
-                        }
+                        if(key === 'avatar') import('./toolbar.js').then(m => m.renderToolbar());
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             });
 
-            try { 
-                localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); 
-                flash('Guardado.'); 
-            } catch(e) { 
-                showErr('Error: ' + e.message); 
-            }
+            try { localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(user)); flash('Guardado.'); } catch(e) { showErr('Error: ' + e.message); }
             
-            setTimeout(() => {
-                document.getElementById('configDrawer').classList.remove('open');
-            }, 1000);
+            setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 1000);
         },
         renderAssetUploader(label, key, currentPath) {
             const src = currentPath && currentPath.length > 10 ? currentPath : '';
@@ -318,7 +324,10 @@ export const DrawersManager = {
                 const input = document.getElementById(`input-${key}`);
                 if(!input) return;
                 const savedImg = localStorage.getItem(`CIMA_IMG_${STATE.currentUser.profile.id}_${key}`);
-                if (savedImg) { const preview = document.getElementById(`preview-${key}`); if(preview) preview.innerHTML = `<img src="${savedImg}">`; }
+                if (savedImg) { 
+                    const preview = document.getElementById(`preview-${key}`); 
+                    if(preview) preview.innerHTML = `<img src="${savedImg}">`; 
+                }
                 input.addEventListener('change', (e) => {
                     if (e.target.files[0]) { 
                         const url = URL.createObjectURL(e.target.files[0]); 
@@ -360,11 +369,7 @@ export const DrawersManager = {
                         <div class="span-2"><label class="form-label">Usuario *</label><input id="new-username" class="form-input" placeholder="Ej: mlopez"></div>
                         <div class="span-2"><label class="form-label">Contraseña *</label><input id="new-password" type="password" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Rol *</label>
-                            <select id="new-role" class="form-select">
-                                <option value="doctor">Médico</option>
-                                <option value="assistant">Asistente</option>
-                                <option value="admin">Administrador</option>
-                            </select>
+                            <select id="new-role" class="form-select"><option value="doctor">Médico</option><option value="assistant">Asistente</option><option value="admin">Administrador</option></select>
                         </div>
                         <div class="span-2"><label class="form-label">Modelo por Defecto</label>
                             <select id="new-model" class="form-select">
@@ -384,6 +389,7 @@ export const DrawersManager = {
                         <div class="span-1"><label class="form-label">1er Nombre *</label><input id="new-firstname" class="form-input"></div>
                         <div class="span-1"><label class="form-label">2do Nombre</label><input id="new-secondname" class="form-input"></div>
                         <div class="span-1"><label class="form-label">1er Apellido *</label><input id="new-lastname" class="form-input"></div>
+                        <div class="span-1"><label class="form-label">2do Apellido *</label><input id="new-secondlastname" class="form-input"></div>
                         <div class="span-4"><label class="form-label">Ubicación</label><input id="new-location" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Email</label><input id="new-email" class="form-input"></div>
                         <div class="span-2"><label class="form-label">Teléfono</label><input id="new-phone" class="form-input"></div>
@@ -440,7 +446,7 @@ export const DrawersManager = {
                 id: userId,
                 username: username,
                 password: password,
-                name: `${firstname} ${lastname}`,
+                name: `${firstname} ${lastname}`, // Usado en login list
                 title: $('#new-title').value || '',
                 specialty: $('#new-specialty').value || '',
                 role: $('#new-role').value,
@@ -484,6 +490,7 @@ export const DrawersManager = {
             localStorage.setItem('CIMA_USERS_DB', JSON.stringify(localDB));
             localStorage.setItem(`CIMA_USER_CONFIG_${userId}`, JSON.stringify(newUser));
 
+            // Procesar Imágenes si existen
             ['avatar', 'signature', 'stamp'].forEach(key => {
                 const input = document.getElementById(`input-new-${key}`);
                 if (input && input.files && input.files[0]) {
@@ -491,6 +498,11 @@ export const DrawersManager = {
                     reader.onload = function(e) {
                         const base64 = e.target.result;
                         localStorage.setItem(`CIMA_IMG_${userId}_${key}`, base64);
+                    // Actualizar avatar in localDB para que aparezca en login
+                        if(key === 'avatar') {
+                            // Refrescar lista de login globalmente
+                            if(window.refreshUserList) window.refreshUserList();
+                        }
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
@@ -523,4 +535,5 @@ export const DrawersManager = {
     }
 };
 
+// Exponer globalmente para que funcionen los onclick de los HTML templates
 window.DrawersManager = DrawersManager;
