@@ -1,4 +1,4 @@
-import { log, loadUserConfig, STATE } from 'brain';
+import { log, loadUserConfig, STATE, flash } from 'brain'; // <-- AÑADIDO flash AQUÍ
 import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
 import { DrawersManager } from './drawers.js';
@@ -7,7 +7,7 @@ export const StartManager = {
     async init() {
         console.log("--> StartManager.init() iniciado");
         
-        // 1. Registrar el listener DE INMEDIATO, antes de hacer nada más
+        // 1. Registrar el listener DE INMEDIATO
         document.addEventListener('login-success', () => {
             console.log("--> Evento login-success capturado en StartManager");
             finishLogin();
@@ -29,7 +29,7 @@ export const StartManager = {
         // 3. Inicializar HTML de Drawers
         DrawersManager.init();
 
-        // 4. Cargar lista de usuarios
+        // 4. Cargar usuarios
         try {
             const response = await fetch('./app/catalog/users.json');
             const originalUsers = await response.json();
@@ -42,7 +42,7 @@ export const StartManager = {
             log("Error cargando lista de usuarios", true); 
         }
 
-        // 5. Inicializar toolbar (Estado Guest)
+        // 5. Inicializar toolbar
         initToolbarEvents();
         
         // 6. Aplicar tema
@@ -71,33 +71,23 @@ export const StartManager = {
 async function finishLogin() {
     console.log("--> Ejecutando finishLogin()...");
     
-    // Asegurar cierre del drawer visualmente
     const loginDrawer = document.getElementById('loginDrawer');
     if (loginDrawer) loginDrawer.classList.remove('open');
     
     try {
         log("Iniciando módulos del sistema...");
         
-        // Carga dinámica de módulos
         const loaded = await ServiceLoader.init();
-        if (!loaded) {
-            throw new Error("ServiceLoader devolvió false");
-        }
+        if (!loaded) throw new Error("ServiceLoader devolvió false");
         
-        // IMPORTANTE: Re-renderizar la toolbar para mostrar iconos de usuario
-        console.log("--> Re-renderizando Toolbar...");
         initToolbarEvents();
         
-        // Configurar lógica de pacientes
         const PatientService = ServiceLoader.get('patient');
-        
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
 
         const form = document.getElementById('patientForm');
         if (form) {
-            // Remover listeners viejos clonando el nodo (truco rápido) o simplemente reasignar
-            // Para simplicidad, asumimos reasignación segura:
             form.onchange = (e) => {
                  const id = e.target.id;
                  if(['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'].includes(id)) {
@@ -117,7 +107,7 @@ async function finishLogin() {
             if(PatientService) PatientService.toggleConditionalFields();
             const name = STATE.currentUser?.profile?.firstname || "Usuario";
             log(`Bienvenido/a, ${name}`);
-            flash(`Sesión iniciada: ${name}`);
+            flash(`Sesión iniciada: ${name}`); // <-- AHORA SÍ FUNCIONARÁ
         }, 300);
 
     } catch (e) { 
@@ -145,6 +135,13 @@ function handleVisitClicks(e) {
         e.target.classList.toggle('active');
     }
     
+    // NUEVO: Botón unificado de documentos
+    if (e.target.closest('.btn-docs')) {
+        const card = e.target.closest('.visit-card');
+        if(card) window.openDocGlobal('INF', card.id); // Abre Informe por defecto
+    }
+    
+    // Compatibilidad por si acaso queda algún botón viejo
     if (e.target.closest('.btn-inf')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('INF', card.id);
@@ -155,10 +152,7 @@ function handleVisitClicks(e) {
     }
 }
 
-// EXPOSICIÓN GLOBAL (CRÍTICO PARA EL FALLBACK)
 window.finishLogin = finishLogin;
 window.refreshUserList = () => StartManager.refreshUserList();
-// (selectUser y verifyPassword ya no son necesarios globalmente aquí porque DrawersManager los maneja internamente, 
-// pero los dejamos por compatibilidad si tienes código legacy en HTML)
 window.selectUser = (id, path) => DrawersManager.Login.selectUser(id, path);
 window.verifyPassword = (id) => DrawersManager.Login.verifyPassword(id);
