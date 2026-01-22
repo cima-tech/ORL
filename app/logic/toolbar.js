@@ -176,9 +176,8 @@ function bindEvents() {
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
     document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
     
-    document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => {
-        btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open');
-    }));
+    // Cierre de drawers (aunque ya manejamos closeAll en drawers.js, esto es redundancia segura)
+    document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => DrawersManager.closeAll()));
     
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -234,10 +233,11 @@ function bindEvents() {
         if(confirm("¿Salir?")) {
             STATE.currentUser = { profile: { id:"guest", role:"guest", username:"guest", title:"", firstname:"Usuario", lastname:"", title_line_1:"", contact:{}, location:"" }, preferences:{ theme:"glass", default_model:"ORL-001" }, assets:{} };
             resetStory(); renderToolbar(); log("Sesión cerrada");
+            DrawersManager.Login.open();
         }
     });
 
-    // CAMBIO IMPORTANTE: Abrir el Drawer de Exportación en lugar de descargar directo
+    // Abrir Exportación
     document.getElementById('btnOpenExport')?.addEventListener('click', () => {
         DrawersManager.Export.open();
     });
