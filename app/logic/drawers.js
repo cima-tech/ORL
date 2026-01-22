@@ -8,7 +8,7 @@ export const DrawersManager = {
     async init() {
         this.injectHTML();
         
-        // Renderizar Login vacío inicialmente (para que se vea algo)
+        // Renderizar Login vacío inicialmente
         this.Login.render();
 
         try {
@@ -36,6 +36,9 @@ export const DrawersManager = {
     },
 
     injectHTML() {
+        // Overlay global
+        const overlay = `<div id="drawer-overlay" class="drawer-overlay"></div>`;
+
         const createDrawer = (id, icon, title) => `
             <div id="${id}" class="config-drawer">
                 <div class="drawer-header">
@@ -46,14 +49,15 @@ export const DrawersManager = {
             </div>`;
 
         const loginHTML = `
-            <div id="loginDrawer" class="login-drawer open">
-                <div class="drawer-header">
+            <div id="loginDrawer" class="login-drawer"> <div class="drawer-header">
                     <h3><i class="bi bi-person-lock"></i> Acceso Seguro</h3>
+                    <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
                 </div>
                 <div class="drawer-content" id="login-content" style="padding: 30px;"></div>
             </div>`;
 
         const html = `
+            ${overlay}
             ${loginHTML}
             ${createDrawer('configDrawer', 'bi-gear', 'Configuración')}
             ${createDrawer('createUserDrawer', 'bi-person-plus-fill', 'Crear Usuario')}
@@ -68,14 +72,40 @@ export const DrawersManager = {
     },
 
     bindEvents() {
+        // Botones de cierre
         document.querySelectorAll('.btn-close-drawer').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const drawer = btn.closest('.login-drawer, .config-drawer');
-                if(drawer) drawer.classList.remove('open');
-            });
+            btn.addEventListener('click', () => this.closeAll());
         });
+
+        // Toggle consola
         const ch = document.querySelector('#consoleDrawer .console-header');
         if(ch) ch.addEventListener('click', () => document.getElementById('consoleDrawer').classList.toggle('open'));
+
+        // Clic en Overlay (cerrar todo)
+        const overlay = document.getElementById('drawer-overlay');
+        if(overlay) {
+            overlay.addEventListener('click', () => this.closeAll());
+        }
+    },
+
+    // --- UTILS DE CONTROL DE DRAWERS ---
+    closeAll() {
+        document.querySelectorAll('.login-drawer, .config-drawer, #createUserDrawer').forEach(el => el.classList.remove('open'));
+        const overlay = document.getElementById('drawer-overlay');
+        if(overlay) overlay.classList.remove('active');
+    },
+
+    openDrawer(id) {
+        this.closeAll(); // Asegura exclusividad
+        const el = document.getElementById(id);
+        const overlay = document.getElementById('drawer-overlay');
+        if(el) {
+            // Pequeño timeout para permitir animación si se estaba cerrando otro
+            setTimeout(() => {
+                el.classList.add('open');
+                if(overlay) overlay.classList.add('active');
+            }, 50);
+        }
     },
 
     // --- RENDERIZADOR COMPARTIDO (GIGANTE Y COMPLETO) ---
@@ -141,13 +171,13 @@ export const DrawersManager = {
             <div class="form-section">
                 <div class="form-section-title">Presentación y Contacto</div>
                 <div class="form-grid">
-                     <div class="span-2"><label class="form-label">Título L1 (Esp)</label><input id="${px}title_line_1" class="form-input" value="${p.title_line_1||''}"></div>
-                     <div class="span-2"><label class="form-label">Título L2 (Inst)</label><input id="${px}title_line_2" class="form-input" value="${p.title_line_2||''}"></div>
-                     <div class="span-2"><label class="form-label">Email 1</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
-                     <div class="span-2"><label class="form-label">Email 2</label><input id="${px}email2" class="form-input" value="${p.contact?.email2||''}"></div>
-                     <div class="span-2"><label class="form-label">Tlf 1</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
-                     <div class="span-2"><label class="form-label">Tlf 2</label><input id="${px}phone2" class="form-input" value="${p.contact?.phone2||''}"></div>
-                     <div class="span-4"><label class="form-label">Instagram</label><input id="${px}instagram" class="form-input" value="${p.contact?.instagram||''}"></div>
+                      <div class="span-2"><label class="form-label">Título L1 (Esp)</label><input id="${px}title_line_1" class="form-input" value="${p.title_line_1||''}"></div>
+                      <div class="span-2"><label class="form-label">Título L2 (Inst)</label><input id="${px}title_line_2" class="form-input" value="${p.title_line_2||''}"></div>
+                      <div class="span-2"><label class="form-label">Email 1</label><input id="${px}email" class="form-input" value="${p.contact?.email||''}"></div>
+                      <div class="span-2"><label class="form-label">Email 2</label><input id="${px}email2" class="form-input" value="${p.contact?.email2||''}"></div>
+                      <div class="span-2"><label class="form-label">Tlf 1</label><input id="${px}phone" class="form-input" value="${p.contact?.phone||''}"></div>
+                      <div class="span-2"><label class="form-label">Tlf 2</label><input id="${px}phone2" class="form-input" value="${p.contact?.phone2||''}"></div>
+                      <div class="span-4"><label class="form-label">Instagram</label><input id="${px}instagram" class="form-input" value="${p.contact?.instagram||''}"></div>
                 </div>
             </div>
         </div>
@@ -194,6 +224,7 @@ export const DrawersManager = {
                             <option value="glass" ${pref.theme==='glass'?'selected':''}>Glass</option>
                             <option value="liquid" ${pref.theme==='liquid'?'selected':''}>Liquid</option>
                             <option value="light" ${pref.theme==='light'?'selected':''}>Light</option>
+                            <option value="dusk" ${pref.theme==='dusk'?'selected':''}>Dusk</option>
                         </select>
                     </div>
                     <div class="span-2"><label class="form-label">Color</label><input type="color" id="${px}color" class="form-input" value="${pref.primary_color||'#0ea5e9'}"></div>
@@ -294,7 +325,7 @@ export const DrawersManager = {
 
     // --- MODULO LOGIN ---
     Login: {
-        open() { document.getElementById('loginDrawer').classList.add('open'); },
+        open() { DrawersManager.openDrawer('loginDrawer'); },
         render() {
             const container = document.getElementById('login-content');
             if(!container) return;
@@ -358,7 +389,7 @@ export const DrawersManager = {
                     
                     this.addToRecents({ username: user.username, name: user.name, avatar: fullProfile.assets?.avatar_path || user.avatar });
                     
-                    document.getElementById('loginDrawer').classList.remove('open');
+                    DrawersManager.closeAll();
                     document.dispatchEvent(new CustomEvent('login-success'));
                     if(window.finishLogin) window.finishLogin();
 
@@ -378,18 +409,28 @@ export const DrawersManager = {
     // --- CONFIG Y SAVE ---
     Config: {
         open() {
-            const el = document.getElementById('config-content');
+            // FIX: Usar el ID correcto que se genera en createDrawer (configDrawer-content)
+            const el = document.getElementById('configDrawer-content');
             if(el) {
                 el.innerHTML = DrawersManager.renderSharedForm(STATE.currentUser, false);
-                document.getElementById('configDrawer').classList.add('open');
+                DrawersManager.openDrawer('configDrawer');
+            } else {
+                console.error("No se encontro configDrawer-content");
             }
         },
         save() {
             const u = STATE.currentUser;
-            DrawersManager._collectData(u, 'cfg-');
+            DrawersManager.Config._collectData(u, 'cfg-');
+            
+            // Persistencia REAL para temas
             localStorage.setItem(`CIMA_USER_CONFIG_${u.profile.id}`, JSON.stringify(u));
+            if(u.preferences.theme) {
+                localStorage.setItem('CIMA_THEME', u.preferences.theme);
+                document.body.className = `theme-${u.preferences.theme}`;
+            }
+
             flash("Guardado");
-            setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 500);
+            setTimeout(() => DrawersManager.closeAll(), 500);
             if(window.initToolbarEvents) window.initToolbarEvents();
         },
         _collectData(u, px) {
@@ -464,19 +505,20 @@ export const DrawersManager = {
 
     UserCreator: {
         open() {
-            const el = document.getElementById('create-user-content');
+            // FIX: ID correcto generado por createDrawer
+            const el = document.getElementById('createUserDrawer-content');
             if(el) {
                 let nextId = 3;
                 try {
-                     DrawersManager.catalog.forEach(x => {
-                         const n = parseInt(x.id.replace('u',''));
-                         if(n >= nextId) nextId = n + 1;
-                     });
+                      DrawersManager.catalog.forEach(x => {
+                          const n = parseInt(x.id.replace('u',''));
+                          if(n >= nextId) nextId = n + 1;
+                      });
                 } catch(e){}
                 const id = 'u' + String(nextId).padStart(3,'0');
                 const empty = { profile: { id }, professional: {}, institution: {}, commercial: { schedule: {} }, preferences: { theme: 'glass', default_model: 'ORL-001' }, assets: {}, security: {}, documents: { vertical: {}, horizontal: {} } };
                 el.innerHTML = DrawersManager.renderSharedForm(empty, true);
-                document.getElementById('createUserDrawer').classList.add('open');
+                DrawersManager.openDrawer('createUserDrawer');
             }
         },
         save() {
@@ -502,14 +544,17 @@ export const DrawersManager = {
             DrawersManager.catalog.push(entry);
 
             flash("Usuario creado");
-            document.getElementById('createUserDrawer').classList.remove('open');
+            DrawersManager.closeAll();
+            // Reabrir login para que aparezca el nuevo usuario
+            setTimeout(() => DrawersManager.Login.open(), 300);
             DrawersManager.Login.render();
         }
     },
 
     Export: {
         open() {
-            const el = document.getElementById('export-content');
+            // FIX: ID correcto exportDrawer-content
+            const el = document.getElementById('exportDrawer-content');
             if(el) {
                 el.innerHTML = `
                 <div class="form-section"><div class="form-section-title">Documentos</div>
@@ -522,7 +567,7 @@ export const DrawersManager = {
                     <button class="btn btn-primary" onclick="DrawersManager.Export.download()" style="width:100%; margin-bottom:10px;">Descargar</button>
                     <button class="btn btn-success" onclick="DrawersManager.Export.share()" style="width:100%;">WhatsApp</button>
                 </div>`;
-                document.getElementById('exportDrawer').classList.add('open');
+                DrawersManager.openDrawer('exportDrawer');
             }
         },
         download() {
