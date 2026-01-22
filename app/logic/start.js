@@ -1,3 +1,4 @@
+// app/logic/start.js
 import { log, loadUserConfig, STATE, flash } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { initToolbarEvents } from 'toolbar';
@@ -28,6 +29,9 @@ export const StartManager = {
                     if (el.id === 'loginDrawer' && STATE.currentUser.profile.id === 'guest') return;
                     el.classList.remove('open');
                 });
+                // Cerrar overlay también
+                const overlay = document.getElementById('drawerOverlay');
+                if(overlay) overlay.classList.remove('visible');
             }
         });
 
@@ -35,7 +39,7 @@ export const StartManager = {
         // Usamos await aquí pero la toolbar ya está visible, así que no parece "colgado"
         await DrawersManager.init();
 
-        // 5. Aplicar tema
+        // 5. Aplicar tema inicial (si hay uno guardado previo sin login)
         const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
         document.body.className = `theme-${savedTheme}`;
         
@@ -50,18 +54,27 @@ export const StartManager = {
 // --- FUNCIÓN PRINCIPAL DE ARRANQUE TRAS LOGIN ---
 
 async function finishLogin() {
-    const loginDrawer = document.getElementById('loginDrawer');
-    if (loginDrawer) loginDrawer.classList.remove('open');
-    
+    // Cerrar drawers manuales si quedaron abiertos
+    DrawersManager.closeAll();
+
     try {
         log("Cargando módulos clínicos...");
         
         const loaded = await ServiceLoader.init();
         if (!loaded) throw new Error("ServiceLoader falló");
         
-        // Actualizar Toolbar (Para mostrar avatar y menú de usuario)
+        // ACTUALIZAR Toolbar (Para mostrar avatar y menú de usuario)
         initToolbarEvents();
         
+        // --- FIX TEMAS (Falla 4) ---
+        // Aplicar el tema del perfil cargado inmediatamente
+        if(STATE.currentUser && STATE.currentUser.preferences) {
+            const userTheme = STATE.currentUser.preferences.theme || 'glass';
+            document.body.className = `theme-${userTheme}`;
+            log(`Tema aplicado: ${userTheme}`);
+        }
+        // ------------------------------
+
         const PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
