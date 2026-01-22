@@ -1,16 +1,15 @@
-import { $, STATE, log, flash, showErr, loadUserConfig } from 'brain';
+import { $, STATE, log, flash, showErr, loadUserConfig, toggleDrawer, closeAllDrawers, anyDrawerOpen } from 'brain';
 import { ExportManager } from 'export_manager';
 
 export const DrawersManager = {
     catalog: [],
     rolesList: [],
+    overlay: null,
 
     async init() {
         this.injectHTML();
+        this.createOverlay();
         
-        // Renderizar Login vacío inicialmente (para que se vea algo)
-        this.Login.render();
-
         try {
             // Cargar Roles y Usuarios en paralelo
             const [rolesRes, usersRes] = await Promise.all([
@@ -25,7 +24,7 @@ export const DrawersManager = {
             
             this.catalog = [...remoteCatalog, ...localCatalog];
             
-            // Re-renderizar Login con datos (recientes)
+            // Renderizar Login con datos (sin abrir)
             this.Login.render();
 
         } catch (e) {
@@ -33,49 +32,100 @@ export const DrawersManager = {
         }
 
         this.bindEvents();
+        
+        // Escuchar cambios de estado de drawers
+        document.addEventListener('drawers-changed', () => this.syncDrawersWithState());
     },
 
     injectHTML() {
-        const createDrawer = (id, icon, title) => `
-            <div id="${id}" class="config-drawer">
+        const createRightDrawer = (id, icon, title) => `
+            <div id="${id}" class="right-drawer">
                 <div class="drawer-header">
                     <h3><i class="bi ${icon}"></i> ${title}</h3>
-                    <button class="icon-btn btn-close-drawer"><i class="bi bi-x-lg"></i></button>
+                    <button class="icon-btn btn-close-drawer" data-drawer="${id}"><i class="bi bi-x-lg"></i></button>
                 </div>
                 <div class="drawer-content" id="${id}-content"></div>
             </div>`;
 
-        const loginHTML = `
-            <div id="loginDrawer" class="login-drawer open">
+        const createLeftDrawer = (id, icon, title) => `
+            <div id="${id}" class="left-drawer">
                 <div class="drawer-header">
-                    <h3><i class="bi bi-person-lock"></i> Acceso Seguro</h3>
+                    <h3><i class="bi ${icon}"></i> ${title}</h3>
+                    <button class="icon-btn btn-close-drawer" data-drawer="${id}"><i class="bi bi-x-lg"></i></button>
                 </div>
-                <div class="drawer-content" id="login-content" style="padding: 30px;"></div>
+                <div class="drawer-content" id="${id}-content"></div>
             </div>`;
 
         const html = `
-            ${loginHTML}
-            ${createDrawer('configDrawer', 'bi-gear', 'Configuración')}
-            ${createDrawer('createUserDrawer', 'bi-person-plus-fill', 'Crear Usuario')}
-            ${createDrawer('exportDrawer', 'bi-share-fill', 'Exportar')}
-            <div id="consoleDrawer">
+            ${createRightDrawer('loginDrawer', 'bi-person-lock', 'Acceso Seguro')}
+            ${createRightDrawer('createUserDrawer', 'bi-person-plus-fill', 'Crear Usuario')}
+            ${createLeftDrawer('configDrawer', 'bi-gear', 'Configuración')}
+            ${createLeftDrawer('exportDrawer', 'bi-share-fill', 'Exportar')}
+            <div id="consoleDrawer" class="console-drawer">
                 <div class="console-header"><span>SYSTEM LOG</span><span class="toggle-console">▼</span></div>
                 <div id="consoleContent"></div>
             </div>
         `;
         
-        if(!document.getElementById('loginDrawer')) document.body.insertAdjacentHTML('beforeend', html);
+        if(!document.getElementById('loginDrawer')) {
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+    },
+
+    createOverlay() {
+        this.overlay = document.createElement('div');
+        this.overlay.id = 'drawer-overlay';
+        this.overlay.className = 'drawer-overlay';
+        this.overlay.addEventListener('click', () => closeAllDrawers());
+        document.body.appendChild(this.overlay);
+    },
+
+    syncDrawersWithState() {
+        // Sincronizar drawers con estado
+        Object.entries(STATE.UI.drawers).forEach(([key, drawer]) => {
+            const el = document.getElementById(`${key}Drawer`);
+            if (el) {
+                if (drawer.open) {
+                    el.classList.add('open');
+                    this.overlay.classList.add('active');
+                } else {
+                    el.classList.remove('open');
+                }
+            }
+        });
+        
+        // Controlar overlay
+        if (anyDrawerOpen()) {
+            this.overlay.classList.add('active');
+        } else {
+            this.overlay.classList.remove('active');
+        }
     },
 
     bindEvents() {
-        document.querySelectorAll('.btn-close-drawer').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const drawer = btn.closest('.login-drawer, .config-drawer');
-                if(drawer) drawer.classList.remove('open');
-            });
+        // Cierre con botón X
+        document.addEventListener('click', (e) => {
+            const closeBtn = e.target.closest('.btn-close-drawer');
+            if (closeBtn) {
+                const drawerId = closeBtn.dataset.drawer;
+                const drawerName = drawerId.replace('Drawer', '');
+                toggleDrawer(drawerName, false);
+            }
         });
+
+        // Cierre con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && anyDrawerOpen()) {
+                closeAllDrawers();
+            }
+        });
+
+        // Console drawer
         const ch = document.querySelector('#consoleDrawer .console-header');
-        if(ch) ch.addEventListener('click', () => document.getElementById('consoleDrawer').classList.toggle('open'));
+        if(ch) ch.addEventListener('click', () => {
+            document.getElementById('consoleDrawer').classList.toggle('open');
+            STATE.UI.drawers.console.open = !STATE.UI.drawers.console.open;
+        });
     },
 
     // --- RENDERIZADOR COMPARTIDO (GIGANTE Y COMPLETO) ---
@@ -194,6 +244,7 @@ export const DrawersManager = {
                             <option value="glass" ${pref.theme==='glass'?'selected':''}>Glass</option>
                             <option value="liquid" ${pref.theme==='liquid'?'selected':''}>Liquid</option>
                             <option value="light" ${pref.theme==='light'?'selected':''}>Light</option>
+                            <option value="dusk" ${pref.theme==='dusk'?'selected':''}>Dusk</option>
                         </select>
                     </div>
                     <div class="span-2"><label class="form-label">Color</label><input type="color" id="${px}color" class="form-input" value="${pref.primary_color||'#0ea5e9'}"></div>
@@ -294,7 +345,11 @@ export const DrawersManager = {
 
     // --- MODULO LOGIN ---
     Login: {
-        open() { document.getElementById('loginDrawer').classList.add('open'); },
+        open() { 
+            toggleDrawer('login', true);
+            this.render();
+        },
+        
         render() {
             const container = document.getElementById('login-content');
             if(!container) return;
@@ -325,17 +380,34 @@ export const DrawersManager = {
                     </div>
                     <div class="form-group">
                         <label>Contraseña</label>
-                        <input id="login-pass" type="password" class="login-input" placeholder="••••" onkeypress="if(event.key==='Enter') DrawersManager.Login.attemptLogin()">
+                        <div class="input-wrapper">
+                            <input id="login-pass" type="password" class="login-input" placeholder="••••">
+                            <button class="eye-btn" type="button" onclick="DrawersManager.Login.togglePassword()"><i class="bi bi-eye"></i></button>
+                        </div>
                     </div>
                     <button class="btn-login-action" onclick="DrawersManager.Login.attemptLogin()">ENTRAR</button>
                     ${recentsHTML}
                     <div class="login-footer"><a href="#" onclick="DrawersManager.UserCreator.open()">Crear Usuario</a></div>
                 </div>`;
         },
+        
+        togglePassword() {
+            const passInput = document.getElementById('login-pass');
+            const eyeBtn = passInput.nextElementSibling;
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeBtn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+            } else {
+                passInput.type = 'password';
+                eyeBtn.innerHTML = '<i class="bi bi-eye"></i>';
+            }
+        },
+        
         prefill(username) {
             document.getElementById('login-user').value = username;
             document.getElementById('login-pass').focus();
         },
+        
         async attemptLogin() {
             const userIn = document.getElementById('login-user').value.trim();
             const passIn = document.getElementById('login-pass').value;
@@ -358,7 +430,7 @@ export const DrawersManager = {
                     
                     this.addToRecents({ username: user.username, name: user.name, avatar: fullProfile.assets?.avatar_path || user.avatar });
                     
-                    document.getElementById('loginDrawer').classList.remove('open');
+                    closeAllDrawers();
                     document.dispatchEvent(new CustomEvent('login-success'));
                     if(window.finishLogin) window.finishLogin();
 
@@ -367,6 +439,7 @@ export const DrawersManager = {
                 showErr("Credenciales inválidas");
             }
         },
+        
         addToRecents(userObj) {
             let r = JSON.parse(localStorage.getItem('CIMA_RECENT_USERS')||'[]');
             r = r.filter(x => x.username !== userObj.username);
@@ -378,20 +451,31 @@ export const DrawersManager = {
     // --- CONFIG Y SAVE ---
     Config: {
         open() {
+            toggleDrawer('config', true);
             const el = document.getElementById('config-content');
             if(el) {
                 el.innerHTML = DrawersManager.renderSharedForm(STATE.currentUser, false);
-                document.getElementById('configDrawer').classList.add('open');
             }
         },
+        
         save() {
             const u = STATE.currentUser;
             DrawersManager._collectData(u, 'cfg-');
             localStorage.setItem(`CIMA_USER_CONFIG_${u.profile.id}`, JSON.stringify(u));
+            
+            // Aplicar tema si cambió
+            const newTheme = u.preferences.theme;
+            if (STATE.UI.theme !== newTheme) {
+                STATE.UI.theme = newTheme;
+                document.body.className = `theme-${newTheme}`;
+                localStorage.setItem('CIMA_THEME', newTheme);
+            }
+            
             flash("Guardado");
-            setTimeout(() => document.getElementById('configDrawer').classList.remove('open'), 500);
+            setTimeout(() => closeAllDrawers(), 500);
             if(window.initToolbarEvents) window.initToolbarEvents();
         },
+        
         _collectData(u, px) {
              u.profile.username = $(`#${px}username`).value;
              u.profile.password = $(`#${px}password`).value;
@@ -464,7 +548,8 @@ export const DrawersManager = {
 
     UserCreator: {
         open() {
-            const el = document.getElementById('create-user-content');
+            toggleDrawer('createUser', true);
+            const el = document.getElementById('createUser-content');
             if(el) {
                 let nextId = 3;
                 try {
@@ -474,11 +559,20 @@ export const DrawersManager = {
                      });
                 } catch(e){}
                 const id = 'u' + String(nextId).padStart(3,'0');
-                const empty = { profile: { id }, professional: {}, institution: {}, commercial: { schedule: {} }, preferences: { theme: 'glass', default_model: 'ORL-001' }, assets: {}, security: {}, documents: { vertical: {}, horizontal: {} } };
+                const empty = { 
+                    profile: { id, contact: {} }, 
+                    professional: {}, 
+                    institution: {}, 
+                    commercial: { schedule: {} }, 
+                    preferences: { theme: 'glass', default_model: 'ORL-001' }, 
+                    assets: {}, 
+                    security: {}, 
+                    documents: { vertical: { content_margins_cm: {} }, horizontal: { content_margins_cm: {} } } 
+                };
                 el.innerHTML = DrawersManager.renderSharedForm(empty, true);
-                document.getElementById('createUserDrawer').classList.add('open');
             }
         },
+        
         save() {
             const px = 'new-';
             const user = $(`#${px}username`).value;
@@ -486,14 +580,39 @@ export const DrawersManager = {
             if(!user || !pass) return showErr("Usuario y clave requeridos");
 
             let nextId = 3;
-            DrawersManager.catalog.forEach(x => { const n = parseInt(x.id.replace('u','')); if(n >= nextId) nextId = n + 1; });
+            DrawersManager.catalog.forEach(x => { 
+                const n = parseInt(x.id.replace('u','')); 
+                if(n >= nextId) nextId = n + 1; 
+            });
             const id = 'u' + String(nextId).padStart(3,'0');
 
-            const newUser = { id, active: true, config_path: `local/user_${id}.json`, profile: { id, contact: {} }, professional: {}, institution: {}, commercial: { schedule: {} }, preferences: {}, assets: {}, security: {}, documents: { vertical: {}, horizontal: {} } };
+            const newUser = { 
+                id, 
+                active: true, 
+                config_path: `local/user_${id}.json`, 
+                profile: { id, contact: {} }, 
+                professional: {}, 
+                institution: {}, 
+                commercial: { schedule: {} }, 
+                preferences: {}, 
+                assets: {}, 
+                security: {}, 
+                documents: { vertical: { content_margins_cm: {} }, horizontal: { content_margins_cm: {} } } 
+            };
             
             DrawersManager.Config._collectData(newUser, px);
 
-            const entry = { id, username: user, password: pass, email: newUser.profile.contact.email, doc_id: '', name: newUser.profile.firstname, role: newUser.profile.role, avatar: newUser.assets.avatar_path, config_path: newUser.config_path };
+            const entry = { 
+                id, 
+                username: user, 
+                password: pass, 
+                email: newUser.profile.contact.email, 
+                doc_id: '', 
+                name: newUser.profile.firstname, 
+                role: newUser.profile.role, 
+                avatar: newUser.assets.avatar_path, 
+                config_path: newUser.config_path 
+            };
 
             const db = JSON.parse(localStorage.getItem('CIMA_USERS_DB')||'[]');
             db.push(entry);
@@ -502,13 +621,18 @@ export const DrawersManager = {
             DrawersManager.catalog.push(entry);
 
             flash("Usuario creado");
-            document.getElementById('createUserDrawer').classList.remove('open');
+            closeAllDrawers();
             DrawersManager.Login.render();
         }
     },
 
     Export: {
         open() {
+            if (!STATE.currentPreviewCard) {
+                showErr("No hay consulta seleccionada para exportar");
+                return;
+            }
+            toggleDrawer('export', true);
             const el = document.getElementById('export-content');
             if(el) {
                 el.innerHTML = `
@@ -522,15 +646,22 @@ export const DrawersManager = {
                     <button class="btn btn-primary" onclick="DrawersManager.Export.download()" style="width:100%; margin-bottom:10px;">Descargar</button>
                     <button class="btn btn-success" onclick="DrawersManager.Export.share()" style="width:100%;">WhatsApp</button>
                 </div>`;
-                document.getElementById('exportDrawer').classList.add('open');
             }
         },
+        
         download() {
-            const inf = document.getElementById('chk-informe').checked;
-            const rec = document.getElementById('chk-recipe').checked;
+            const inf = document.getElementById('chk-informe')?.checked || false;
+            const rec = document.getElementById('chk-recipe')?.checked || false;
+            if (!inf && !rec) {
+                showErr("Seleccione al menos un documento");
+                return;
+            }
             ExportManager.processExport(STATE.currentPreviewCard, { informe: inf, recipe: rec });
         },
-        share() { ExportManager.shareViaWhatsApp(STATE.currentPreviewCard); }
+        
+        share() { 
+            ExportManager.shareViaWhatsApp(STATE.currentPreviewCard); 
+        }
     }
 };
 
