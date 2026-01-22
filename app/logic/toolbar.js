@@ -1,8 +1,9 @@
 // app/logic/toolbar.js
-import { $, $$, STATE, rotateWallpaper, log, flash, showErr, toggleDrawer } from 'brain';
+import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 import { DrawersManager } from './drawers.js';
+// (No necesitamos importar ExportManager aquí, DrawersManager lo usa)
 
 // Exponer globalmente
 window.DrawersManager = DrawersManager;
@@ -30,10 +31,10 @@ function getNavGroupHTML(isSidebar) {
         return `
         <div class="toolbar-group">
             <div class="icon-row">
-                <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión" onclick="toggleDrawer('login')">
+                <button id="btnOpenLogin" class="icon-btn" title="Iniciar Sesión">
                     <i class="bi bi-person-circle"></i>
                 </button>
-                <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="toggleDrawer('createUser')">
+                <button id="btnCreateUser" class="icon-btn" title="Crear Usuario" onclick="DrawersManager.UserCreator.open()">
                     <i class="bi bi-person-plus"></i>
                 </button>
             </div>
@@ -168,44 +169,33 @@ export function renderToolbar() {
 }
 
 function bindEvents() {
-    window.changeMode = (m) => { 
-        STATE.UI.currentMode = m; 
-        STATE.UI.isPreviewMode = false; 
-        renderToolbar(); 
-    };
-    
-    window.switchDoc = (t) => { 
-        if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); 
-    };
+    window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
+    window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
     // Eventos de botones
+    document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
+    document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
+    
+    document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => {
+        btn.closest('.login-drawer, .config-drawer, #createUserDrawer').classList.remove('open');
+    }));
+    
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
         e.stopPropagation();
         STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
         renderToolbar();
     });
     
-    document.getElementById('btnUserConfig')?.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        DrawersManager.Config.open(); 
-    });
-    
-    document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        rotateTheme(); 
-    });
+    document.getElementById('btnUserConfig')?.addEventListener('click', (e) => { e.stopPropagation(); DrawersManager.Config.open(); });
+    document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => { e.stopPropagation(); rotateTheme(); });
     
     document.getElementById('btnNew')?.addEventListener('click', () => { 
         if(STATE.UI.isStoryOpen && !confirm("¿Cerrar historia actual?")) return; 
-        resetStory(); 
-        STATE.UI.isStoryOpen = true; 
-        ServiceLoader.get('patient').initializeNewPatient(); 
-        renderToolbar(); 
+        resetStory(); STATE.UI.isStoryOpen = true; 
+        ServiceLoader.get('patient').initializeNewPatient(); renderToolbar(); 
     });
     
-    document.getElementById('btnClose')?.addEventListener('click', () => { 
-        if(saveCurrentHistory()) flash('Guardado'); 
-    });
+    document.getElementById('btnClose')?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
     
     document.getElementById('btnOpen')?.addEventListener('click', () => { 
         const query = prompt("Buscar paciente (nombre o documento):");
@@ -218,18 +208,11 @@ function bindEvents() {
     
     document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
     
-    document.getElementById('btnDeleteLast')?.addEventListener('click', () => { 
-        if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); 
-    });
+    document.getElementById('btnDeleteLast')?.addEventListener('click', () => { if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); });
     
-    document.getElementById('btnExitPreview')?.addEventListener('click', () => { 
-        STATE.UI.isPreviewMode = false; 
-        renderToolbar(); 
-    });
-    
+    document.getElementById('btnExitPreview')?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
     document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
-        STATE.USE_SIG = !STATE.USE_SIG; 
-        window.switchDoc(STATE.currentPreviewDoc); 
+        STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); 
     });
 
     const avatarBtn = document.getElementById('btnUserAvatar');
@@ -246,38 +229,15 @@ function bindEvents() {
         });
     }
 
-    document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        rotateWallpaper(); 
-    });
-    
+    document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
     document.getElementById('btnLogout')?.addEventListener('click', () => {
         if(confirm("¿Salir?")) {
-            STATE.currentUser = { 
-                profile: { 
-                    id:"guest", 
-                    role:"guest", 
-                    username:"guest", 
-                    title:"", 
-                    firstname:"Usuario", 
-                    lastname:"", 
-                    title_line_1:"", 
-                    contact:{}, 
-                    location:"" 
-                }, 
-                preferences:{ 
-                    theme:"glass", 
-                    default_model:"ORL-001" 
-                }, 
-                assets:{} 
-            };
-            resetStory(); 
-            renderToolbar(); 
-            log("Sesión cerrada");
+            STATE.currentUser = { profile: { id:"guest", role:"guest", username:"guest", title:"", firstname:"Usuario", lastname:"", title_line_1:"", contact:{}, location:"" }, preferences:{ theme:"glass", default_model:"ORL-001" }, assets:{} };
+            resetStory(); renderToolbar(); log("Sesión cerrada");
         }
     });
 
-    // Export drawer
+    // CAMBIO IMPORTANTE: Abrir el Drawer de Exportación en lugar de descargar directo
     document.getElementById('btnOpenExport')?.addEventListener('click', () => {
         DrawersManager.Export.open();
     });
@@ -314,20 +274,11 @@ function handleAddConsulta() {
 
 function rotateTheme() {
     const themes = ['glass', 'liquid', 'light', 'dusk'];
-    const currentIndex = themes.indexOf(STATE.UI.theme);
-    const nextTheme = themes[(currentIndex + 1) % themes.length];
-    
-    STATE.UI.theme = nextTheme;
+    const currentTheme = document.body.className.match(/theme-(\w+)/)?.[1] || 'glass';
+    const nextTheme = themes[(themes.indexOf(currentTheme) + 1) % themes.length];
     document.body.className = `theme-${nextTheme}`;
     localStorage.setItem('CIMA_THEME', nextTheme);
-    
-    // Actualizar tema en el perfil del usuario si está logueado
-    if (STATE.currentUser.profile.id !== "guest") {
-        STATE.currentUser.preferences.theme = nextTheme;
-        localStorage.setItem(`CIMA_USER_CONFIG_${STATE.currentUser.profile.id}`, JSON.stringify(STATE.currentUser));
-    }
-    
-    log(`Tema cambiado a: ${nextTheme}`);
+    log(`Tema: ${nextTheme}`);
 }
 
 export function initToolbarEvents() { renderToolbar(); }
@@ -339,7 +290,7 @@ window.openDocGlobal = function(kind, cardId) {
     STATE.currentPreviewDoc = kind; 
     STATE.UI.isPreviewMode = true;
     
-    // Usar el módulo 'documents' unificado
+    // CAMBIO IMPORTANTE: Usar el módulo 'documents' unificado
     const docModule = ServiceLoader.get('documents');
     const html = kind === 'INF' ? docModule.buildReportHTML(card) : docModule.buildRecipeHTML(card);
     
