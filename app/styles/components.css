@@ -164,6 +164,14 @@
     z-index: 3000;
 }
 
+/* FIX PARA SIDEBAR (PUNTO 1) */
+.layout-sidebar .user-dropdown {
+    top: 0;
+    left: 100%; /* Mueve a la derecha */
+    right: auto;
+    margin-left: 15px;
+}
+
 .dropdown-header {
     padding: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -215,10 +223,10 @@
 }
 
 /* =========================================
-   OVERLAY & DRAWERS (CORE FIX)
+   OVERLAY & DRAWERS
    ========================================= */
 
-/* Overlay Oscuro para cerrar al hacer click fuera */
+/* Overlay Oscuro */
 .drawer-overlay {
     position: fixed;
     top: 0;
@@ -227,7 +235,7 @@
     height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 2999; /* Justo debajo de los drawers (3000) */
+    z-index: 2999;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
