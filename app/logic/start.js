@@ -23,16 +23,13 @@ export const StartManager = {
                 if (drawer) drawer.classList.toggle('open');
             }
             if (e.key === 'Escape') {
-                document.querySelectorAll('.login-drawer.open, .config-drawer.open').forEach(el => {
-                    // No cerrar login con escape si no hay usuario
-                    if (el.id === 'loginDrawer' && STATE.currentUser.profile.id === 'guest') return;
-                    el.classList.remove('open');
-                });
+                // Si no hay usuario, no cerrar login. Si hay, cerrar cualquier drawer activo.
+                if (STATE.currentUser.profile.id === 'guest') return;
+                DrawersManager.closeAll();
             }
         });
 
         // 4. Inicializar Lógica de Drawers (Carga datos en 2do plano)
-        // Usamos await aquí pero la toolbar ya está visible, así que no parece "colgado"
         await DrawersManager.init();
 
         // 5. Aplicar tema
@@ -50,8 +47,7 @@ export const StartManager = {
 // --- FUNCIÓN PRINCIPAL DE ARRANQUE TRAS LOGIN ---
 
 async function finishLogin() {
-    const loginDrawer = document.getElementById('loginDrawer');
-    if (loginDrawer) loginDrawer.classList.remove('open');
+    DrawersManager.closeAll();
     
     try {
         log("Cargando módulos clínicos...");
