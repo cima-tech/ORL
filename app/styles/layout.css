@@ -22,9 +22,12 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* USAR VARIABLES DE TEMA (PUNTO 1) */
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--blur-strength));
+    
     padding: 8px 25px;
     border-radius: 50px;
     box-shadow: 0 15px 40px rgba(0,0,0,0.4);
@@ -38,7 +41,7 @@
 
 .layout-toolbar .group-label {
     font-size: 0.65rem;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     text-align: center;
     display: block;
@@ -60,9 +63,12 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255,255,255,0.1);
+    
+    /* USAR VARIABLES DE TEMA (PUNTO 1) */
+    background: var(--glass-bg);
+    border-right: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--blur-strength));
+    
     height: 100%;
     padding: 20px 10px;
     box-shadow: 5px 0 40px rgba(0,0,0,0.4);
