@@ -7,37 +7,39 @@ export const StartManager = {
     async init() {
         console.log("--> StartManager.init() iniciado");
         
-        // 1. Registrar el listener de Login
+        // 1. PINTAR INTERFAZ PRIMERO (Toolbar y Botones visibles YA)
+        initToolbarEvents();
+        
+        // 2. Registrar el listener de Login
         document.addEventListener('login-success', () => {
-            console.log("--> Login Exitoso. Iniciando sistema...");
+            console.log("--> Evento login-success capturado. Arrancando...");
             finishLogin();
         });
 
-        // 2. Eventos globales
+        // 3. Eventos globales de teclado
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key === 'L') {
-                document.getElementById('consoleDrawer')?.classList.toggle('open');
+                const drawer = document.getElementById('consoleDrawer');
+                if (drawer) drawer.classList.toggle('open');
             }
             if (e.key === 'Escape') {
                 document.querySelectorAll('.login-drawer.open, .config-drawer.open').forEach(el => {
-                    // No cerrar el login con escape si no hay usuario
+                    // No cerrar login con escape si no hay usuario
                     if (el.id === 'loginDrawer' && STATE.currentUser.profile.id === 'guest') return;
                     el.classList.remove('open');
                 });
             }
         });
 
-        // 3. Inicializar UI de Drawers (Esto carga el Login Form inmediatamente)
+        // 4. Inicializar Lógica de Drawers (Carga datos en 2do plano)
+        // Usamos await aquí pero la toolbar ya está visible, así que no parece "colgado"
         await DrawersManager.init();
 
-        // 4. Inicializar toolbar (Modo Guest)
-        initToolbarEvents();
-        
-        // 5. Aplicar tema guardado
+        // 5. Aplicar tema
         const savedTheme = localStorage.getItem('CIMA_THEME') || 'glass';
         document.body.className = `theme-${savedTheme}`;
         
-        console.log("--> Sistema listo. Esperando credenciales.");
+        console.log("--> Sistema listo. Esperando usuario.");
     },
 
     async refreshUserList() {
@@ -45,29 +47,25 @@ export const StartManager = {
     }
 };
 
-// --- ARRANQUE DEL SISTEMA TRAS LOGIN ---
+// --- FUNCIÓN PRINCIPAL DE ARRANQUE TRAS LOGIN ---
 
 async function finishLogin() {
-    // Cerrar cortina de login
     const loginDrawer = document.getElementById('loginDrawer');
     if (loginDrawer) loginDrawer.classList.remove('open');
     
     try {
         log("Cargando módulos clínicos...");
         
-        // Cargar módulos (Consultas, Pacientes, Documentos)
         const loaded = await ServiceLoader.init();
-        if (!loaded) throw new Error("Fallo en ServiceLoader");
+        if (!loaded) throw new Error("ServiceLoader falló");
         
-        // Re-renderizar toolbar con el usuario activo
+        // Actualizar Toolbar (Para mostrar avatar y menú de usuario)
         initToolbarEvents();
         
-        // Vincular lógica de pacientes
         const PatientService = ServiceLoader.get('patient');
         window.togglePatientDetailsGlobal = PatientService.togglePatientDetails;
         window.updatePatientHeaderGlobal = PatientService.updatePatientHeader;
 
-        // Bindeos del formulario de paciente
         const form = document.getElementById('patientForm');
         if (form) {
             form.onchange = (e) => {
@@ -80,11 +78,11 @@ async function finishLogin() {
             };
         }
         
-        // Click en visitas
         const visits = document.getElementById('visitsContainer');
-        if (visits) visits.onclick = handleVisitClicks;
+        if (visits) {
+            visits.onclick = handleVisitClicks;
+        }
 
-        // Bienvenida
         setTimeout(() => {
             if(PatientService) PatientService.toggleConditionalFields();
             const name = STATE.currentUser?.profile?.firstname || "Usuario";
@@ -93,28 +91,30 @@ async function finishLogin() {
         }, 300);
 
     } catch (e) { 
-        console.error("--> Error Fatal en finishLogin:", e); 
-        log("Error crítico: " + e.message, true); 
+        console.error("--> Error en finishLogin:", e); 
+        log("Error crítico al iniciar: " + e.message, true); 
     }
 }
 
 function handleVisitClicks(e) {
-    // Lógica para expandir/colapsar tarjetas
     const btnToggle = e.target.closest('.visit-toggle-btn');
     if (btnToggle) { 
         const card = btnToggle.closest('.visit-card');
         const body = card.querySelector('.visit-body');
         const icon = btnToggle.querySelector('i'); 
+        
         body.classList.toggle('hidden');
-        icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+        if (body.classList.contains('hidden')) {
+            icon.className = 'bi bi-chevron-right';
+        } else {
+            icon.className = 'bi bi-chevron-down';
+        }
     }
 
-    // Lógica de chips
     if (e.target.classList.contains('chip')) {
         e.target.classList.toggle('active');
     }
     
-    // Botones de documentos (Usando el nuevo sistema unificado)
     if (e.target.closest('.btn-docs') || e.target.closest('.btn-inf')) {
         const card = e.target.closest('.visit-card');
         if(card) window.openDocGlobal('INF', card.id); 
