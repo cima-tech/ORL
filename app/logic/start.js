@@ -7,6 +7,9 @@ export const StartManager = {
     async init() {
         console.log("--> StartManager.init() iniciado");
         
+        // --- DISABLE RIGHT CLICK (PUNTO 2) ---
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
         // 1. PINTAR INTERFAZ PRIMERO (Toolbar y Botones visibles YA)
         initToolbarEvents();
         
