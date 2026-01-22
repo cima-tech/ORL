@@ -55,7 +55,7 @@
 .btn-danger { background: #ef4444; color: white; }
 .btn-danger:hover { background: #dc2626; }
 
-/* Ghost Buttons (Corrección de Estilo) */
+/* Ghost Buttons */
 .btn-ghost {
     background: transparent;
     color: #94a3b8;
@@ -73,7 +73,7 @@
     font-size: 0.75rem;
 }
 
-/* Patient Navigation (Corrección de Estilo) */
+/* Patient Navigation */
 .patient-nav {
     display: flex;
     justify-content: flex-end;
@@ -164,10 +164,10 @@
     z-index: 3000;
 }
 
-/* FIX PARA SIDEBAR (PUNTO 1) */
+/* FIX SIDEBAR MENU POSITION */
 .layout-sidebar .user-dropdown {
     top: 0;
-    left: 100%; /* Mueve a la derecha */
+    left: 100%; 
     right: auto;
     margin-left: 15px;
 }
@@ -225,8 +225,6 @@
 /* =========================================
    OVERLAY & DRAWERS
    ========================================= */
-
-/* Overlay Oscuro */
 .drawer-overlay {
     position: fixed;
     top: 0;
@@ -599,8 +597,11 @@
    ESTILOS DE DOCUMENTO (PAPEL)
    ========================================= */
 .doc-page {
-    background-color: white !important; /* Fuerza fondo blanco */
-    color: black !important;            /* Fuerza texto negro */
+    background-color: white !important;
+    color: black !important;
+    
+    /* Fuente Estandarizada (PUNTO 3) */
+    font-family: 'Roboto Condensed', sans-serif !important;
     
     /* Tamaño Carta Exacto (Portrait) */
     width: 21.59cm;
@@ -611,15 +612,29 @@
     
     margin: 20px auto;
     padding: 2cm;
-    box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Sombra 3D */
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
     position: relative;
-    font-family: 'Times New Roman', serif; /* Fuente formal */
+    
+    /* Flex para asegurar footer/firma al fondo */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Tamaño Carta Exacto (Landscape / Récipe) */
 .doc-page.land {
     width: 27.94cm;
     height: 21.59cm;
+}
+
+.doc-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.doc-body {
+    font-size: 1rem; /* Base size, scalable via JS */
+    line-height: 1.5;
 }
 
 .doc-header img, .doc-footer img {
