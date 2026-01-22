@@ -50,11 +50,17 @@ export const ExportManager = {
                 // 4. Limpieza
                 document.body.removeChild(tempDiv);
 
-                // 5. Descargar
-                const patientId = $("#documento_numero")?.value || 'Paciente';
-                const today = new Date();
-                const ddmmyy = `${String(today.getDate()).padStart(2, '0')}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getFullYear()).slice(-2)}`;
-                const filename = `CIMA-${patientId}-${item.name}-${ddmmyy}.png`;
+                // 5. Descargar (PUNTO 4: NOMENCLATURA)
+                // [idpaciente][tipodedocumento][numerodeservicio][usuariocreadordedocumento].pdf (usando .png)
+                const patientId = $("#documento_numero")?.value || 'SINDOC';
+                const serviceId = card.dataset.serviceId || 'c0';
+                const userCreator = STATE.currentUser?.profile?.username || 'user';
+                const docType = item.type; // INF o RP
+
+                // Limpiamos los strings para que sean seguros en nombre de archivo
+                const safeId = patientId.replace(/[^a-z0-9]/gi, '');
+                
+                const filename = `${safeId}_${docType}_${serviceId}_${userCreator}.png`;
 
                 this.downloadCanvas(canvas, filename);
                 await new Promise(r => setTimeout(r, 800)); // Pausa entre descargas
