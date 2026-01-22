@@ -3,7 +3,6 @@ import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 import { DrawersManager } from './drawers.js';
-// (No necesitamos importar ExportManager aquí, DrawersManager lo usa)
 
 // Exponer globalmente
 window.DrawersManager = DrawersManager;
@@ -113,6 +112,11 @@ function getPreviewGroupHTML() {
             <button onclick="window.switchDoc('INF')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('INF')}">INF</button>
             <button onclick="window.switchDoc('RP')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('RP')}">RP</button>
             <div class="v-divider" style="height:20px;"></div>
+            
+            <button id="btnFontPlus" class="icon-btn" title="Aumentar Letra"><i class="bi bi-type-h1"></i></button>
+            <button id="btnFontMinus" class="icon-btn" title="Disminuir Letra"><i class="bi bi-type"></i></button>
+            
+            <div class="v-divider" style="height:20px;"></div>
             <button id="btnToggleSign" class="icon-btn" title="Firmar"><i class="bi bi-pen-fill"></i></button>
             <button id="btnOpenExport" class="icon-btn" title="Exportar"><i class="bi bi-share-fill"></i></button>
             <button id="btnExitPreview" class="icon-btn"><i class="bi bi-x-lg"></i></button>
@@ -168,6 +172,26 @@ export function renderToolbar() {
     bindEvents();
 }
 
+// LOGICA ESCALADO DE FUENTE (PUNTO 2)
+function adjustDocScale(delta) {
+    const docBody = document.querySelector('.doc-body');
+    if (!docBody) return;
+    
+    // Obtener estilo actual, default 16px si no existe
+    const style = window.getComputedStyle(docBody);
+    let currentSize = parseFloat(style.fontSize) || 16;
+    
+    // Nuevo tamaño
+    let newSize = currentSize + delta;
+    
+    // Límites para evitar que se rompa
+    if (newSize < 10) newSize = 10;
+    if (newSize > 24) newSize = 24;
+    
+    docBody.style.fontSize = `${newSize}px`;
+    flash(`Texto: ${newSize}px`, false);
+}
+
 function bindEvents() {
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
@@ -176,7 +200,6 @@ function bindEvents() {
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
     document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
     
-    // Cierre de drawers (aunque ya manejamos closeAll en drawers.js, esto es redundancia segura)
     document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => DrawersManager.closeAll()));
     
     document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
@@ -210,9 +233,14 @@ function bindEvents() {
     document.getElementById('btnDeleteLast')?.addEventListener('click', () => { if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); });
     
     document.getElementById('btnExitPreview')?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
+    
     document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
         STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); 
     });
+
+    // EVENTOS DE ZOOM DE FUENTE
+    document.getElementById('btnFontPlus')?.addEventListener('click', () => adjustDocScale(1));
+    document.getElementById('btnFontMinus')?.addEventListener('click', () => adjustDocScale(-1));
 
     const avatarBtn = document.getElementById('btnUserAvatar');
     const userDropdown = document.getElementById('userDropdown');
@@ -237,7 +265,6 @@ function bindEvents() {
         }
     });
 
-    // Abrir Exportación
     document.getElementById('btnOpenExport')?.addEventListener('click', () => {
         DrawersManager.Export.open();
     });
