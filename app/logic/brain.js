@@ -11,7 +11,16 @@ export const STATE = {
         currentMode: 'CONSULTATION',
         isStoryOpen: false,
         isPreviewMode: false,
-        layout: 'toolbar'
+        layout: 'toolbar',
+        // NUEVO: Estado centralizado de drawers
+        drawers: {
+            login: { open: false, side: 'right' },
+            createUser: { open: false, side: 'right' },
+            config: { open: false, side: 'left' },
+            export: { open: false, side: 'left' },
+            console: { open: false }
+        },
+        theme: localStorage.getItem('CIMA_THEME') || 'glass'
     },
 
     currentPreviewCard: null,
@@ -38,6 +47,39 @@ export const STATE = {
         assets: {}
     }
 };
+
+// NUEVA FUNCIÓN: Control centralizado de drawers
+export function toggleDrawer(drawerName, forceState = null) {
+    // Cerrar todos los drawers del mismo lado
+    const drawer = STATE.UI.drawers[drawerName];
+    if (!drawer) return;
+    
+    const side = drawer.side;
+    Object.keys(STATE.UI.drawers).forEach(key => {
+        if (STATE.UI.drawers[key].side === side && key !== drawerName) {
+            STATE.UI.drawers[key].open = false;
+        }
+    });
+    
+    // Alternar estado del drawer solicitado
+    drawer.open = forceState !== null ? forceState : !drawer.open;
+    
+    // Dispatch event para actualizar UI
+    document.dispatchEvent(new CustomEvent('drawers-changed'));
+    return drawer.open;
+}
+
+export function closeAllDrawers() {
+    Object.keys(STATE.UI.drawers).forEach(key => {
+        STATE.UI.drawers[key].open = false;
+    });
+    document.dispatchEvent(new CustomEvent('drawers-changed'));
+}
+
+// Función auxiliar para verificar si algún drawer está abierto
+export function anyDrawerOpen() {
+    return Object.values(STATE.UI.drawers).some(d => d.open);
+}
 
 export async function loadUserConfig(configPath) {
     const path = configPath || './app/user/u001/user.json';
