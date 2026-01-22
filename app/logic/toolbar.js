@@ -105,6 +105,11 @@ function getConsultToolsHTML() {
 function getPreviewGroupHTML() {
     if (!STATE.UI.isPreviewMode || STATE.currentUser.profile.id === "guest") return '';
     const active = (t) => STATE.currentPreviewDoc === t ? 'background:var(--primary);' : '';
+    
+    // Obtenemos tamaño actual o default 16
+    const docBody = document.querySelector('.doc-body');
+    const currentSize = docBody ? parseInt(window.getComputedStyle(docBody).fontSize) : 16;
+
     return `
     <div class="v-divider"></div>
     <div class="toolbar-group preview-group">
@@ -113,8 +118,9 @@ function getPreviewGroupHTML() {
             <button onclick="window.switchDoc('RP')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('RP')}">RP</button>
             <div class="v-divider" style="height:20px;"></div>
             
-            <button id="btnFontPlus" class="icon-btn" title="Aumentar Letra"><i class="bi bi-type-h1"></i></button>
-            <button id="btnFontMinus" class="icon-btn" title="Disminuir Letra"><i class="bi bi-type"></i></button>
+            <button id="btnFontPlus" class="icon-btn" title="Aumentar Letra"><i class="bi bi-plus-lg"></i></button>
+            <span id="lblFontSize" style="font-size:0.75rem; color:white; width:30px; text-align:center;">${currentSize}px</span>
+            <button id="btnFontMinus" class="icon-btn" title="Disminuir Letra"><i class="bi bi-dash-lg"></i></button>
             
             <div class="v-divider" style="height:20px;"></div>
             <button id="btnToggleSign" class="icon-btn" title="Firmar"><i class="bi bi-pen-fill"></i></button>
@@ -172,24 +178,21 @@ export function renderToolbar() {
     bindEvents();
 }
 
-// LOGICA ESCALADO DE FUENTE (PUNTO 2)
+// LOGICA ESCALADO DE FUENTE
 function adjustDocScale(delta) {
     const docBody = document.querySelector('.doc-body');
+    const lbl = document.getElementById('lblFontSize');
     if (!docBody) return;
     
-    // Obtener estilo actual, default 16px si no existe
     const style = window.getComputedStyle(docBody);
     let currentSize = parseFloat(style.fontSize) || 16;
-    
-    // Nuevo tamaño
     let newSize = currentSize + delta;
     
-    // Límites para evitar que se rompa
     if (newSize < 10) newSize = 10;
     if (newSize > 24) newSize = 24;
     
     docBody.style.fontSize = `${newSize}px`;
-    flash(`Texto: ${newSize}px`, false);
+    if(lbl) lbl.textContent = `${newSize}px`;
 }
 
 function bindEvents() {
