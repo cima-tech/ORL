@@ -57,6 +57,14 @@ export async function loadUserConfig(configPath) {
     }
 }
 
+// --- GLOBAL COUNTER FOR SERVICES (PUNTO 3) ---
+export function generateServiceId() {
+    let current = parseInt(localStorage.getItem('CIMA_GLOBAL_SERVICE_COUNT') || '0');
+    current++;
+    localStorage.setItem('CIMA_GLOBAL_SERVICE_COUNT', current.toString());
+    return `c${current}`;
+}
+
 function initWallpaperSystem() {
     let currentWP = localStorage.getItem('CIMA_WALLPAPER_URL') || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=3540&auto=format&fit=crop";
     document.body.style.backgroundImage = `url('${currentWP}')`;
