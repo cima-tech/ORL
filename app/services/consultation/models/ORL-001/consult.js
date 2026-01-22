@@ -1,5 +1,4 @@
-import { $, $$, getLocalDateTime, fmtDateTime, STATE } from 'brain';
-// Esta es la línea crítica. Asegúrate de que documents.js esté en la misma carpeta.
+import { $, $$, getLocalDateTime, fmtDateTime, STATE, generateServiceId } from 'brain';
 import { updateRecipeTextbox, renderIndicacionesDropdowns } from './documents.js';
 
 // ==========================================
@@ -148,12 +147,13 @@ export const CIMA_DATA = {
 // ==========================================
 // 2. TEMPLATE HTML (LA VISTA DE LA TARJETA)
 // ==========================================
-const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto) => `
+const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId) => `
     <div class="visit-header">
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
              <span class="badge">${type}</span>
              <span style="font-weight:600;">Consulta ORL</span>
+             <span style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:0.75em; color:#94a3b8;">${serviceId}</span>
           </div>
           <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
              Creado: ${fmtDateTime(createdTime)} por ${createdBy}
@@ -341,6 +341,9 @@ export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
     
+    // --- NUEVO: Generar ID único de servicio (PUNTO 3) ---
+    const serviceId = generateServiceId();
+
     const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
     const createdTime = new Date().toISOString();
 
@@ -350,6 +353,7 @@ export function createVisitCard(type = 'Primera') {
     wrap.dataset.type = type;
     wrap.dataset.createdBy = createdBy;
     wrap.dataset.createdAt = createdTime;
+    wrap.dataset.serviceId = serviceId; // Guardamos el ID en el dataset
 
     const edad = $("#edad_auto")?.value || '';
     const genero = $("#genero")?.value || '';
@@ -357,7 +361,7 @@ export function createVisitCard(type = 'Primera') {
     const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
 
     // INYECTAR EL TEMPLATE
-    wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto);
+    wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto, serviceId);
 
     // --- INYECCIÓN DE CHIPS ---
     const motivoContainer = wrap.querySelector('.chips-motivo');
