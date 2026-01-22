@@ -119,3 +119,29 @@
     color: #22d3ee;
     font-weight: 600;
 }
+
+/* =========================================
+   ADAPTACION PARA DRAWERS (CORRECCION CRITICA)
+   ========================================= */
+.config-drawer .form-grid {
+    grid-template-columns: 1fr 1fr !important; /* Forzar 2 columnas en drawers */
+    gap: 10px;
+}
+
+/* Reajustar spans para 2 columnas */
+.config-drawer .span-1 { grid-column: span 1; }
+.config-drawer .span-2 { grid-column: span 2; } /* Ocupa todo el ancho */
+.config-drawer .span-3 { grid-column: span 2; }
+.config-drawer .span-4 { grid-column: span 2; }
+
+/* Ajustes visuales para inputs en drawers */
+.config-drawer .form-input,
+.config-drawer .form-select {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+}
+
+.config-drawer .form-section-title {
+    font-size: 1rem;
+    margin-top: 10px;
+}
