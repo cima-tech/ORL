@@ -164,7 +164,7 @@
     z-index: 3000;
 }
 
-/* FIX SIDEBAR MENU POSITION */
+/* Sidebar fix */
 .layout-sidebar .user-dropdown {
     top: 0;
     left: 100%; 
@@ -594,49 +594,34 @@
 }
 
 /* =========================================
-   ESTILOS DE DOCUMENTO (PAPEL)
+   ESTILOS DE DOCUMENTO (PAPEL FÍSICO)
    ========================================= */
 .doc-page {
+    /* Física del papel */
     background-color: white !important;
     color: black !important;
-    
-    /* Fuente Estandarizada (PUNTO 3) */
-    font-family: 'Roboto Condensed', sans-serif !important;
-    
-    /* Tamaño Carta Exacto (Portrait) */
     width: 21.59cm;
     height: 27.94cm;
-    
-    /* Manejo de desbordamiento */
-    overflow: hidden;
-    
     margin: 20px auto;
-    padding: 2cm;
+    
+    /* El padding se controla ahora via JS para ser dinámico */
+    /* padding: 0cm; */ 
+    
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
     position: relative;
-    
-    /* Flex para asegurar footer/firma al fondo */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    font-family: 'Roboto Condensed', sans-serif !important;
 }
 
-/* Tamaño Carta Exacto (Landscape / Récipe) */
+/* Landscape / Récipe */
 .doc-page.land {
     width: 27.94cm;
     height: 21.59cm;
 }
 
-.doc-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.doc-body {
-    font-size: 1rem; /* Base size, scalable via JS */
-    line-height: 1.5;
-}
-
+/* El contenido interno se estila via documents.js, pero mantenemos resets */
 .doc-header img, .doc-footer img {
     max-width: 100%;
     display: block;
