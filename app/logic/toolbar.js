@@ -3,9 +3,15 @@ import { $, $$, STATE, rotateWallpaper, log, flash, showErr } from 'brain';
 import { ServiceLoader } from './service_loader.js';
 import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } from './engine.js';
 import { DrawersManager } from './drawers.js';
+import { AgendaManager } from 'appointments';
+import { BillingManager } from 'billing';
 
-// Exponer globalmente
 window.DrawersManager = DrawersManager;
+
+// ... (getNavGroupHTML y getHistoryGroupHTML se mantienen igual) ...
+// (Para ahorrar espacio, copia las funciones getNavGroupHTML, getHistoryGroupHTML, getConsultToolsHTML y getPreviewGroupHTML del código anterior, NO han cambiado)
+
+// PERO renderToolbar SÍ cambió la lógica de "changeMode":
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
@@ -105,8 +111,6 @@ function getConsultToolsHTML() {
 function getPreviewGroupHTML() {
     if (!STATE.UI.isPreviewMode || STATE.currentUser.profile.id === "guest") return '';
     const active = (t) => STATE.currentPreviewDoc === t ? 'background:var(--primary);' : '';
-    
-    // Obtenemos tamaño actual o default 16
     const docBody = document.querySelector('.doc-body');
     const currentSize = docBody ? parseInt(window.getComputedStyle(docBody).fontSize) : 16;
 
@@ -117,11 +121,9 @@ function getPreviewGroupHTML() {
             <button onclick="window.switchDoc('INF')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('INF')}">INF</button>
             <button onclick="window.switchDoc('RP')" class="icon-btn" style="font-size:0.7rem; width:auto; ${active('RP')}">RP</button>
             <div class="v-divider" style="height:20px;"></div>
-            
             <button id="btnFontPlus" class="icon-btn" title="Aumentar Letra"><i class="bi bi-plus-lg"></i></button>
             <span id="lblFontSize" style="font-size:0.75rem; color:white; width:30px; text-align:center;">${currentSize}px</span>
             <button id="btnFontMinus" class="icon-btn" title="Disminuir Letra"><i class="bi bi-dash-lg"></i></button>
-            
             <div class="v-divider" style="height:20px;"></div>
             <button id="btnToggleSign" class="icon-btn" title="Firmar"><i class="bi bi-pen-fill"></i></button>
             <button id="btnOpenExport" class="icon-btn" title="Exportar"><i class="bi bi-share-fill"></i></button>
@@ -137,23 +139,34 @@ export function renderToolbar() {
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
+    // GESTIÓN DE VISTAS (NUEVO)
+    const viewConsult = document.getElementById('view-consultation');
+    const viewAgenda = document.getElementById('view-agenda');
+    const viewBilling = document.getElementById('view-billing');
     const previewShell = document.getElementById('previewShell');
-    const form = document.getElementById('patientForm');
-    const visits = document.getElementById('visitsContainer');
 
-    // Lógica de visibilidad
-    if (STATE.UI.isPreviewMode && STATE.currentUser.profile.id !== "guest") {
+    // Reset visibilidad
+    viewConsult?.classList.add('hidden');
+    viewAgenda?.classList.add('hidden');
+    viewBilling?.classList.add('hidden');
+    previewShell.classList.add('hidden');
+
+    if (STATE.UI.isPreviewMode) {
         previewShell.classList.remove('hidden');
-        form.classList.add('hidden');
-        visits.classList.add('hidden');
     } else {
-        previewShell.classList.add('hidden');
-        if (STATE.UI.isStoryOpen && STATE.UI.currentMode === 'CONSULTATION' && STATE.currentUser.profile.id !== "guest") {
-            form.classList.remove('hidden');
-            visits.classList.remove('hidden');
-        } else {
-            form.classList.add('hidden');
-            visits.classList.add('hidden');
+        switch(STATE.UI.currentMode) {
+            case 'AGENDA':
+                viewAgenda.classList.remove('hidden');
+                AgendaManager.init();
+                break;
+            case 'BILLING':
+                viewBilling.classList.remove('hidden');
+                BillingManager.init();
+                break;
+            case 'CONSULTATION':
+            default:
+                viewConsult.classList.remove('hidden');
+                break;
         }
     }
 
@@ -178,19 +191,15 @@ export function renderToolbar() {
     bindEvents();
 }
 
-// LOGICA ESCALADO DE FUENTE
 function adjustDocScale(delta) {
     const docBody = document.querySelector('.doc-body');
     const lbl = document.getElementById('lblFontSize');
     if (!docBody) return;
-    
     const style = window.getComputedStyle(docBody);
     let currentSize = parseFloat(style.fontSize) || 16;
     let newSize = currentSize + delta;
-    
     if (newSize < 10) newSize = 10;
     if (newSize > 24) newSize = 24;
-    
     docBody.style.fontSize = `${newSize}px`;
     if(lbl) lbl.textContent = `${newSize}px`;
 }
@@ -199,18 +208,11 @@ function bindEvents() {
     window.changeMode = (m) => { STATE.UI.currentMode = m; STATE.UI.isPreviewMode = false; renderToolbar(); };
     window.switchDoc = (t) => { if(STATE.currentPreviewCard) window.openDocGlobal(t, STATE.currentPreviewCard.id); };
 
-    // Eventos de botones
     document.getElementById('btnOpenLogin')?.addEventListener('click', () => DrawersManager.Login.open());
     document.getElementById('btnCreateUser')?.addEventListener('click', () => DrawersManager.UserCreator.open());
-    
     document.querySelectorAll('.btn-close-drawer').forEach(btn => btn.addEventListener('click', () => DrawersManager.closeAll()));
     
-    document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar';
-        renderToolbar();
-    });
-    
+    document.getElementById('btnToggleLayout')?.addEventListener('click', (e) => { e.stopPropagation(); STATE.UI.layout = STATE.UI.layout === 'toolbar' ? 'sidebar' : 'toolbar'; renderToolbar(); });
     document.getElementById('btnUserConfig')?.addEventListener('click', (e) => { e.stopPropagation(); DrawersManager.Config.open(); });
     document.getElementById('btnChangeTheme')?.addEventListener('click', (e) => { e.stopPropagation(); rotateTheme(); });
     
@@ -221,7 +223,6 @@ function bindEvents() {
     });
     
     document.getElementById('btnClose')?.addEventListener('click', () => { if(saveCurrentHistory()) flash('Guardado'); });
-    
     document.getElementById('btnOpen')?.addEventListener('click', () => { 
         const query = prompt("Buscar paciente (nombre o documento):");
         if(query) {
@@ -232,31 +233,18 @@ function bindEvents() {
     });
     
     document.getElementById('btnAddConsulta')?.addEventListener('click', handleAddConsulta);
-    
     document.getElementById('btnDeleteLast')?.addEventListener('click', () => { if(confirm("¿Borrar última?")) document.getElementById('visitsContainer').firstChild?.remove(); });
-    
     document.getElementById('btnExitPreview')?.addEventListener('click', () => { STATE.UI.isPreviewMode = false; renderToolbar(); });
-    
-    document.getElementById('btnToggleSign')?.addEventListener('click', () => { 
-        STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); 
-    });
+    document.getElementById('btnToggleSign')?.addEventListener('click', () => { STATE.USE_SIG = !STATE.USE_SIG; window.switchDoc(STATE.currentPreviewDoc); });
 
-    // EVENTOS DE ZOOM DE FUENTE
     document.getElementById('btnFontPlus')?.addEventListener('click', () => adjustDocScale(1));
     document.getElementById('btnFontMinus')?.addEventListener('click', () => adjustDocScale(-1));
 
     const avatarBtn = document.getElementById('btnUserAvatar');
     const userDropdown = document.getElementById('userDropdown');
     if(avatarBtn && userDropdown) {
-        avatarBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if(!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
-                userDropdown.classList.add('hidden');
-            }
-        });
+        avatarBtn.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => { if(!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && !avatarBtn.contains(e.target)) userDropdown.classList.add('hidden'); });
     }
 
     document.getElementById('btnChangeWallpaper')?.addEventListener('click', (e) => { e.stopPropagation(); rotateWallpaper(); });
@@ -267,10 +255,7 @@ function bindEvents() {
             DrawersManager.Login.open();
         }
     });
-
-    document.getElementById('btnOpenExport')?.addEventListener('click', () => {
-        DrawersManager.Export.open();
-    });
+    document.getElementById('btnOpenExport')?.addEventListener('click', () => DrawersManager.Export.open());
 }
 
 function handleAddConsulta() {
@@ -281,23 +266,8 @@ function handleAddConsulta() {
     const existingCards = $("#visitsContainer").querySelectorAll('.visit-card');
     const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
     const newCard = ConsultService.createVisitCard(type);
-    if (type === 'Primera') {
-        const pVal = $("#antecedentes_personales")?.value || "";
-        const fVal = $("#antecedentes_familiares")?.value || "";
-        const tP = newCard.querySelector('.txt-antecedentes-personales');
-        const tF = newCard.querySelector('.txt-antecedentes-familiares');
-        if(tP) tP.value = pVal;
-        if(tF) tF.value = fVal;
-        flash('1ra Consulta');
-    } else if (type === 'Sucesiva' && existingCards.length > 0) {
-        const last = existingCards[0];
-        ['.txt-antecedentes-personales', '.txt-antecedentes-familiares'].forEach(sel => {
-            const src = last.querySelector(sel);
-            const tgt = newCard.querySelector(sel);
-            if(src && tgt) tgt.value = src.value;
-        });
-        flash('Sucesiva');
-    }
+    // (Nota: La lógica de herencia ya está dentro de createVisitCard en consult.js, no hace falta aquí)
+    flash(type + ' Consulta');
     $("#visitsContainer").insertBefore(newCard, $("#visitsContainer").firstChild);
     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -319,11 +289,8 @@ window.openDocGlobal = function(kind, cardId) {
     STATE.currentPreviewCard = card; 
     STATE.currentPreviewDoc = kind; 
     STATE.UI.isPreviewMode = true;
-    
-    // CAMBIO IMPORTANTE: Usar el módulo 'documents' unificado
     const docModule = ServiceLoader.get('documents');
     const html = kind === 'INF' ? docModule.buildReportHTML(card) : docModule.buildRecipeHTML(card);
-    
     document.getElementById('docPreview').innerHTML = html;
     renderToolbar();
 };
