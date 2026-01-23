@@ -25,8 +25,7 @@
 
 <div class="container">
   
-  <div id="view-dashboard" class="hidden">
-      </div>
+  <div id="view-dashboard" class="hidden"></div>
 
   <div id="view-consultation">
       <div id="patientForm" class="card hidden">
@@ -100,14 +99,25 @@
     "export_manager": "./app/logic/export_manager.js",
     "appointments": "./app/logic/appointments.js",
     "billing": "./app/logic/billing.js",
-    "dashboard": "./app/logic/dashboard.js"
+    "dashboard": "./app/logic/dashboard.js",
+    "portal": "./app/logic/portal.js"
   }
 }
 </script>
 
 <script type="module">
     import { StartManager } from 'start';
-    document.addEventListener('DOMContentLoaded', () => StartManager.init());
+    import { PortalManager } from 'portal';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Verificar si es modo paciente antes de iniciar el sistema completo
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'patient') {
+            PortalManager.init();
+        } else {
+            StartManager.init();
+        }
+    });
 </script>
 
 </body>
