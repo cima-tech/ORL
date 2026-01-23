@@ -1,10 +1,65 @@
 import { $, $$, flash, showErr, calcAge, fmtDateTime, STATE } from 'brain';
 
 // ==========================================
-// 1. TEMPLATE HTML (LA VISTA DEL MODELO)
+// 1. ESTILOS INDEPENDIENTES (PATIENT)
+// ==========================================
+const STYLES = `
+<style>
+    .patient-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        cursor: pointer;
+        border-radius: 12px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 15px;
+        backdrop-filter: blur(var(--blur-strength));
+        transition: all 0.2s;
+    }
+    .patient-header:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--primary);
+    }
+    
+    .patient-header-left { display: flex; align-items: center; gap: 20px; }
+    
+    .patient-avatar-icon { font-size: 2.5rem; color: var(--text-muted); }
+    
+    .patient-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+    .patient-name-row h3 { margin: 0; font-size: 1.2rem; color: var(--text-main); font-weight: 600; }
+    
+    .patient-meta { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+    
+    .alert-tag {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-right: 4px;
+        border: 1px solid transparent;
+    }
+    
+    .patient-details {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: -10px; /* Para que parezca pegado al header */
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+`;
+
+// ==========================================
+// 2. TEMPLATE HTML (LA VISTA DEL MODELO)
 // ==========================================
 const PATIENT_TEMPLATE = `
-    <div class="form-section">
+    ${STYLES} <div class="form-section">
       <div class="form-section-title">ID</div>
       <div class="form-grid">
         <div class="span-1">
@@ -203,7 +258,7 @@ const PATIENT_TEMPLATE = `
 `;
 
 // ==========================================
-// 2. FUNCIONES DEL MODELO (RENDERIZADO)
+// 3. FUNCIONES DEL MODELO (RENDERIZADO)
 // ==========================================
 
 function renderPatientForm() {
