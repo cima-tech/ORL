@@ -24,33 +24,58 @@
 <div id="ui-mount-point"></div>
 
 <div class="container">
-  <div id="patientForm" class="card hidden">
-    <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
-      <div class="patient-header-left">
-        <i class="bi bi-person-circle patient-avatar-icon"></i>
-        <div class="patient-header-info">
-            <div class="patient-name-row">
-                <h3 id="patient-header-name">Nuevo Paciente</h3>
-                <span id="patient-age-display" class="badge">-- años</span>
-                <div id="patient-alerts-container" style="display:inline-flex; margin-left:10px;"></div>
+  
+  <div id="view-consultation">
+      <div id="patientForm" class="card hidden">
+        <div class="patient-header" onclick="window.togglePatientDetailsGlobal()">
+          <div class="patient-header-left">
+            <i class="bi bi-person-circle patient-avatar-icon"></i>
+            <div class="patient-header-info">
+                <div class="patient-name-row">
+                    <h3 id="patient-header-name">Nuevo Paciente</h3>
+                    <span id="patient-age-display" class="badge">-- años</span>
+                    <div id="patient-alerts-container" style="display:inline-flex; margin-left:10px;"></div>
+                </div>
+                <div class="patient-meta">
+                    <span id="patient-doc-info">Doc: ---</span> • <span id="patient-internal-id">ID: ---</span>
+                    <span id="patient-meta-created" style="margin-left:10px; opacity:0.6; font-size:0.8em;"></span>
+                    <span id="patient-meta-modified" style="opacity:0.6; font-size:0.8em;"></span>
+                </div>
             </div>
-            <div class="patient-meta">
-                <span id="patient-doc-info">Doc: ---</span> • <span id="patient-internal-id">ID: ---</span>
-                <span id="patient-meta-created" style="margin-left:10px; opacity:0.6; font-size:0.8em;"></span>
-                <span id="patient-meta-modified" style="opacity:0.6; font-size:0.8em;"></span>
-            </div>
+          </div>
+          <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
         </div>
-      </div>
-      <button class="patient-toggle-btn"><i class="bi bi-chevron-down"></i></button>
-    </div>
-    <div class="patient-details hidden" id="patient-form-container"></div>
-  </div> 
+        <div class="patient-details hidden" id="patient-form-container"></div>
+      </div> 
 
-  <div id="visitsContainer" class="hidden"></div>
+      <div id="visitsContainer" class="hidden"></div>
+  </div>
+
+  <div id="view-agenda" class="hidden">
+      <div class="card" style="min-height: 80vh;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+              <h2 style="margin:0;"><i class="bi bi-calendar-week"></i> Agenda</h2>
+              <div style="display:flex; gap:10px;">
+                  <button class="btn btn-ghost" onclick="window.AgendaManager.changeView('day')">Día</button>
+                  <button class="btn btn-ghost" onclick="window.AgendaManager.changeView('week')">Semana</button>
+                  <button class="btn btn-primary" onclick="window.AgendaManager.createAppointment()">+ Cita</button>
+              </div>
+          </div>
+          <div id="agenda-grid"></div>
+      </div>
+  </div>
+
+  <div id="view-billing" class="hidden">
+      <div class="card">
+          <h2 style="margin-bottom:20px;"><i class="bi bi-receipt"></i> Facturación y Pagos</h2>
+          <div id="billing-workspace"></div>
+      </div>
+  </div>
 
   <div id="previewShell" class="preview-shell hidden">
     <div id="docPreview"></div>
   </div>
+
 </div> 
 
 <div id="consoleDrawer">
@@ -69,7 +94,9 @@
     "engine": "./app/logic/engine.js",
     "service_loader": "./app/logic/service_loader.js",
     "start": "./app/logic/start.js",
-    "export_manager": "./app/logic/export_manager.js"
+    "export_manager": "./app/logic/export_manager.js",
+    "appointments": "./app/logic/appointments.js",
+    "billing": "./app/logic/billing.js"
   }
 }
 </script>
