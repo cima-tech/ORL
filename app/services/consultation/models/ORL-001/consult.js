@@ -1,8 +1,10 @@
 import { $, $$, getLocalDateTime, fmtDateTime, STATE, generateServiceId } from 'brain';
 import { updateRecipeTextbox, renderIndicacionesDropdowns } from './documents.js';
+// IMPORTANTE: Importamos ServiceLoader para leer datos del paciente para la herencia
+import { ServiceLoader } from '../../../../logic/service_loader.js';
 
 // ==========================================
-// 1. ESTILOS PROPIOS (INDEPENDIENTES PERO REACTIVOS)
+// 1. ESTILOS PROPIOS
 // ==========================================
 const STYLES = `
 <style>
@@ -22,7 +24,7 @@ const STYLES = `
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
 
-    /* Header de la tarjeta - Ahora Clickable */
+    /* Header de la tarjeta */
     .visit-header {
         display: flex;
         justify-content: space-between;
@@ -30,7 +32,8 @@ const STYLES = `
         padding: 15px 20px;
         background: rgba(255, 255, 255, 0.03);
         border-bottom: 1px solid var(--glass-border);
-        cursor: pointer; /* Clickable */
+        cursor: pointer;
+        user-select: none;
     }
     .visit-header:hover {
         background: rgba(255, 255, 255, 0.07);
@@ -43,7 +46,7 @@ const STYLES = `
     }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Areas de Examen Físico (Cajas agrupadas) */
+    /* Areas de Examen Físico */
     .exam-area {
         background: rgba(0, 0, 0, 0.2);
         border: 1px solid var(--glass-border);
@@ -60,7 +63,7 @@ const STYLES = `
         display: flex; align-items: center; gap: 6px;
     }
 
-    /* Chips Específicos de Consulta */
+    /* Chips */
     .chip-group { margin-bottom: 5px; }
     .chip-group-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
     
@@ -87,14 +90,12 @@ const STYLES = `
     .chip.study-chip { border-color: var(--accent); color: var(--accent); }
     .chip.study-chip.on { background: var(--accent); color: black; }
 
-    /* Navegación interna */
     .patient-nav {
         display: flex; justify-content: flex-end; gap: 10px;
         padding-top: 15px; margin-top: 10px;
         border-top: 1px solid var(--glass-border);
     }
     
-    /* Botón toggle igual que patient */
     .visit-toggle-btn {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -105,11 +106,12 @@ const STYLES = `
         transition: all 0.2s;
         font-size: 0.75rem;
     }
+    .visit-toggle-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
 </style>
 `;
 
 // ==========================================
-// 2. DATA (CONFIGURACIÓN MÉDICA) - [SIN CAMBIOS]
+// 2. DATA (CONFIGURACIÓN MÉDICA)
 // ==========================================
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
@@ -206,7 +208,6 @@ export const CIMA_DATA = {
       "Sinusopatía": ["Sin Sinusopatía","Con Sinusopatía Maxilar Derecha","Con Sinusopatía Maxilar Izquierda","Con Sinusopatía Frontal Derecha","Con Sinusopatía Frontal Izquierda","Con Sinusopatía Etmoidal Anterior Derecha","Con Sinusopatía Etmoidal Anterior Izquierda","Con Sinusopatía Etmoidal Posterior Derecha","Con Sinusopatía Etmoidal Posterior Izquierda","Con Sinusopatía Esfenoidal Anterior Derecha","Con Sinusopatía Esfenoidal Anterior Izquierda","Con Sinusopatía Maxiloetmoidal Derecha","Con Sinusopatía Maxiloetmoidal Izquierda"]
     }
   },
-  
   PHYSICAL_EXAM: {
     "Cara": ["Simetría Facial","Asimetría Facial","Parálisis Facial Periférica","Parálisis Facial Periférica derecha","Parálisis Facial Periférica izquierda","Parálisis Facial Central","Edema Facial","Malformación Craneofacial"],
     "Oído Derecho": {
@@ -233,25 +234,17 @@ export const CIMA_DATA = {
     },
     "Cuello": ["Móvil, sin lesiones aparentes"]
   },
-
   ADDITIONAL_STUDIES: [
-    "Audiometría",
-    "Timpanometría",
-    "Acufenometría",
-    "Prueba de Prótesis Auditiva",
-    "PEATC",
-    "Estudio de Sueño",
-    "Resonancia de Nariz y SPN",
-    "Protocolo de Implante Coclear"
+    "Audiometría", "Timpanometría", "Acufenometría", "Prueba de Prótesis Auditiva", "PEATC", "Estudio de Sueño", "Resonancia de Nariz y SPN", "Protocolo de Implante Coclear"
   ]
 };
 
 // ==========================================
-// 3. TEMPLATE HTML (LA VISTA DE LA TARJETA)
+// 3. TEMPLATE HTML
 // ==========================================
 const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId) => `
     ${STYLES}
-    <div class="visit-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('i').className = this.nextElementSibling.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';">
+    <div class="visit-header">
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
              <span class="badge">${type}</span>
@@ -263,7 +256,8 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
           </div>
       </div>
 
-      <div style="display: flex; gap: 10px;" onclick="event.stopPropagation()"> <button type="button" class="btn btn-primary btn-small btn-docs"><i class="bi bi-file-text"></i> Documentos</button>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-primary btn-small btn-docs"><i class="bi bi-file-text"></i> Documentos</button>
         <button type="button" class="btn btn-ghost btn-small text-danger btn-del-visit"><i class="bi bi-x-lg"></i></button>
         <button type="button" class="visit-toggle-btn btn btn-ghost btn-small"><i class="bi bi-chevron-down"></i></button>
       </div>
@@ -271,140 +265,40 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
     
     <div class="visit-body">
       <div class="row">
-        <div class="col">
-          <label class="form-label">Fecha y Hora</label>
-          <input type="datetime-local" class="form-input visit-date" value="${getLocalDateTime()}">
-        </div>
+        <div class="col"><label class="form-label">Fecha y Hora</label><input type="datetime-local" class="form-input visit-date" value="${getLocalDateTime()}"></div>
       </div>
-      
       <div class="form-section">
         <div class="form-section-title">1. Anamnesis</div>
+        <div class="row"><div class="col"><label class="form-label">Motivo de Consulta</label><input class="form-input txt-motivo" placeholder="(texto libre)"><div class="chips chips-motivo" style="margin-top: 8px;"></div></div></div>
+        <div class="row"><div class="col"><label class="form-label">Enfermedad Actual</label><textarea class="form-input txt-ea" rows="3" placeholder="(autogenerado)">${eaAuto}</textarea></div></div>
         <div class="row">
-          <div class="col">
-            <label class="form-label">Motivo de Consulta</label>
-            <input class="form-input txt-motivo" placeholder="(texto libre)">
-            <div class="chips chips-motivo" style="margin-top: 8px;"></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Enfermedad Actual</label>
-            <textarea class="form-input txt-ea" rows="3" placeholder="(autogenerado)">${eaAuto}</textarea>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Antecedentes Personales</label>
-            <input class="form-input txt-antecedentes-personales" placeholder="(se llena con chips)">
-            <div class="chips chips-antecedentes-personales" style="margin-top: 8px;"></div>
-          </div>
-          <div class="col">
-            <label class="form-label">Antecedentes Familiares</label>
-            <input class="form-input txt-antecedentes-familiares" placeholder="(se llena con chips)">
-            <div class="chips chips-antecedentes-familiares" style="margin-top: 8px;"></div>
-          </div>
+          <div class="col"><label class="form-label">Antecedentes Personales</label><input class="form-input txt-antecedentes-personales" placeholder="(se llena con chips)"><div class="chips chips-antecedentes-personales" style="margin-top: 8px;"></div></div>
+          <div class="col"><label class="form-label">Antecedentes Familiares</label><input class="form-input txt-antecedentes-familiares" placeholder="(se llena con chips)"><div class="chips chips-antecedentes-familiares" style="margin-top: 8px;"></div></div>
         </div>
       </div>
-      
       <div class="form-section">
         <div class="form-section-title">2. Examen Físico</div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-emoji-neutral"></i> Cara</div>
-          <label class="form-label">Hallazgos</label>
-          <input class="form-input txt-exam-cara" placeholder="Hallazgos...">
-          <div class="chips chips-exam-cara" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Derecho</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-oido-derecho" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-oido-derecho" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-ear"></i> Oído Izquierdo</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-oido-izquierdo" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-oido-izquierdo" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-droplet"></i> Nariz</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-nariz" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-nariz" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-mic"></i> Orofaringe</div>
-          <label class="form-label">Hallazgos</label>
-          <textarea class="form-input txt-exam-orofaringe" rows="2" placeholder="Hallazgos..."></textarea>
-          <div class="chips-exam-orofaringe" style="margin-top: 8px;"></div>
-        </div>
-        
-        <div class="exam-area">
-          <div class="exam-area-title"><i class="bi bi-person-standing"></i> Cuello</div>
-          <label class="form-label">Hallazgos</label>
-          <input class="form-input txt-exam-cuello" placeholder="Hallazgos...">
-          <div class="chips chips-exam-cuello" style="margin-top: 8px;"></div>
-        </div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-emoji-neutral"></i> Cara</div><label class="form-label">Hallazgos</label><input class="form-input txt-exam-cara" placeholder="Hallazgos..."><div class="chips chips-exam-cara" style="margin-top: 8px;"></div></div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-ear"></i> Oído Derecho</div><label class="form-label">Hallazgos</label><textarea class="form-input txt-exam-oido-derecho" rows="2" placeholder="Hallazgos..."></textarea><div class="chips-exam-oido-derecho" style="margin-top: 8px;"></div></div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-ear"></i> Oído Izquierdo</div><label class="form-label">Hallazgos</label><textarea class="form-input txt-exam-oido-izquierdo" rows="2" placeholder="Hallazgos..."></textarea><div class="chips-exam-oido-izquierdo" style="margin-top: 8px;"></div></div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-droplet"></i> Nariz</div><label class="form-label">Hallazgos</label><textarea class="form-input txt-exam-nariz" rows="2" placeholder="Hallazgos..."></textarea><div class="chips-exam-nariz" style="margin-top: 8px;"></div></div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-mic"></i> Orofaringe</div><label class="form-label">Hallazgos</label><textarea class="form-input txt-exam-orofaringe" rows="2" placeholder="Hallazgos..."></textarea><div class="chips-exam-orofaringe" style="margin-top: 8px;"></div></div>
+        <div class="exam-area"><div class="exam-area-title"><i class="bi bi-person-standing"></i> Cuello</div><label class="form-label">Hallazgos</label><input class="form-input txt-exam-cuello" placeholder="Hallazgos..."><div class="chips chips-exam-cuello" style="margin-top: 8px;"></div></div>
       </div>
-      
       <div class="form-section">
         <div class="form-section-title">3. Estudios</div>
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Seleccionar Estudios</label>
-            <div class="chips chips-studies" style="margin-top: 8px;"></div>
-            <div id="studies-content-${cardId}" style="margin-top: 16px;"></div>
-          </div>
-        </div>
+        <div class="row"><div class="col"><label class="form-label">Seleccionar Estudios</label><div class="chips chips-studies" style="margin-top: 8px;"></div><div id="studies-content-${cardId}" style="margin-top: 16px;"></div></div></div>
       </div>
-      
       <div class="form-section">
         <div class="form-section-title">4. Diagnóstico y Plan</div>
-        
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Diagnóstico</label>
-            <input class="form-input txt-dx" placeholder="(se llena con chips + libre)">
-            <div class="chips chips-dx" style="margin-top: 8px;"></div>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Medicamentos / RP</label>
-            <textarea class="form-input txt-recipe" rows="4" placeholder="(seleccione medicamentos)"></textarea>
-            <div class="recipe-chips-container" style="margin-top: 8px;"></div>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Indicaciones (Posología)</label>
-            <div class="indicaciones-dropdowns" style="margin-bottom: 10px;"></div>
-            <textarea class="form-input txt-indicaciones" rows="6" placeholder="(se generan automáticamente)"></textarea>
-          </div>
-        </div>
-        
-        <div class="row">
-          <div class="col">
-            <label class="form-label">Plan / Tratamiento Final</label>
-            <textarea class="form-input txt-plan" rows="8" placeholder="(hereda de indicaciones + texto legal)"></textarea>
-          </div>
-        </div>
+        <div class="row"><div class="col"><label class="form-label">Diagnóstico</label><input class="form-input txt-dx" placeholder="(se llena con chips + libre)"><div class="chips chips-dx" style="margin-top: 8px;"></div></div></div>
+        <div class="row"><div class="col"><label class="form-label">Medicamentos / RP</label><textarea class="form-input txt-recipe" rows="4" placeholder="(seleccione medicamentos)"></textarea><div class="recipe-chips-container" style="margin-top: 8px;"></div></div></div>
+        <div class="row"><div class="col"><label class="form-label">Indicaciones (Posología)</label><div class="indicaciones-dropdowns" style="margin-bottom: 10px;"></div><textarea class="form-input txt-indicaciones" rows="6" placeholder="(se generan automáticamente)"></textarea></div></div>
+        <div class="row"><div class="col"><label class="form-label">Plan / Tratamiento Final</label><textarea class="form-input txt-plan" rows="8" placeholder="(hereda de indicaciones + texto legal)"></textarea></div></div>
       </div>
-      
       <div class="patient-nav">
-        <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})">
-            <i class="bi bi-arrow-up"></i> Subir
-        </button>
-        <button type="button" class="btn btn-ghost btn-small btn-collapse-card" onclick="document.getElementById('${cardId}').querySelector('.visit-header').click()">
-            <i class="bi bi-arrows-collapse"></i> Colapsar
-        </button>
+        <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})"><i class="bi bi-arrow-up"></i> Subir</button>
+        <button type="button" class="btn btn-ghost btn-small btn-collapse-card"><i class="bi bi-arrows-collapse"></i> Colapsar</button>
       </div>
     </div>
 `;
@@ -412,14 +306,11 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
 // ==========================================
 // 4. LOGICA DEL COMPONENTE (ENGINE)
 // ==========================================
-
-// Helper para crear chips
 function createChip(label, type = 'normal') {
     const s = document.createElement('span');
     s.className = 'chip' + (type.includes('study') ? ' study-chip' : '');
     s.textContent = label;
     s.dataset.active = '0';
-    
     s.addEventListener('click', () => {
         const isActive = s.dataset.active === '1';
         s.dataset.active = isActive ? '0' : '1';
@@ -438,19 +329,14 @@ function createChipGroup(title, items, container) {
     container.appendChild(groupDiv);
 }
 
-// Función principal exportada
 export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
-    
     const serviceId = generateServiceId();
-
-    // PUNTO 3: NOMBRE DE USUARIO REAL
     let createdBy = 'Usuario';
     if(STATE.currentUser?.profile?.firstname) {
         createdBy = STATE.currentUser.profile.firstname + ' ' + (STATE.currentUser.profile.lastname || '');
     }
-    
     const createdTime = new Date().toISOString();
 
     const wrap = document.createElement('div');
@@ -466,90 +352,95 @@ export function createVisitCard(type = 'Primera') {
     const edadStr = (edad || edad === 0) ? `${edad} años` : '[edad]';
     const eaAuto = `Paciente ${genero || '[género]'} de ${edadStr} quien acude a consulta por presentar [Motivo de consulta].`;
 
-    // INYECTAR EL TEMPLATE
     wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto, serviceId);
 
-    // ==========================================
-    // PUNTO 5: LÓGICA DE HERENCIA (MODEL-SPECIFIC)
-    // ==========================================
-    
-    // Obtener todas las tarjetas ACTUALES en el DOM (antes de insertar esta nueva)
-    // Nota: Como 'wrap' aun no esta en el DOM, visitsContainer tiene las viejas.
-    // Asumimos que las nuevas se insertan al principio (prepend/insertBefore).
+    // ============================
+    // HERENCIA DE DATOS
+    // ============================
     const existingCards = Array.from(document.querySelectorAll('.visit-card'));
     
     if (existingCards.length === 0) {
-        // --- CASO 1: PRIMERA CONSULTA ---
-        // Heredar de la Ficha del Paciente (Checkboxes -> Texto)
-        const checkMap = {
-            'alergias_check': 'Alergias',
-            'diabetes_check': 'Diabetes',
-            'asma_check': 'Asma',
-            'cardiopatias_check': 'Cardiopatía',
-            'epilepsia_check': 'Epilepsia',
-            'tiroideos_check': 'Tiroides',
-            'cronicas_check': 'Enf. Crónicas'
-        };
-        
-        let antecedentes = [];
-        for (const [id, label] of Object.entries(checkMap)) {
-            if ($(`#${id}`)?.checked) antecedentes.push(label);
-        }
-        // Agregar texto libre si existe
-        if ($('#otros_antecedentes')?.value) antecedentes.push($('#otros_antecedentes').value);
-        if ($('#alergias_detalle')?.value) antecedentes.push($('#alergias_detalle').value);
-        
-        const txtAntPers = wrap.querySelector('.txt-antecedentes-personales');
-        if (txtAntPers) txtAntPers.value = antecedentes.join(', ');
+        // CASO 1: PRIMERA CONSULTA -> HEREDA DE FICHA PACIENTE
+        try {
+            const patientData = ServiceLoader.get('patient').getPatientData();
+            let antecedentes = [];
+            
+            // Mapeo directo de checks a texto
+            if (patientData.alergias_check) antecedentes.push("Alergias: " + (patientData.alergias_detalle || ''));
+            if (patientData.diabetes_check) antecedentes.push("Diabetes");
+            if (patientData.asma_check) antecedentes.push("Asma");
+            if (patientData.cardiopatias_check) antecedentes.push("Cardiopatía");
+            if (patientData.epilepsia_check) antecedentes.push("Epilepsia");
+            if (patientData.tiroideos_check) antecedentes.push("Tiroides");
+            if (patientData.cronicas_check) antecedentes.push("Crónicas: " + (patientData.cronicas_detalle || ''));
+            if (patientData.otros_antecedentes) antecedentes.push(patientData.otros_antecedentes);
 
-        // Familiares
-        let familiares = [];
-        if ($('#familia_hipertension')?.checked) familiares.push('HTA');
-        if ($('#familia_diabetes')?.checked) familiares.push('DM');
-        if ($('#familia_cardiopatias')?.checked) familiares.push('Cardiopatía');
-        if ($('#familia_cancer')?.checked) familiares.push('Cáncer');
-        if ($('#familia_geneticas')?.value) familiares.push($('#familia_geneticas').value);
-        
-        const txtAntFam = wrap.querySelector('.txt-antecedentes-familiares');
-        if (txtAntFam) txtAntFam.value = familiares.join(', ');
+            const txtAntPers = wrap.querySelector('.txt-antecedentes-personales');
+            if (txtAntPers) txtAntPers.value = antecedentes.join(', ');
+
+            let familiares = [];
+            if (patientData.familia_hipertension) familiares.push('HTA');
+            if (patientData.familia_diabetes) familiares.push('DM');
+            if (patientData.familia_cardiopatias) familiares.push('Cardiopatía');
+            if (patientData.familia_cancer) familiares.push('Cáncer');
+            if (patientData.familia_geneticas) familiares.push(patientData.familia_geneticas);
+            
+            const txtAntFam = wrap.querySelector('.txt-antecedentes-familiares');
+            if (txtAntFam) txtAntFam.value = familiares.join(', ');
+        } catch(e) { console.warn("No se pudo heredar del paciente", e); }
 
     } else {
-        // --- CASO 2: CONSULTA SUCESIVA ---
-        // Heredar de la consulta anterior (la primera en la lista actual)
-        const prevCard = existingCards[0]; // La mas reciente
-        
+        // CASO 2: SUCESIVA -> HEREDA DE CONSULTA ANTERIOR
+        const prevCard = existingCards[0]; 
         const fieldsToCopy = [
-            '.txt-antecedentes-personales',
-            '.txt-antecedentes-familiares',
-            // Anamnesis
-            '.txt-motivo', // Opcional, a veces se repite
-            '.txt-ea',     // Opcional
-            // Examen Fisico (Area 2)
-            '.txt-exam-cara',
-            '.txt-exam-oido-derecho',
-            '.txt-exam-oido-izquierdo',
-            '.txt-exam-nariz',
-            '.txt-exam-orofaringe',
-            '.txt-exam-cuello'
+            '.txt-antecedentes-personales', '.txt-antecedentes-familiares',
+            '.txt-motivo', '.txt-ea',
+            '.txt-exam-cara', '.txt-exam-oido-derecho', '.txt-exam-oido-izquierdo',
+            '.txt-exam-nariz', '.txt-exam-orofaringe', '.txt-exam-cuello'
         ];
-
         fieldsToCopy.forEach(selector => {
             const prevVal = prevCard.querySelector(selector)?.value;
             const currInput = wrap.querySelector(selector);
-            if (prevVal && currInput) {
-                currInput.value = prevVal;
-                // Marcar como no editado por usuario para que los chips funcionen sobre esto si se desea
-                // currInput.dataset.userEdited = '1'; // Descomentar si queremos protegerlo
-            }
+            if (prevVal && currInput) currInput.value = prevVal;
         });
     }
 
-    // --- FIN LOGICA HERENCIA ---
+    // --- LOGICA DE EVENTOS (BUTTONS FIX) ---
+    // 1. Header Toggle (Click en toda la barra)
+    const header = wrap.querySelector('.visit-header');
+    header.addEventListener('click', () => {
+        const body = wrap.querySelector('.visit-body');
+        const icon = header.querySelector('.visit-toggle-btn i');
+        body.classList.toggle('hidden');
+        icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+    });
 
-    // --- INYECCIÓN DE CHIPS ---
+    // 2. Botones específicos (Prevent bubble)
+    wrap.querySelector('.btn-docs').addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.openDocGlobal('INF', cardId);
+    });
+
+    wrap.querySelector('.btn-del-visit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(confirm('¿Eliminar esta consulta?')) wrap.remove();
+    });
+
+    wrap.querySelector('.visit-toggle-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        header.click(); // Delega al header
+    });
+    
+    wrap.querySelector('.btn-collapse-card').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const body = wrap.querySelector('.visit-body');
+        body.classList.add('hidden');
+        wrap.querySelector('.visit-toggle-btn i').className = 'bi bi-chevron-right';
+    });
+
+    // --- INYECCIÓN DE CHIPS (Igual que antes) ---
     const motivoContainer = wrap.querySelector('.chips-motivo');
     CIMA_DATA.MOTIVOS.forEach(m => motivoContainer.appendChild(createChip(m)));
-    
     const antPersContainer = wrap.querySelector('.chips-antecedentes-personales');
     const antFamContainer = wrap.querySelector('.chips-antecedentes-familiares');
     CIMA_DATA.ANTECEDENTES.forEach(a => antPersContainer.appendChild(createChip(a)));
@@ -557,38 +448,21 @@ export function createVisitCard(type = 'Primera') {
     
     const caraContainer = wrap.querySelector('.chips-exam-cara');
     CIMA_DATA.PHYSICAL_EXAM.Cara.forEach(i => caraContainer.appendChild(createChip(i)));
-    
     const cuelloContainer = wrap.querySelector('.chips-exam-cuello');
     CIMA_DATA.PHYSICAL_EXAM.Cuello.forEach(i => cuelloContainer.appendChild(createChip(i)));
 
     const odContainer = wrap.querySelector('.chips-exam-oido-derecho');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => {
-        createChipGroup(group, items, odContainer);
-    });
-    
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Derecho"]).forEach(([group, items]) => createChipGroup(group, items, odContainer));
     const oiContainer = wrap.querySelector('.chips-exam-oido-izquierdo');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => {
-        createChipGroup(group, items, oiContainer);
-    });
-    
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM["Oído Izquierdo"]).forEach(([group, items]) => createChipGroup(group, items, oiContainer));
     const narizContainer = wrap.querySelector('.chips-exam-nariz');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => {
-        createChipGroup(group, items, narizContainer);
-    });
-    
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Nariz).forEach(([group, items]) => createChipGroup(group, items, narizContainer));
     const oroContainer = wrap.querySelector('.chips-exam-orofaringe');
-    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => {
-        createChipGroup(group, items, oroContainer);
-    });
+    Object.entries(CIMA_DATA.PHYSICAL_EXAM.Orofaringe).forEach(([group, items]) => createChipGroup(group, items, oroContainer));
 
-    // Estudios
     const studiesContainer = wrap.querySelector('.chips-studies');
-    Object.keys(CIMA_DATA.STUDIES).forEach(studyName => {
-        studiesContainer.appendChild(createChip(studyName, 'study-complex'));
-    });
-    CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => {
-        studiesContainer.appendChild(createChip(studyName, 'study-simple'));
-    });
+    Object.keys(CIMA_DATA.STUDIES).forEach(studyName => studiesContainer.appendChild(createChip(studyName, 'study-complex')));
+    CIMA_DATA.ADDITIONAL_STUDIES.forEach(studyName => studiesContainer.appendChild(createChip(studyName, 'study-simple')));
 
     const dxContainer = wrap.querySelector('.chips-dx');
     CIMA_DATA.DX.forEach(d => dxContainer.appendChild(createChip(d)));
@@ -596,111 +470,61 @@ export function createVisitCard(type = 'Primera') {
     const recipeContainer = wrap.querySelector('.recipe-chips-container');
     Object.entries(CIMA_DATA.RECIPE_MEDS).forEach(([group, meds]) => {
         const groupDiv = document.createElement('div');
-        groupDiv.style.marginBottom = '12px';
-        groupDiv.className = 'recipe-chips-group'; 
-        groupDiv.dataset.group = group; 
-        
-        groupDiv.innerHTML = `
-          <div style="font-weight: 600; color: var(--accent); margin: 8px 0;">${group}</div>
-          <div class="chips"></div>
-        `;
+        groupDiv.style.marginBottom = '12px'; groupDiv.className = 'recipe-chips-group'; groupDiv.dataset.group = group; 
+        groupDiv.innerHTML = `<div style="font-weight: 600; color: var(--accent); margin: 8px 0;">${group}</div><div class="chips"></div>`;
         const chipsBox = groupDiv.querySelector('.chips');
         meds.forEach(med => chipsBox.appendChild(createChip(med)));
         recipeContainer.appendChild(groupDiv);
     });
 
-    // --- EVENT LISTENERS ---
-    
-    wrap.querySelector('.btn-del-visit')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if(confirm('¿Eliminar esta consulta?')) wrap.remove();
-    });
-    
-    // (Ya no necesitamos el listener del toggle button explicito porque el onclick está en el HTML)
-
+    // Chip logic listeners
     wrap.addEventListener('chip-toggle', (e) => {
         const { label, active } = e.detail;
         const target = e.target;
 
-        // A. Estudios
         if (target.closest('.chips-studies')) {
             const contentArea = wrap.querySelector(`#studies-content-${cardId}`);
             const uniqueId = `study-${label.replace(/\s+/g, '-')}-${cardId}`;
-            
             if (active) {
                 const studyDiv = document.createElement('div');
-                studyDiv.id = uniqueId;
-                studyDiv.className = 'study-content';
+                studyDiv.id = uniqueId; studyDiv.className = 'study-content';
                 studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid var(--primary);";
-
-                let innerHTML = `<div style="font-weight:700; margin-bottom:5px; color:var(--text-main);">${label}</div>`;
-                innerHTML += `<textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
-                
-                if (CIMA_DATA.STUDIES[label]) {
-                    innerHTML += `<div class="study-sub-chips" style="margin-top:10px;"></div>`;
-                }
-                
+                let innerHTML = `<div style="font-weight:700; margin-bottom:5px; color:var(--text-main);">${label}</div><textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
+                if (CIMA_DATA.STUDIES[label]) innerHTML += `<div class="study-sub-chips" style="margin-top:10px;"></div>`;
                 studyDiv.innerHTML = innerHTML;
                 contentArea.appendChild(studyDiv);
-
                 if (CIMA_DATA.STUDIES[label]) {
                     const subContainer = studyDiv.querySelector('.study-sub-chips');
-                    Object.entries(CIMA_DATA.STUDIES[label]).forEach(([groupTitle, items]) => {
-                        createChipGroup(groupTitle, items, subContainer);
-                    });
+                    Object.entries(CIMA_DATA.STUDIES[label]).forEach(([groupTitle, items]) => createChipGroup(groupTitle, items, subContainer));
                 }
-            } else {
-                const el = document.getElementById(uniqueId);
-                if (el) el.remove();
-            }
+            } else { const el = document.getElementById(uniqueId); if (el) el.remove(); }
         }
 
-        // B. Sub-Chips Estudios
         if (target.closest('.study-sub-chips')) {
             const studyDiv = target.closest('.study-content');
             const textarea = studyDiv.querySelector('textarea');
             const activeSubChips = Array.from(studyDiv.querySelectorAll('.chip.on'));
-            
             const grouped = {};
             activeSubChips.forEach(c => {
                 const group = c.closest('.chip-group').querySelector('.chip-group-title').textContent;
                 if(!grouped[group]) grouped[group] = [];
                 grouped[group].push(c.textContent);
             });
-
             let text = "";
             Object.entries(grouped).forEach(([g, i]) => { text += `${g}: ${i.join(', ')}\n`; });
             textarea.value = text;
         }
 
-        // C. Inputs Normales
-        const simpleInputs = [
-            { cont: '.chips-motivo', input: '.txt-motivo' },
-            { cont: '.chips-dx', input: '.txt-dx' },
-            { cont: '.chips-antecedentes-personales', input: '.txt-antecedentes-personales' },
-            { cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' },
-            { cont: '.chips-exam-cara', input: '.txt-exam-cara' },
-            { cont: '.chips-exam-cuello', input: '.txt-exam-cuello' }
-        ];
-        
+        const simpleInputs = [{ cont: '.chips-motivo', input: '.txt-motivo' },{ cont: '.chips-dx', input: '.txt-dx' },{ cont: '.chips-antecedentes-personales', input: '.txt-antecedentes-personales' },{ cont: '.chips-antecedentes-familiares', input: '.txt-antecedentes-familiares' },{ cont: '.chips-exam-cara', input: '.txt-exam-cara' },{ cont: '.chips-exam-cuello', input: '.txt-exam-cuello' }];
         simpleInputs.forEach(item => {
             if (target.closest(item.cont)) {
                 const chips = Array.from(wrap.querySelectorAll(`${item.cont} .chip.on`));
                 const input = wrap.querySelector(item.input);
-                if (input && !input.dataset.userEdited) {
-                    input.value = chips.map(c => c.textContent).join(', ');
-                }
+                if (input && !input.dataset.userEdited) input.value = chips.map(c => c.textContent).join(', ');
             }
         });
 
-        // D. Examen Agrupado
-        const groupedExamInputs = [
-            { cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },
-            { cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },
-            { cont: '.chips-exam-nariz', input: '.txt-exam-nariz' },
-            { cont: '.chips-exam-orofaringe', input: '.txt-exam-orofaringe' }
-        ];
-
+        const groupedExamInputs = [{ cont: '.chips-exam-oido-derecho', input: '.txt-exam-oido-derecho' },{ cont: '.chips-exam-oido-izquierdo', input: '.txt-exam-oido-izquierdo' },{ cont: '.chips-exam-nariz', input: '.txt-exam-nariz' },{ cont: '.chips-exam-orofaringe', input: '.txt-exam-orofaringe' }];
         groupedExamInputs.forEach(item => {
             if (target.closest(item.cont)) {
                 const input = wrap.querySelector(item.input);
@@ -719,7 +543,6 @@ export function createVisitCard(type = 'Primera') {
             }
         });
 
-        // E. Recipe (Llamando a las funciones importadas)
         if (target.closest('.recipe-chips-container')) {
             updateRecipeTextbox(wrap);
             renderIndicacionesDropdowns(wrap);
