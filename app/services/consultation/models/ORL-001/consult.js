@@ -2,7 +2,98 @@ import { $, $$, getLocalDateTime, fmtDateTime, STATE, generateServiceId } from '
 import { updateRecipeTextbox, renderIndicacionesDropdowns } from './documents.js';
 
 // ==========================================
-// 1. DATA (CONFIGURACIÓN MÉDICA)
+// 1. ESTILOS PROPIOS (INDEPENDIENTES PERO REACTIVOS)
+// ==========================================
+const STYLES = `
+<style>
+    /* Estilos base de la tarjeta */
+    .visit-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 0; /* El padding lo manejan los hijos */
+        margin-bottom: 20px;
+        overflow: hidden;
+        backdrop-filter: blur(var(--blur-strength));
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .visit-card:hover {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Header de la tarjeta */
+    .visit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    /* Cuerpo de la tarjeta */
+    .visit-body {
+        padding: 20px;
+        animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Areas de Examen Físico (Cajas agrupadas) */
+    .exam-area {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    .exam-area-title {
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Chips Específicos de Consulta */
+    .chip-group { margin-bottom: 5px; }
+    .chip-group-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    
+    .chip {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin: 2px;
+        transition: all 0.2s;
+        color: var(--text-main);
+    }
+    .chip:hover { border-color: var(--primary); color: white; }
+    .chip.on {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 0 10px var(--primary);
+    }
+    .chip.study-chip { border-color: var(--accent); color: var(--accent); }
+    .chip.study-chip.on { background: var(--accent); color: black; }
+
+    /* Navegación interna */
+    .patient-nav {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding-top: 15px; margin-top: 10px;
+        border-top: 1px solid var(--glass-border);
+    }
+</style>
+`;
+
+// ==========================================
+// 2. DATA (CONFIGURACIÓN MÉDICA)
 // ==========================================
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
@@ -145,17 +236,17 @@ export const CIMA_DATA = {
 };
 
 // ==========================================
-// 2. TEMPLATE HTML (LA VISTA DE LA TARJETA)
+// 3. TEMPLATE HTML (LA VISTA DE LA TARJETA)
 // ==========================================
 const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId) => `
-    <div class="visit-header">
+    ${STYLES} <div class="visit-header">
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
              <span class="badge">${type}</span>
              <span style="font-weight:600;">Consulta ORL</span>
-             <span style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:0.75em; color:#94a3b8;">${serviceId}</span>
+             <span style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:0.75em; color:var(--text-muted);">${serviceId}</span>
           </div>
-          <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+          <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
              Creado: ${fmtDateTime(createdTime)} por ${createdBy}
           </div>
       </div>
@@ -308,7 +399,7 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
 `;
 
 // ==========================================
-// 3. LOGICA DEL COMPONENTE (ENGINE)
+// 4. LOGICA DEL COMPONENTE (ENGINE)
 // ==========================================
 
 // Helper para crear chips
@@ -330,7 +421,7 @@ function createChip(label, type = 'normal') {
 function createChipGroup(title, items, container) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'chip-group';
-    groupDiv.innerHTML = `<div class="chip-group-title" style="font-size:0.75rem; color:#60a5fa; margin:5px 0;">${title}</div><div class="chips"></div>`;
+    groupDiv.innerHTML = `<div class="chip-group-title">${title}</div><div class="chips"></div>`;
     const chipsDiv = groupDiv.querySelector('.chips');
     items.forEach(item => chipsDiv.appendChild(createChip(item)));
     container.appendChild(groupDiv);
@@ -418,7 +509,7 @@ export function createVisitCard(type = 'Primera') {
         groupDiv.dataset.group = group; 
         
         groupDiv.innerHTML = `
-          <div style="font-weight: 600; color: #60a5fa; margin: 8px 0;">${group}</div>
+          <div style="font-weight: 600; color: var(--accent); margin: 8px 0;">${group}</div>
           <div class="chips"></div>
         `;
         const chipsBox = groupDiv.querySelector('.chips');
@@ -459,9 +550,9 @@ export function createVisitCard(type = 'Primera') {
                 const studyDiv = document.createElement('div');
                 studyDiv.id = uniqueId;
                 studyDiv.className = 'study-content';
-                studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid #3b82f6;";
+                studyDiv.style.cssText = "margin-bottom:15px; padding:10px; background:rgba(59,130,246,0.05); border-left:3px solid var(--primary);";
 
-                let innerHTML = `<div style="font-weight:700; margin-bottom:5px;">${label}</div>`;
+                let innerHTML = `<div style="font-weight:700; margin-bottom:5px; color:var(--text-main);">${label}</div>`;
                 innerHTML += `<textarea class="form-input txt-study-result" rows="3" placeholder="Resultados de ${label}..."></textarea>`;
                 
                 if (CIMA_DATA.STUDIES[label]) {
