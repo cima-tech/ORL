@@ -5,13 +5,9 @@ import { saveCurrentHistory, resetStory, getSearchResults, loadHistoryRecord } f
 import { DrawersManager } from './drawers.js';
 import { AgendaManager } from 'appointments';
 import { BillingManager } from 'billing';
+import { DashboardManager } from 'dashboard'; // IMPORT NUEVO
 
 window.DrawersManager = DrawersManager;
-
-// ... (getNavGroupHTML y getHistoryGroupHTML se mantienen igual) ...
-// (Para ahorrar espacio, copia las funciones getNavGroupHTML, getHistoryGroupHTML, getConsultToolsHTML y getPreviewGroupHTML del código anterior, NO han cambiado)
-
-// PERO renderToolbar SÍ cambió la lógica de "changeMode":
 
 function getNavGroupHTML(isSidebar) {
     const activeStyle = (mode) => STATE.UI.currentMode === mode ? 'background:rgba(255,255,255,0.2); color:white;' : '';
@@ -139,22 +135,28 @@ export function renderToolbar() {
     const isSidebar = STATE.UI.layout === 'sidebar';
     document.body.classList.toggle('has-sidebar', isSidebar);
     
-    // GESTIÓN DE VISTAS (NUEVO)
+    // GESTIÓN DE VISTAS
     const viewConsult = document.getElementById('view-consultation');
     const viewAgenda = document.getElementById('view-agenda');
     const viewBilling = document.getElementById('view-billing');
+    const viewDashboard = document.getElementById('view-dashboard');
     const previewShell = document.getElementById('previewShell');
 
     // Reset visibilidad
     viewConsult?.classList.add('hidden');
     viewAgenda?.classList.add('hidden');
     viewBilling?.classList.add('hidden');
+    viewDashboard?.classList.add('hidden');
     previewShell.classList.add('hidden');
 
     if (STATE.UI.isPreviewMode) {
         previewShell.classList.remove('hidden');
     } else {
         switch(STATE.UI.currentMode) {
+            case 'DASHBOARD':
+                viewDashboard.classList.remove('hidden');
+                DashboardManager.init();
+                break;
             case 'AGENDA':
                 viewAgenda.classList.remove('hidden');
                 AgendaManager.init();
@@ -266,7 +268,6 @@ function handleAddConsulta() {
     const existingCards = $("#visitsContainer").querySelectorAll('.visit-card');
     const type = existingCards.length === 0 ? 'Primera' : 'Sucesiva';
     const newCard = ConsultService.createVisitCard(type);
-    // (Nota: La lógica de herencia ya está dentro de createVisitCard en consult.js, no hace falta aquí)
     flash(type + ' Consulta');
     $("#visitsContainer").insertBefore(newCard, $("#visitsContainer").firstChild);
     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
