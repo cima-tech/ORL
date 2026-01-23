@@ -24,7 +24,22 @@ const STYLES = `
     }
     
     .patient-header-left { display: flex; align-items: center; gap: 20px; }
-    .patient-avatar-icon { font-size: 2.5rem; color: var(--text-muted); }
+    
+    /* AVATAR DE PACIENTE */
+    .patient-avatar-container {
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        border: 2px dashed rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .patient-avatar-container:hover { border-color: var(--primary); }
+    .patient-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+    .patient-avatar-icon { font-size: 2rem; color: var(--text-muted); }
+    
     .patient-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
     .patient-name-row h3 { margin: 0; font-size: 1.2rem; color: var(--text-main); font-weight: 600; }
     .patient-meta { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
@@ -36,6 +51,7 @@ const STYLES = `
         font-weight: 600;
         margin-right: 4px;
         border: 1px solid transparent;
+        display: inline-block;
     }
     
     .patient-details {
@@ -48,7 +64,7 @@ const STYLES = `
         animation: fadeIn 0.3s ease;
     }
     
-    /* ESTILO BOTÓN UNIFICADO CON LA CONSULTA */
+    /* ESTILO BOTÓN UNIFICADO */
     .patient-toggle-btn {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -59,11 +75,7 @@ const STYLES = `
         transition: all 0.2s;
         font-size: 0.75rem;
     }
-    .patient-toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border-color: var(--accent);
-    }
+    .patient-toggle-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; border-color: var(--accent); }
     
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -282,8 +294,6 @@ function renderPatientForm() {
     if (container) {
         container.innerHTML = PATIENT_TEMPLATE;
         initPatientValidators();
-    } else {
-        console.error("No se encontró el contenedor #patient-form-container");
     }
 }
 
@@ -349,12 +359,12 @@ export function updatePatientHeader() {
     
     updatePatientTimestamps();
     updateAlertsBadge();
+    updateHeaderAvatar(); // Carga la foto
 }
 
 function updatePatientTimestamps() {
     if (!STATE.patientCreatedTime) STATE.patientCreatedTime = new Date().toISOString();
     STATE.patientModifiedTime = new Date().toISOString();
-    
     const user = STATE.currentUser?.profile?.id || 'u-001';
     
     const elCreated = $("#patient-meta-created");
@@ -364,7 +374,7 @@ function updatePatientTimestamps() {
     if(elModified) elModified.textContent = ` | Modificado: ${fmtDateTime(STATE.patientModifiedTime)}`;
 }
 
-// AQUÍ ESTÁ LA MEJORA: AHORA MUESTRA TUS ANTECEDENTES CRÓNICOS EN EL HEADER
+// LOGICA ALERTAS CORREGIDA
 function updateAlertsBadge() {
     const container = $("#patient-alerts-container");
     if(!container) return;
@@ -390,27 +400,64 @@ function updateAlertsBadge() {
         container.appendChild(tag);
     };
 
-    // Alertas generales y Crónicas específicas (Punto 4)
     if ($("#alergias_check")?.checked) addBadge("Alergias", "high");
     if ($("#riesgo_caidas")?.value === "Alto") addBadge("Riesgo Caída", "critical");
-    
     if ($("#diabetes_check")?.checked) addBadge("DM", "high");
     if ($("#asma_check")?.checked) addBadge("Asma", "high");
     if ($("#cardiopatias_check")?.checked) addBadge("Cardio", "high");
     if ($("#epilepsia_check")?.checked) addBadge("Epilepsia", "high");
     if ($("#tiroideos_check")?.checked) addBadge("Tiroides", "high");
-    if ($("#familia_hipertension")?.checked) addBadge("Fam: HTA", "medium");
-    if ($("#familia_diabetes")?.checked) addBadge("Fam: DM", "medium");
+    if ($("#cronicas_check")?.checked) addBadge("Crónicas", "high");
+}
+
+function updateHeaderAvatar() {
+    // Busca el header container que ahora es clickable
+    const icon = document.querySelector('.patient-avatar-icon');
+    const container = icon?.parentElement;
+    
+    // Si ya lo transformamos en container de foto, actualizamos la imagen si hay
+    if (container && container.classList.contains('patient-avatar-container')) {
+        const img = container.querySelector('img');
+        // Aquí podrías leer de STATE si guardaste la foto
+    } else if (icon) {
+        // Transformar el icono en un uploader la primera vez
+        const wrapper = document.createElement('div');
+        wrapper.className = 'patient-avatar-container';
+        wrapper.onclick = (e) => {
+            e.stopPropagation(); // Evitar que el header colapse
+            document.getElementById('patient-photo-input').click();
+        };
+        
+        wrapper.innerHTML = `
+            <img id="patient-photo-img" class="hidden">
+            <i class="bi bi-person-circle patient-avatar-icon"></i>
+            <input type="file" id="patient-photo-input" hidden accept="image/*">
+        `;
+        
+        icon.replaceWith(wrapper);
+        
+        // Bind event
+        wrapper.querySelector('input').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('patient-photo-img');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    wrapper.querySelector('i').classList.add('hidden');
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
 }
 
 // --- CÁLCULOS ---
 export function calcularCampos() {
     const fechaNacimiento = $("#fecha_nacimiento")?.value;
     $("#edad_auto").value = fechaNacimiento ? calcAge(fechaNacimiento) : '';
-    
     const peso = parseFloat($("#peso_kg")?.value);
     const talla = parseFloat($("#talla_cm")?.value);
-    
     if (peso && talla && talla > 0) {
         const alturaMetros = talla / 100;
         const imc = peso / (alturaMetros * alturaMetros);
@@ -424,36 +471,25 @@ export function calcularCampos() {
 // --- INICIALIZACIÓN ---
 export function initializeNewPatient() {
     renderPatientForm();
-
     const form = $("#patientForm");
     if(form) form.classList.remove('hidden');
-    
     const inputs = $$("#patientForm input, #patientForm select, #patientForm textarea");
     inputs.forEach(el => {
         if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
         else el.value = '';
     });
-
     const elPais = $("#dir_pais"); if(elPais) elPais.value = "Venezuela";
     const elUuid = $("#uuid"); if(elUuid) elUuid.value = generateUUID();
-    
     const newId = generatePatientInternalId();
     const elIntId = $("#internal_id"); if(elIntId) elIntId.value = newId;
     const elIntIdHead = $("#patient-internal-id"); if(elIntIdHead) elIntIdHead.textContent = `ID: ${newId}`;
-
     STATE.patientCreatedTime = new Date().toISOString();
     STATE.patientModifiedTime = STATE.patientCreatedTime;
-    
     toggleConditionalFields();
     calcularCampos();
     updatePatientHeader();
-
     if (typeof flatpickr !== 'undefined') {
-         flatpickr("#patientForm input[type='date']", {
-            dateFormat: "Y-m-d",
-            locale: "es", 
-            allowInput: true
-        });
+         flatpickr("#patientForm input[type='date']", { dateFormat: "Y-m-d", locale: "es", allowInput: true });
     }
 }
 
@@ -466,11 +502,9 @@ export function toggleConditionalFields() {
         { check: 'ha_sido_hospitalizado', fields: ['hospitalizacion_motivo', 'hospitalizacion_anio'] },
         { check: 'fractura_bool', fields: ['fractura_hueso'] }
     ];
-
     map.forEach(item => {
         const checkbox = $(`#${item.check}`);
         if(!checkbox) return;
-
         if (item.area) {
             const area = $(`#${item.area}`);
             if (area) {
@@ -478,7 +512,6 @@ export function toggleConditionalFields() {
                 if(area.parentElement) area.parentElement.style.gridColumn = checkbox.checked ? 'span 3' : 'span 1'; 
             }
         }
-        
         if (item.fields) {
             item.fields.forEach(fieldId => {
                 const el = $(`#${fieldId}`);
@@ -489,56 +522,44 @@ export function toggleConditionalFields() {
             });
         }
     });
+    // Trigger update header to refresh badges
+    updateAlertsBadge();
 }
 
-// --- VALIDACIONES Y LÓGICA SMART ---
+// --- VALIDACIONES ---
 export function initPatientValidators() {
-    
     $$('[data-mask]').forEach(el => {
         el.addEventListener('blur', () => {
             const type = el.dataset.mask;
             let val = el.value.trim();
             if(!val) return;
-
-            if (type === 'cedula' && /^\d+$/.test(val)) {
-                el.value = "V-" + val;
-            }
-            else if (type === 'phone') {
-                const nums = val.replace(/\D/g, '');
-                if(nums.length > 0 && val.startsWith('0')) el.value = '+58 ' + val.substring(1); 
-            }
-            else if (type === 'email') {
-                if(!val.includes('@')) {
-                    showErr(`Email inválido.`);
-                    el.classList.add('input-error');
-                } else {
-                    el.classList.remove('input-error');
-                }
-            }
-            else if (type === 'capital') {
-                el.value = val.replace(/\b\w/g, l => l.toUpperCase());
-            }
+            if (type === 'cedula' && /^\d+$/.test(val)) el.value = "V-" + val;
+            else if (type === 'phone') { const nums = val.replace(/\D/g, ''); if(nums.length > 0 && val.startsWith('0')) el.value = '+58 ' + val.substring(1); }
+            else if (type === 'email') { if(!val.includes('@')) { showErr(`Email inválido.`); el.classList.add('input-error'); } else { el.classList.remove('input-error'); } }
+            else if (type === 'capital') el.value = val.replace(/\b\w/g, l => l.toUpperCase());
         });
     });
-
     $$('[data-toggle-target]').forEach(check => {
-        const toggle = () => {
+        check.addEventListener('change', () => {
             const targetId = check.dataset.toggleTarget;
             const target = $('#' + targetId);
             if(target) {
                 target.style.display = check.checked ? 'block' : 'none';
                 target.style.opacity = check.checked ? '1' : '0';
-                target.style.transition = 'opacity 0.3s';
             }
-        };
-        check.addEventListener('change', toggle);
-        toggle(); 
+            updateAlertsBadge(); // Update badges immediately on toggle
+        });
+    });
+    // Listeners para checkboxes específicos de crónicas que no tienen toggle-target pero afectan el header
+    const chronicIds = ['diabetes_check', 'asma_check', 'cardiopatias_check', 'epilepsia_check', 'tiroideos_check', 'familia_hipertension', 'familia_diabetes'];
+    chronicIds.forEach(id => {
+        const el = $(`#${id}`);
+        if(el) el.addEventListener('change', updateAlertsBadge);
     });
 
     const checkConsent = $("#tratamiento_datos");
     const inputFirma = $("#fecha_firma");
     const labelFirma = $("#label_fecha_firma");
-    
     if(checkConsent) {
         checkConsent.addEventListener('change', () => {
             if (checkConsent.checked) {
@@ -550,16 +571,13 @@ export function initPatientValidators() {
                 labelFirma.textContent = "";
             }
         });
-        if(inputFirma.value) {
-             const d = new Date(inputFirma.value).toLocaleString('es-VE');
-             labelFirma.textContent = `Aceptado: ${d}`;
-        }
     }
 }
 
 // --- DATA EXTRACTOR ---
 export function getPatientData() {
     const data = {
+        // ... (Todos los campos se mantienen igual, solo me aseguro que exporte todo)
         uuid: $('#uuid')?.value,
         internal_id: $('#internal_id')?.value,
         documento_tipo: $('#documento_tipo')?.value,
@@ -598,7 +616,7 @@ export function getPatientData() {
         emergencia_email: $('#emergencia_email')?.value,
         aseguradora: $('#aseguradora')?.value,
         numero_poliza: $('#numero_poliza')?.value,
-        referido_por: $('#referidopor')?.value, // Corregido ID
+        referido_por: $('#referidopor')?.value, 
         fecha_admision: $('#fecha_admision')?.value,
         fecha_alta: $('#fecha_alta')?.value,
         alergias_check: $('#alergias_check')?.checked,
@@ -609,53 +627,40 @@ export function getPatientData() {
         medicamentos_detalle: $('#medicamentos_detalle')?.value,
         riesgo_caidas: $('#riesgo_caidas')?.value,
         voluntad_anticipada: $('#voluntad_anticipada')?.value,
-        
-        // Antecedentes específicos
         diabetes_check: $('#diabetes_check')?.checked,
         asma_check: $('#asma_check')?.checked,
         cardiopatias_check: $('#cardiopatias_check')?.checked,
         epilepsia_check: $('#epilepsia_check')?.checked,
         tiroideos_check: $('#tiroideos_check')?.checked,
         otros_antecedentes: $('#otros_antecedentes')?.value,
-        
         tiene_cirugias: $('#tiene_cirugias')?.checked,
         cirugia_descripcion: $('#cirugia_descripcion')?.value,
         cirugia_anio: $('#cirugia_anio')?.value,
-        
         ha_sido_hospitalizado: $('#ha_sido_hospitalizado')?.checked,
         hospitalizacion_motivo: $('#hospitalizacion_motivo')?.value,
         hospitalizacion_anio: $('#hospitalizacion_anio')?.value,
         transfusion: $('#transfusion')?.checked,
-
         lesion_desc: $('#lesion_desc')?.value,
         lesion_tipo: $('#lesion_tipo')?.value,
         fractura_bool: $('#fractura_bool')?.checked,
-        
-        // Familiares
         familia_hipertension: $('#familia_hipertension')?.checked,
         familia_diabetes: $('#familia_diabetes')?.checked,
         familia_cancer: $('#familia_cancer')?.checked,
         familia_cardiopatias: $('#familia_cardiopatias')?.checked,
         familia_geneticas: $('#familia_geneticas')?.value,
-        
-        // Habitos
         tabaquismo: $('#tabaquismo')?.value,
         alcohol: $('#alcohol')?.value,
         sustancias: $('#sustancias')?.value,
         estadofisico: $('#estadofisico')?.value,
         sueno: $('#Sueno')?.value,
-        
         ocupacion: $('#ocupacion')?.value,
         educacion: $('#educacion')?.value,
-        
         esquema_infancia: $('#esquema_infancia')?.checked,
         covid_estado: $('#covid_estado')?.value,
         reacciones_adversas: $('#reacciones_adversas')?.value,
         otras_vacunas: $('#otras_vacunas')?.value,
-
         tratamiento_datos: $('#tratamiento_datos')?.checked,
         fecha_firma: $('#fecha_firma')?.value,
-        
         created: STATE.patientCreatedTime,
         modified: new Date().toISOString(),
         creator: STATE.currentUser?.profile?.id,
@@ -664,12 +669,9 @@ export function getPatientData() {
     return data;
 }
 
-// --- DATA LOADER (CARGAR) ---
 export function loadPatientDataToDOM(data) {
     if (!data) return;
-    
     if(!$("#documento_numero")) renderPatientForm();
-
     Object.keys(data).forEach(key => {
         const el = $(`#${key}`);
         if (el) {
@@ -680,15 +682,12 @@ export function loadPatientDataToDOM(data) {
             }
         }
     });
-
     STATE.patientCreatedTime = data.created;
     STATE.patientModifiedTime = data.modified;
     if(data.uuid) STATE.patientUUID = Math.max(STATE.patientUUID, parseInt(data.uuid) + 1);
-
     toggleConditionalFields();
     calcularCampos();
     updatePatientHeader();
-    
     if(data.fecha_firma) {
          const labelFirma = $("#label_fecha_firma");
          if(labelFirma) {
