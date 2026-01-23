@@ -66,6 +66,76 @@ function updatePlanTratamiento(card, indicacionesText) {
     txtPlan.value = indicacionesText + contacto;
 }
 
+// ==========================================
+// CENTRALIZACIÓN DE ESTILOS (AQUÍ EDITAS EL DISEÑO)
+// ==========================================
+function getDocStyles(type) {
+    // Obtenemos los márgenes del usuario o defaults
+    const docConfig = STATE.currentUser?.documents || {};
+    const margins = type === 'vertical' 
+        ? (docConfig.vertical?.content_margins_cm || {top:2, right:2, bottom:2, left:2})
+        : (docConfig.horizontal?.content_margins_cm || {top:1, right:1, bottom:1, left:1});
+
+    return `
+        <style>
+            .doc-container {
+                font-family: 'Roboto Condensed', sans-serif !important;
+                color: #000;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                /* APLICAMOS LOS MÁRGENES DEL USUARIO AQUÍ */
+                padding: ${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm; 
+                box-sizing: border-box;
+            }
+            .doc-header-img { margin-bottom: 10px; text-align: center; }
+            .doc-header-img img { max-height: 120px; object-fit: contain; }
+            
+            .doc-footer-img { margin-top: auto; text-align: center; }
+            .doc-footer-img img { max-height: 80px; object-fit: contain; }
+
+            .doc-title-block { text-align: center; margin-bottom: 25px; }
+            .doc-title-main { font-size: 1.4rem; font-weight: 700; text-transform: uppercase; margin: 0; line-height: 1.2; }
+            .doc-title-sub { font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; color: #444; margin-top: 2px; }
+
+            .doc-patient-block { 
+                border-bottom: 2px solid #000; 
+                padding-bottom: 5px; 
+                margin-bottom: 15px; 
+                font-weight: 600; 
+                font-size: 1.1rem;
+                display: flex; justify-content: space-between; align-items: flex-end;
+            }
+            .doc-date { font-size: 0.9rem; font-weight: normal; }
+
+            .doc-body { 
+                flex: 1; 
+                font-size: 16px; /* Tamaño base editable via botones A+/A- */
+                line-height: 1.4; 
+                text-align: justify;
+                outline: none;
+            }
+            
+            .doc-section { margin-bottom: 15px; }
+            .doc-section strong { font-weight: 700; text-transform: uppercase; font-size: 0.95em; }
+
+            .doc-signature-block { 
+                margin-top: 20px; 
+                display: flex; 
+                justify-content: center; 
+                gap: 20px; 
+                align-items: flex-end; 
+                min-height: 100px; 
+                text-align: center;
+                font-size: 0.85rem;
+                page-break-inside: avoid;
+            }
+            .sign-line { border-top: 1px solid #000; width: 220px; margin: 5px auto 2px; }
+        </style>
+    `;
+}
+
 // --- GENERADORES HTML ---
 function getCommonData(card) {
     const pNombre = [$("#primer_nombre")?.value, $("#segundo_nombre")?.value, $("#primer_apellido")?.value, $("#segundo_apellido")?.value].filter(Boolean).join(' ');
@@ -77,12 +147,15 @@ function getCommonData(card) {
     const assets = user.assets || {};
 
     const drName = prof.name || `${prof.title} ${prof.firstname} ${prof.lastname}`;
-    const drSpec = profDetails.specialty || prof.title_line_1 || "Otorrinolaringología";
+    
+    // LOGICA: Si ambos están vacíos, devuelve string vacío.
+    const drSpec = profDetails.specialty || prof.title_line_1 || ""; 
+    
     const drInst = user.institution?.name || "";
     const drCode = (profDetails.license_number) ? `MPPS: ${profDetails.license_number}` : "";
 
-    const headerImg = assets.header_path ? `<img src="${assets.header_path}" style="width:100%; max-height:150px; object-fit:contain;">` : '';
-    const footerImg = assets.footer_path ? `<img src="${assets.footer_path}" style="width:100%; max-height:100px; object-fit:contain;">` : '';
+    const headerImg = assets.header_path ? `<img src="${assets.header_path}">` : '';
+    const footerImg = assets.footer_path ? `<img src="${assets.footer_path}">` : '';
     const signImg = (STATE.USE_SIG && assets.signature_path) ? `<img src="${assets.signature_path}" style="width:150px;">` : '';
     const stampImg = (STATE.USE_SIG && assets.stamp_path) ? `<img src="${assets.stamp_path}" style="width:100px;">` : '';
 
@@ -99,7 +172,7 @@ export function buildReportHTML(card) {
     const examMap = { 'Cara': card.querySelector('.txt-exam-cara')?.value, 'Oído Derecho': card.querySelector('.txt-exam-oido-derecho')?.value, 'Oído Izquierdo': card.querySelector('.txt-exam-oido-izquierdo')?.value, 'Nariz': card.querySelector('.txt-exam-nariz')?.value, 'Orofaringe': card.querySelector('.txt-exam-orofaringe')?.value, 'Cuello': card.querySelector('.txt-exam-cuello')?.value };
     let examHTML = '';
     if (Object.values(examMap).some(v => v && v.trim())) {
-        examHTML = '<div style="margin-bottom: 20px;"><strong>Examen Físico:</strong><br>';
+        examHTML = '<div class="doc-section"><strong>Examen Físico:</strong><br>';
         for (const [k, v] of Object.entries(examMap)) { if (v && v.trim()) examHTML += `&bull; <strong>${k}:</strong> ${v}<br>`; }
         examHTML += '</div>';
     }
@@ -110,40 +183,51 @@ export function buildReportHTML(card) {
         const res = s.querySelector('textarea')?.value || '';
         if (res) studiesHTML += `<div><strong>${name}:</strong> ${res}</div>`;
     });
-    if (studiesHTML) studiesHTML = `<div style="margin-bottom: 20px;"><strong>Estudios Realizados:</strong><br>${studiesHTML}</div>`;
+    if (studiesHTML) studiesHTML = `<div class="doc-section"><strong>Estudios Realizados:</strong><br>${studiesHTML}</div>`;
 
     const dx = (card.querySelector('.txt-dx')?.value || '').trim();
     const plan = (card.querySelector('.txt-plan')?.value || '').trim();
 
+    // AQUI SE INYECTA EL CSS
     return `<div class="doc-page doc-letter">
-        <div class="doc-header" style="text-align:center; margin-bottom:20px;">${d.headerImg}</div>
-        <div class="doc-wrap">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #000; margin: 0; font-size: 1.4rem; text-transform: uppercase;">Informe Médico</h2>
-                <div style="color: #333; font-size: 0.8em; letter-spacing: 2px; text-transform: uppercase;">${d.drSpec}</div>
+        ${getDocStyles('vertical')}
+        <div class="doc-container">
+            <div class="doc-header-img">${d.headerImg}</div>
+            
+            <div class="doc-title-block">
+                <h2 class="doc-title-main">INFORME MÉDICO</h2>
+                ${d.drSpec ? `<div class="doc-title-sub">${d.drSpec}</div>` : ''}
             </div>
-            <div style="font-weight: 600; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px;">PACIENTE: ${d.pNombre || '—'} <br><span style="font-weight: 400; font-size: 0.9em;">ID: ${d.doc}</span></div>
-            <div style="margin-bottom: 20px; text-align: right; font-size: 0.9em; color: #000;"><strong>Caracas, ${fmtDateTime(d.dateISO)}</strong></div>
-            <div class="doc-body" contenteditable="true" style="outline:none; min-height:300px; font-size: 1rem; line-height: 1.5;">
-                ${ea ? `<div style="margin-bottom: 15px;"><strong>Enfermedad Actual:</strong><br>${ea}</div>` : ''}
-                ${motivo ? `<div style="margin-bottom: 15px;"><strong>Motivo:</strong> ${motivo}</div>` : ''}
-                ${antPers ? `<div style="margin-bottom: 15px;"><strong>A. Personales:</strong> ${antPers}</div>` : ''}
-                ${antFam ? `<div style="margin-bottom: 15px;"><strong>A. Familiares:</strong> ${antFam}</div>` : ''}
+
+            <div class="doc-patient-block">
+                <div>PACIENTE: ${d.pNombre} <span style="font-weight:400; font-size:0.9em; margin-left:10px;">(ID: ${d.doc})</span></div>
+                <div class="doc-date">Caracas, ${fmtDate(d.dateISO)}</div>
+            </div>
+
+            <div class="doc-body" contenteditable="true">
+                ${ea ? `<div class="doc-section"><strong>Enfermedad Actual:</strong><br>${ea}</div>` : ''}
+                ${motivo ? `<div class="doc-section"><strong>Motivo:</strong> ${motivo}</div>` : ''}
+                ${antPers ? `<div class="doc-section"><strong>A. Personales:</strong> ${antPers}</div>` : ''}
+                ${antFam ? `<div class="doc-section"><strong>A. Familiares:</strong> ${antFam}</div>` : ''}
                 ${examHTML}
                 ${studiesHTML}
-                ${dx ? `<div style="margin-bottom: 20px;"><strong>Diagnóstico:</strong> ${dx}</div>` : ''}
-                ${plan ? `<div style="margin-bottom: 20px;"><strong>Plan / Tratamiento:</strong><br>${plan.replace(/\n/g, '<br>')}</div>` : ''}
+                ${dx ? `<div class="doc-section"><strong>Diagnóstico:</strong> ${dx}</div>` : ''}
+                ${plan ? `<div class="doc-section"><strong>Plan / Tratamiento:</strong><br>${plan.replace(/\n/g, '<br>')}</div>` : ''}
             </div>
-            <div style="margin-top: 50px; display:flex; justify-content:center; gap:20px; align-items:flex-end; min-height: 100px;">
-                <div>${d.signImg}</div>
-                <div>${d.stampImg}</div>
+
+            <div class="doc-signature-block">
+                <div>
+                    ${d.signImg}<br>
+                    <div class="sign-line"></div>
+                    <strong>${d.drName}</strong><br>
+                    ${d.drSpec}<br>
+                    ${d.drInst}
+                </div>
+                ${d.stampImg ? `<div>${d.stampImg}</div>` : ''}
             </div>
-            <div style="text-align:center; font-size:0.8em; color:#000; margin-top:10px;">
-                <div style="border-top: 1px solid #000; width: 220px; margin: 10px auto 5px;"></div>
-                <strong>${d.drName}</strong><br>${d.drSpec}<br>${d.drInst}
-            </div>
+
+            <div class="doc-footer-img">${d.footerImg}</div>
         </div>
-        <div class="doc-footer" style="position:absolute; bottom:0; left:0; width:100%; text-align:center;">${d.footerImg}</div>
     </div>`;
 }
 
@@ -152,27 +236,58 @@ export function buildRecipeHTML(card) {
     const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
     const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
     
-    const firmaBlock = `<div style="height:120px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin-top:auto;">
-        ${d.signImg ? `<img src="${STATE.currentUser.assets.signature_path}" style="position:absolute; bottom:40px; width:140px;">` : ''}
-        ${d.stampImg ? `<img src="${STATE.currentUser.assets.stamp_path}" style="position:absolute; bottom:40px; right:40px; width:90px;">` : ''}
-        <div style="text-align:center; font-size:0.75rem; color:#000; line-height:1.2;"><div style="font-weight:bold; font-size:0.9rem; border-top:1px solid #000; padding-top:4px; width:220px; margin:0 auto 2px auto;">${d.drName}</div>${d.drSpec}<br><span style="font-size:0.7rem;">${d.drCode}</span></div></div>`;
+    // CSS Específico para landscape si se desea, por ahora reutilizamos getDocStyles('horizontal')
+    const styles = getDocStyles('horizontal');
 
-    return `<div class="doc-page doc-letter land" style="padding:30px 40px; display:grid; grid-template-columns: 1fr 1fr; gap:50px;">
-        <div style="display:flex; flex-direction:column; height:100%; border-right:1px dashed #cbd5e1; padding-right:25px;">
-            <div style="text-align:center; margin-bottom:15px;">${d.headerImg}</div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;"><div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Rp.</div><div style="font-size:0.85rem;">${fmtDate(d.dateISO)}</div></div>
-            <div style="font-size:0.95rem; margin-bottom:20px;"><b>Paciente:</b> ${d.pNombre} <br><b>ID:</b> ${d.doc}</div>
-            <div contenteditable="true" style="flex:1; font-family:'Courier New', monospace; font-size:1.1rem; line-height:1.5; outline:none; white-space:pre-line;">${recipe}</div>
-            ${firmaBlock}
-            <div style="text-align:center; margin-top:10px;">${d.footerImg}</div>
-        </div>
-        <div style="display:flex; flex-direction:column; height:100%; padding-left:10px;">
-            <div style="text-align:center; margin-bottom:15px;">${d.headerImg}</div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #333; margin-bottom:15px; padding-bottom:5px;"><div style="font-size:1.4rem; font-weight:bold; font-family:'Georgia', serif;">Indicaciones</div><div style="font-size:0.85rem;">${fmtDate(d.dateISO)}</div></div>
-            <div style="font-size:0.95rem; margin-bottom:20px;"><b>Paciente:</b> ${d.pNombre}</div>
-            <div contenteditable="true" style="flex:1; font-family:'Segoe UI', sans-serif; font-size:1rem; line-height:1.4; outline:none; white-space:pre-line;">${indicaciones}</div>
-            ${firmaBlock}
-            <div style="text-align:center; margin-top:10px;">${d.footerImg}</div>
+    // Bloque de firma reutilizable
+    const firmaBlock = `
+        <div style="margin-top:auto; text-align:center; font-size:0.75rem; position:relative; min-height:80px;">
+            ${d.signImg ? `<img src="${STATE.currentUser.assets.signature_path}" style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:120px;">` : ''}
+            <div style="border-top:1px solid #000; width:180px; margin:40px auto 2px;"></div>
+            <strong>${d.drName}</strong><br>${d.drCode}
+        </div>`;
+
+    return `<div class="doc-page doc-letter land">
+        ${styles}
+        <style>
+            /* Estilos extra específicos para el récipe de 2 columnas */
+            .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+            .recipe-col { display: flex; flex-direction: column; height: 100%; border-right: 1px dashed #ccc; padding-right: 20px; }
+            .recipe-col:last-child { border-right: none; padding-right: 0; padding-left: 20px; }
+            .rp-header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; margin-bottom: 10px; align-items: flex-end; }
+            .rp-title { font-size: 1.5rem; font-weight: bold; font-family: serif; }
+        </style>
+
+        <div class="doc-container">
+            <div class="recipe-grid">
+                <div class="recipe-col">
+                    <div class="doc-header-img">${d.headerImg}</div>
+                    <div class="rp-header">
+                        <span class="rp-title">Rp.</span>
+                        <span>${fmtDate(d.dateISO)}</span>
+                    </div>
+                    <div style="margin-bottom:15px;"><b>Paciente:</b> ${d.pNombre} <br><b>ID:</b> ${d.doc}</div>
+                    
+                    <div class="doc-body" contenteditable="true" style="white-space:pre-line;">${recipe}</div>
+                    
+                    ${firmaBlock}
+                    <div class="doc-footer-img">${d.footerImg}</div>
+                </div>
+
+                <div class="recipe-col">
+                    <div class="doc-header-img">${d.headerImg}</div>
+                    <div class="rp-header">
+                        <span class="rp-title">Indicaciones</span>
+                        <span>${fmtDate(d.dateISO)}</span>
+                    </div>
+                    <div style="margin-bottom:15px;"><b>Paciente:</b> ${d.pNombre}</div>
+                    
+                    <div class="doc-body" contenteditable="true" style="white-space:pre-line;">${indicaciones}</div>
+                    
+                    ${firmaBlock}
+                    <div class="doc-footer-img">${d.footerImg}</div>
+                </div>
+            </div>
         </div>
     </div>`;
 }
