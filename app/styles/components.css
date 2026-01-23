@@ -1,5 +1,5 @@
 /* =========================================
-   COMPONENTES REUTILIZABLES
+   COMPONENTES REUTILIZABLES (ÁTOMOS)
    ========================================= */
 
 /* Icon Buttons */
@@ -71,51 +71,6 @@
 .btn-small {
     padding: 4px 8px;
     font-size: 0.75rem;
-}
-
-/* Patient Navigation */
-.patient-nav {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 20px;
-}
-
-.patient-nav button {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.8rem;
-}
-
-.patient-nav button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border-color: #22d3ee;
-}
-
-/* Patient Header */
-.patient-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    cursor: pointer;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    margin-bottom: 15px;
-}
-
-.patient-header-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
 }
 
 /* Avatar Styles */
