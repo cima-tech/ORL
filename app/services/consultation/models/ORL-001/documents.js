@@ -33,7 +33,6 @@ export function renderIndicacionesDropdowns(card) {
             row.querySelector('select').addEventListener('change', () => syncIndicacionesText(card));
         });
     });
-    // Sincronizar inmediatamente al renderizar por si hay datos previos
     syncIndicacionesText(card);
 }
 
@@ -43,12 +42,10 @@ function syncIndicacionesText(card) {
     selects.forEach(sel => {
         const med = sel.dataset.med;
         const indicacion = sel.value === 'custom' ? '...' : sel.value;
-        text += `• ${med}:\n  ${indicacion}\n\n`;
+        text += `• ${med}: ${indicacion}\n\n`; // Formato más limpio
     });
     const txtInd = card.querySelector('.txt-indicaciones');
-    // Solo actualizar si el usuario no ha escrito manualmente algo diferente
-    // Opcional: podrías querer sobrescribir siempre, pero respetamos la edición manual si ya existe
-    if (txtInd) {
+    if (txtInd && !txtInd.dataset.userEdited) {
         txtInd.value = text.trim();
         updatePlanTratamiento(card, txtInd.value);
     }
@@ -70,10 +67,9 @@ function updatePlanTratamiento(card, indicacionesText) {
 }
 
 // ==========================================
-// CENTRALIZACIÓN DE ESTILOS (AQUÍ EDITAS EL DISEÑO)
+// CENTRALIZACIÓN DE ESTILOS
 // ==========================================
 function getDocStyles(type) {
-    // Obtenemos los márgenes del usuario o defaults
     const docConfig = STATE.currentUser?.documents || {};
     const margins = type === 'vertical' 
         ? (docConfig.vertical?.content_margins_cm || {top:2, right:2, bottom:2, left:2})
@@ -88,15 +84,14 @@ function getDocStyles(type) {
                 height: 100%;
                 display: flex;
                 flex-direction: column;
-                /* APLICAMOS LOS MÁRGENES DEL USUARIO AQUÍ */
                 padding: ${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm; 
                 box-sizing: border-box;
             }
             .doc-header-img { margin-bottom: 10px; text-align: center; }
-            .doc-header-img img { max-height: 120px; object-fit: contain; }
+            .doc-header-img img { max-height: 100px; object-fit: contain; }
             
             .doc-footer-img { margin-top: auto; text-align: center; }
-            .doc-footer-img img { max-height: 80px; object-fit: contain; }
+            .doc-footer-img img { max-height: 60px; object-fit: contain; }
 
             .doc-title-block { text-align: center; margin-bottom: 25px; }
             .doc-title-main { font-size: 1.4rem; font-weight: 700; text-transform: uppercase; margin: 0; line-height: 1.2; }
@@ -114,7 +109,7 @@ function getDocStyles(type) {
 
             .doc-body { 
                 flex: 1; 
-                font-size: 16px; /* Tamaño base editable via botones A+/A- */
+                font-size: 16px; 
                 line-height: 1.4; 
                 text-align: justify;
                 outline: none;
@@ -234,10 +229,9 @@ export function buildRecipeHTML(card) {
     const d = getCommonData(card);
     const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
     const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
-    
     const styles = getDocStyles('horizontal');
 
-    // Bloque de firma para cada columna
+    // Bloque de firma para cada columna (más compacto)
     const firmaBlock = `
         <div style="margin-top:auto; text-align:center; font-size:0.75rem; position:relative; min-height:80px;">
             ${d.signImg ? `<img src="${STATE.currentUser.assets.signature_path}" style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:120px;">` : ''}
@@ -248,10 +242,34 @@ export function buildRecipeHTML(card) {
     return `<div class="doc-page doc-letter land">
         ${styles}
         <style>
-            .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-            .recipe-col { display: flex; flex-direction: column; height: 100%; border-right: 1px dashed #ccc; padding-right: 20px; }
-            .recipe-col:last-child { border-right: none; padding-right: 0; padding-left: 20px; }
-            .rp-header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; margin-bottom: 10px; align-items: flex-end; }
+            /* Grid estricto de 2 columnas */
+            .recipe-grid { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 40px; 
+                height: 100%; 
+                width: 100%;
+            }
+            .recipe-col { 
+                display: flex; 
+                flex-direction: column; 
+                height: 100%; 
+                border-right: 1px dashed #ccc; 
+                padding-right: 20px; 
+            }
+            .recipe-col:last-child { 
+                border-right: none; 
+                padding-right: 0; 
+                padding-left: 20px; 
+            }
+            .rp-header { 
+                display: flex; 
+                justify-content: space-between; 
+                border-bottom: 2px solid #000; 
+                margin-bottom: 10px; 
+                align-items: flex-end; 
+                padding-bottom: 5px;
+            }
             .rp-title { font-size: 1.5rem; font-weight: bold; font-family: serif; }
         </style>
 
@@ -263,7 +281,7 @@ export function buildRecipeHTML(card) {
                         <span class="rp-title">Rp.</span>
                         <span>${fmtDate(d.dateISO)}</span>
                     </div>
-                    <div style="margin-bottom:15px;"><b>Paciente:</b> ${d.pNombre} <br><b>ID:</b> ${d.doc}</div>
+                    <div style="margin-bottom:15px; font-size:0.95rem;"><b>Paciente:</b> ${d.pNombre} <br><b>ID:</b> ${d.doc}</div>
                     
                     <div class="doc-body" contenteditable="true" style="white-space:pre-line;">${recipe}</div>
                     
@@ -277,7 +295,7 @@ export function buildRecipeHTML(card) {
                         <span class="rp-title">Indicaciones</span>
                         <span>${fmtDate(d.dateISO)}</span>
                     </div>
-                    <div style="margin-bottom:15px;"><b>Paciente:</b> ${d.pNombre}</div>
+                    <div style="margin-bottom:15px; font-size:0.95rem;"><b>Paciente:</b> ${d.pNombre}</div>
                     
                     <div class="doc-body" contenteditable="true" style="white-space:pre-line;">${indicaciones}</div>
                     
