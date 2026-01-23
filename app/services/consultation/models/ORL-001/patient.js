@@ -24,12 +24,9 @@ const STYLES = `
     }
     
     .patient-header-left { display: flex; align-items: center; gap: 20px; }
-    
     .patient-avatar-icon { font-size: 2.5rem; color: var(--text-muted); }
-    
     .patient-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
     .patient-name-row h3 { margin: 0; font-size: 1.2rem; color: var(--text-main); font-weight: 600; }
-    
     .patient-meta { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
     
     .alert-tag {
@@ -46,9 +43,26 @@ const STYLES = `
         border: 1px solid var(--glass-border);
         border-radius: 12px;
         padding: 20px;
-        margin-top: -10px; /* Para que parezca pegado al header */
+        margin-top: -10px;
         margin-bottom: 20px;
         animation: fadeIn 0.3s ease;
+    }
+    
+    /* ESTILO BOTÓN UNIFICADO CON LA CONSULTA */
+    .patient-toggle-btn {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+    .patient-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: var(--accent);
     }
     
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -59,7 +73,9 @@ const STYLES = `
 // 2. TEMPLATE HTML (LA VISTA DEL MODELO)
 // ==========================================
 const PATIENT_TEMPLATE = `
-    ${STYLES} <div class="form-section">
+    ${STYLES}
+    
+    <div class="form-section">
       <div class="form-section-title">ID</div>
       <div class="form-grid">
         <div class="span-1">
@@ -348,7 +364,7 @@ function updatePatientTimestamps() {
     if(elModified) elModified.textContent = ` | Modificado: ${fmtDateTime(STATE.patientModifiedTime)}`;
 }
 
-// AQUÍ ESTÁ LA MEJORA: AHORA MUESTRA TUS ANTECEDENTES EN EL HEADER
+// AQUÍ ESTÁ LA MEJORA: AHORA MUESTRA TUS ANTECEDENTES CRÓNICOS EN EL HEADER
 function updateAlertsBadge() {
     const container = $("#patient-alerts-container");
     if(!container) return;
@@ -374,17 +390,17 @@ function updateAlertsBadge() {
         container.appendChild(tag);
     };
 
-    // Alertas generales
+    // Alertas generales y Crónicas específicas (Punto 4)
     if ($("#alergias_check")?.checked) addBadge("Alergias", "high");
     if ($("#riesgo_caidas")?.value === "Alto") addBadge("Riesgo Caída", "critical");
     
-    // Tus Antecedentes Personales Específicos
-    if ($("#hipertension_check")?.checked) addBadge("HTA", "high");
     if ($("#diabetes_check")?.checked) addBadge("DM", "high");
     if ($("#asma_check")?.checked) addBadge("Asma", "high");
     if ($("#cardiopatias_check")?.checked) addBadge("Cardio", "high");
     if ($("#epilepsia_check")?.checked) addBadge("Epilepsia", "high");
     if ($("#tiroideos_check")?.checked) addBadge("Tiroides", "high");
+    if ($("#familia_hipertension")?.checked) addBadge("Fam: HTA", "medium");
+    if ($("#familia_diabetes")?.checked) addBadge("Fam: DM", "medium");
 }
 
 // --- CÁLCULOS ---
@@ -595,9 +611,6 @@ export function getPatientData() {
         voluntad_anticipada: $('#voluntad_anticipada')?.value,
         
         // Antecedentes específicos
-        hipertension_check: $('#familia_hipertension')?.checked, // Ojo: en tu template usaste IDs de familia para personales? Verifica esto.
-        // En tu template nuevo, los IDs son 'diabetes_check', 'asma_check'. 
-        // Corregiré los nombres basados en tu template nuevo:
         diabetes_check: $('#diabetes_check')?.checked,
         asma_check: $('#asma_check')?.checked,
         cardiopatias_check: $('#cardiopatias_check')?.checked,
@@ -631,7 +644,6 @@ export function getPatientData() {
         sustancias: $('#sustancias')?.value,
         estadofisico: $('#estadofisico')?.value,
         sueno: $('#Sueno')?.value,
-        saludsexual: $('#saludsexual')?.value,
         
         ocupacion: $('#ocupacion')?.value,
         educacion: $('#educacion')?.value,
