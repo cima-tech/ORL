@@ -25,7 +25,7 @@ const STYLES = `
     
     .patient-header-left { display: flex; align-items: center; gap: 20px; }
     
-    /* AVATAR DE PACIENTE MEJORADO (Soporte Carga) */
+    /* AVATAR DE PACIENTE */
     .patient-avatar-container {
         width: 60px; height: 60px;
         border-radius: 50%;
@@ -35,9 +35,8 @@ const STYLES = `
         overflow: hidden;
         cursor: pointer;
         transition: all 0.2s;
-        position: relative; /* Para el texto overlay en portal */
     }
-    .patient-avatar-container:hover { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+    .patient-avatar-container:hover { border-color: var(--primary); }
     .patient-avatar-container img { width: 100%; height: 100%; object-fit: cover; }
     .patient-avatar-icon { font-size: 2rem; color: var(--text-muted); }
     
@@ -312,7 +311,9 @@ export function generatePatientInternalId() {
 export function togglePatientDetails() {
     const details = $(".patient-details");
     const toggleBtn = $(".patient-toggle-btn i");
+    
     if(!details || !toggleBtn) return;
+
     details.classList.toggle('hidden');
     if (details.classList.contains('hidden')) {
         toggleBtn.className = 'bi bi-chevron-right';
@@ -331,11 +332,21 @@ export function togglePatientDetails() {
 
 export function updatePatientHeader() {
     const docInput = $("#documento_numero");
-    if (docInput && /^\d+$/.test(docInput.value)) docInput.value = "V-" + docInput.value;
+    if (docInput && /^\d+$/.test(docInput.value)) { 
+        docInput.value = "V-" + docInput.value;
+    }
 
-    const nombreCompleto = [$("#primer_nombre")?.value, $("#segundo_nombre")?.value, $("#primer_apellido")?.value, $("#segundo_apellido")?.value].filter(Boolean).join(' ');
+    const nombreCompleto = [
+        $("#primer_nombre")?.value, 
+        $("#segundo_nombre")?.value, 
+        $("#primer_apellido")?.value, 
+        $("#segundo_apellido")?.value
+    ].filter(Boolean).join(' ');
+    
     const nombreDisplay = nombreCompleto || 'Nuevo Paciente';
-    const docInfo = ($("#documento_tipo")?.value && docInput?.value) ? `${$("#documento_tipo").value}: ${docInput.value}` : 'Doc: ---';
+    const docInfo = ($("#documento_tipo")?.value && docInput?.value) 
+        ? `${$("#documento_tipo").value}: ${docInput.value}` 
+        : 'Doc: ---';
     const edadDisplay = $("#edad_auto")?.value ? `${$("#edad_auto").value} años` : '-- años';
     
     const elName = $("#patient-header-name");
@@ -348,32 +359,47 @@ export function updatePatientHeader() {
     
     updatePatientTimestamps();
     updateAlertsBadge();
-    updateHeaderAvatar(); // Revisa si hay foto
+    updateHeaderAvatar(); // Carga la foto
 }
 
 function updatePatientTimestamps() {
     if (!STATE.patientCreatedTime) STATE.patientCreatedTime = new Date().toISOString();
     STATE.patientModifiedTime = new Date().toISOString();
     const user = STATE.currentUser?.profile?.id || 'u-001';
+    
     const elCreated = $("#patient-meta-created");
     const elModified = $("#patient-meta-modified");
+
     if(elCreated) elCreated.textContent = `Creado: ${fmtDateTime(STATE.patientCreatedTime)} por ${user}`;
     if(elModified) elModified.textContent = ` | Modificado: ${fmtDateTime(STATE.patientModifiedTime)}`;
 }
 
+// LOGICA ALERTAS CORREGIDA
 function updateAlertsBadge() {
     const container = $("#patient-alerts-container");
     if(!container) return;
     container.innerHTML = '';
+
     const addBadge = (text, priority = 'medium') => {
         const tag = document.createElement('span');
         tag.className = 'alert-tag';
         tag.textContent = text;
-        tag.style.backgroundColor = (priority === 'high' || priority === 'critical') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(96, 165, 250, 0.2)';
-        tag.style.color = (priority === 'high' || priority === 'critical') ? '#f87171' : '#60a5fa';
-        tag.style.border = (priority === 'high' || priority === 'critical') ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid transparent';
+        tag.style.fontSize = "0.7rem";
+        tag.style.padding = "2px 6px";
+        tag.style.borderRadius = "8px";
+        tag.style.marginRight = "4px";
+        
+        if (priority === 'high' || priority === 'critical') {
+            tag.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+            tag.style.color = '#f87171';
+            tag.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        } else {
+            tag.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+            tag.style.color = '#60a5fa';
+        }
         container.appendChild(tag);
     };
+
     if ($("#alergias_check")?.checked) addBadge("Alergias", "high");
     if ($("#riesgo_caidas")?.value === "Alto") addBadge("Riesgo Caída", "critical");
     if ($("#diabetes_check")?.checked) addBadge("DM", "high");
@@ -385,27 +411,32 @@ function updateAlertsBadge() {
 }
 
 function updateHeaderAvatar() {
-    // Si ya es un container de foto (ya inicializado), actualizamos la img si hay cambios (opcional)
+    // Busca el header container que ahora es clickable
     const icon = document.querySelector('.patient-avatar-icon');
+    const container = icon?.parentElement;
     
-    // Si aún es el icono base y no el container, lo transformamos
-    if (icon && !icon.parentElement.classList.contains('patient-avatar-container')) {
+    // Si ya lo transformamos en container de foto, actualizamos la imagen si hay
+    if (container && container.classList.contains('patient-avatar-container')) {
+        const img = container.querySelector('img');
+        // Aquí podrías leer de STATE si guardaste la foto
+    } else if (icon) {
+        // Transformar el icono en un uploader la primera vez
         const wrapper = document.createElement('div');
         wrapper.className = 'patient-avatar-container';
-        // Click en foto dispara input file (incluso en mobile)
         wrapper.onclick = (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Evitar que el header colapse
             document.getElementById('patient-photo-input').click();
         };
         
         wrapper.innerHTML = `
             <img id="patient-photo-img" class="hidden">
             <i class="bi bi-person-circle patient-avatar-icon"></i>
-            <input type="file" id="patient-photo-input" hidden accept="image/*;capture=camera">
+            <input type="file" id="patient-photo-input" hidden accept="image/*">
         `;
         
         icon.replaceWith(wrapper);
         
+        // Bind event
         wrapper.querySelector('input').addEventListener('change', function() {
             if (this.files && this.files[0]) {
                 const reader = new FileReader();
@@ -491,6 +522,7 @@ export function toggleConditionalFields() {
             });
         }
     });
+    // Trigger update header to refresh badges
     updateAlertsBadge();
 }
 
@@ -515,14 +547,16 @@ export function initPatientValidators() {
                 target.style.display = check.checked ? 'block' : 'none';
                 target.style.opacity = check.checked ? '1' : '0';
             }
-            updateAlertsBadge(); 
+            updateAlertsBadge(); // Update badges immediately on toggle
         });
     });
+    // Listeners para checkboxes específicos de crónicas que no tienen toggle-target pero afectan el header
     const chronicIds = ['diabetes_check', 'asma_check', 'cardiopatias_check', 'epilepsia_check', 'tiroideos_check', 'familia_hipertension', 'familia_diabetes'];
     chronicIds.forEach(id => {
         const el = $(`#${id}`);
         if(el) el.addEventListener('change', updateAlertsBadge);
     });
+
     const checkConsent = $("#tratamiento_datos");
     const inputFirma = $("#fecha_firma");
     const labelFirma = $("#label_fecha_firma");
@@ -543,6 +577,7 @@ export function initPatientValidators() {
 // --- DATA EXTRACTOR ---
 export function getPatientData() {
     const data = {
+        // ... (Todos los campos se mantienen igual, solo me aseguro que exporte todo)
         uuid: $('#uuid')?.value,
         internal_id: $('#internal_id')?.value,
         documento_tipo: $('#documento_tipo')?.value,
