@@ -9,7 +9,7 @@ export function renderIndicacionesDropdowns(card) {
 
     const activeChips = card.querySelectorAll('.recipe-chips-container .chip.on');
     if (activeChips.length === 0) {
-        container.innerHTML = '<div style="color:#94a3b8; font-size:0.8em; padding:5px; font-style:italic;">Seleccione medicamentos arriba para ver opciones de dosis.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8em; padding:5px; font-style:italic;">Seleccione medicamentos arriba para ver opciones de dosis.</div>';
         return;
     }
 
@@ -27,12 +27,13 @@ export function renderIndicacionesDropdowns(card) {
             const row = document.createElement('div');
             row.style.marginBottom = '8px'; row.style.borderBottom = '1px dashed rgba(255,255,255,0.1)'; row.style.paddingBottom = '5px';
             let optionsHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-            row.innerHTML = `<div style="font-weight:600; font-size:0.85em; color:#60a5fa; margin-bottom:2px;">${med}</div>
+            row.innerHTML = `<div style="font-weight:600; font-size:0.85em; color:var(--accent); margin-bottom:2px;">${med}</div>
                 <select class="form-select indication-select" data-med="${med}" style="width:100%; font-size:0.8em;">${optionsHTML}<option value="custom">-- Escribir manual --</option></select>`;
             container.appendChild(row);
             row.querySelector('select').addEventListener('change', () => syncIndicacionesText(card));
         });
     });
+    // Sincronizar inmediatamente al renderizar por si hay datos previos
     syncIndicacionesText(card);
 }
 
@@ -45,7 +46,9 @@ function syncIndicacionesText(card) {
         text += `• ${med}:\n  ${indicacion}\n\n`;
     });
     const txtInd = card.querySelector('.txt-indicaciones');
-    if (txtInd && !txtInd.dataset.userEdited) {
+    // Solo actualizar si el usuario no ha escrito manualmente algo diferente
+    // Opcional: podrías querer sobrescribir siempre, pero respetamos la edición manual si ya existe
+    if (txtInd) {
         txtInd.value = text.trim();
         updatePlanTratamiento(card, txtInd.value);
     }
@@ -147,10 +150,7 @@ function getCommonData(card) {
     const assets = user.assets || {};
 
     const drName = prof.name || `${prof.title} ${prof.firstname} ${prof.lastname}`;
-    
-    // LOGICA: Si ambos están vacíos, devuelve string vacío.
     const drSpec = profDetails.specialty || prof.title_line_1 || ""; 
-    
     const drInst = user.institution?.name || "";
     const drCode = (profDetails.license_number) ? `MPPS: ${profDetails.license_number}` : "";
 
@@ -188,7 +188,6 @@ export function buildReportHTML(card) {
     const dx = (card.querySelector('.txt-dx')?.value || '').trim();
     const plan = (card.querySelector('.txt-plan')?.value || '').trim();
 
-    // AQUI SE INYECTA EL CSS
     return `<div class="doc-page doc-letter">
         ${getDocStyles('vertical')}
         <div class="doc-container">
@@ -236,10 +235,9 @@ export function buildRecipeHTML(card) {
     const recipe = (card.querySelector('.txt-recipe')?.value || '').trim();
     const indicaciones = (card.querySelector('.txt-indicaciones')?.value || '').trim();
     
-    // CSS Específico para landscape si se desea, por ahora reutilizamos getDocStyles('horizontal')
     const styles = getDocStyles('horizontal');
 
-    // Bloque de firma reutilizable
+    // Bloque de firma para cada columna
     const firmaBlock = `
         <div style="margin-top:auto; text-align:center; font-size:0.75rem; position:relative; min-height:80px;">
             ${d.signImg ? `<img src="${STATE.currentUser.assets.signature_path}" style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:120px;">` : ''}
@@ -250,7 +248,6 @@ export function buildRecipeHTML(card) {
     return `<div class="doc-page doc-letter land">
         ${styles}
         <style>
-            /* Estilos extra específicos para el récipe de 2 columnas */
             .recipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
             .recipe-col { display: flex; flex-direction: column; height: 100%; border-right: 1px dashed #ccc; padding-right: 20px; }
             .recipe-col:last-child { border-right: none; padding-right: 0; padding-left: 20px; }
