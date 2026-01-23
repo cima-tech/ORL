@@ -11,7 +11,7 @@ const STYLES = `
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         border-radius: 16px;
-        padding: 0; /* El padding lo manejan los hijos */
+        padding: 0;
         margin-bottom: 20px;
         overflow: hidden;
         backdrop-filter: blur(var(--blur-strength));
@@ -22,7 +22,7 @@ const STYLES = `
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
 
-    /* Header de la tarjeta */
+    /* Header de la tarjeta - Ahora Clickable */
     .visit-header {
         display: flex;
         justify-content: space-between;
@@ -30,6 +30,10 @@ const STYLES = `
         padding: 15px 20px;
         background: rgba(255, 255, 255, 0.03);
         border-bottom: 1px solid var(--glass-border);
+        cursor: pointer; /* Clickable */
+    }
+    .visit-header:hover {
+        background: rgba(255, 255, 255, 0.07);
     }
     
     /* Cuerpo de la tarjeta */
@@ -89,19 +93,28 @@ const STYLES = `
         padding-top: 15px; margin-top: 10px;
         border-top: 1px solid var(--glass-border);
     }
+    
+    /* Botón toggle igual que patient */
+    .visit-toggle-btn {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
 </style>
 `;
 
 // ==========================================
-// 2. DATA (CONFIGURACIÓN MÉDICA)
+// 2. DATA (CONFIGURACIÓN MÉDICA) - [SIN CAMBIOS]
 // ==========================================
 export const CIMA_DATA = {
   MOTIVOS: ["Obstrucción Nasal","Ronquidos Nocturnos","Respiración Bucal","Rinorrea","Odinofagia","Otorrea","Otalgia","Masa en Cuello","Difonía","Dolor Facial","Cefalea"],
-  
   ANTECEDENTES: ["Alergias","Asma","HTA","Tiroides","DM","IQx","Trauma Acústico"],
-  
   DX: ["Otocerumen Bilateral","Otocerumen Derecho","Otocerumen Izquierdo","Otitis Externa Bilateral","Otitis Externa Derecha","Otitis Externa Izquierda","Otitis Media Aguda Bilateral","Otitis Media Aguda Derecha","Otitis Media Aguda Izquierda","Otitis Media Crónica Perforada Bilateral","Otitis Media Crónica Perforada Derecha","Otitis Media Crónica Perforada Izquierda","Otitis Media Crónica Sucurativa","Otitis Media Crónica Colestetomatosa","Hipoacusia Neurosensorial Profunda Bilateral","Hipoacusia Neurosensorial Profunda Derecha","Hipoacusia Neurosensorial Profunda Izquierda","Hipoacusia Conductiva Leve Bilateral","Hipoacusia Conductiva Leve Derecha","Hipoacusia Conductiva Leve Izquierda","Presbiacusia","Otitis Media Serosa Bilateral","Otitis Media Serosa Derecha","Otitis Media Serosa Izquierda","Faringoamigdalitis Aguda","Tonsilitis Recurrente","Otitis Media Aguda Recurrente","Alto Riesgo Biológico Para Hipoacusia","Rinopatía Obstructiva","Rinitis Alérgica","Poliposis Nasal","Rinosinusitis Aguda Maxiloetmoidal","Rinosinusitis Aguda Maxilar","Rinosinusitis Maxilar Crónica","Rinosinusitis Crónica Con Poliposis Nasal","Lesión En Cuerda Vocal Derecha","Lesión En Cuerda Vocal Izquierda","Parálisis De Cuerda Vocal Bilateral","Parálisis De Cuerda Vocal Derecha","Parálisis De Cuerda Vocal Izquierda","Epistaxis Anterior","Epistaxis Anteroposterior","Epistaxis Posterior","Frenillo Lingual","Antecedente Quirúrgico"],
-  
   RECIPE_MEDS: {
     "Esteroides Nasales": ["Solución Fisiológica","Flinas / Nasonex / Elocon / Flixonase / Nimarin / Budenas (Spray Nasal)","Flinas - Spray Nasal","Nasonex - Spray Nasal","Elocon - Spray Nasal","Flixonase - Spray Nasal","Nimarin - Spray Nasal","Budenas - Spray Nasal","Momentasona o Fluticasona - Spray Nasal"],
     "Antialérgicos": ["Desloratadina - Tabletas 5 mg","Desloratadina - Jarabe","Loratadina - Tabletas 10 mg","Loratadina - Jarabe","Cetirizina - Tabletas 10 mg","Cetirizina - Jarabe","Levocetirizina - Tabletas 5 mg","Levocetirizina - Jarabe","Rinolast - Tabletas","Rinolast - Jarabe","Fexofenadina - Tabletas 120 mg","Fexofenadina - Jarabe","Claricort - Tabletas","Lorecort - Jarabe","Montelukast - Tabletas 4 mg","Montelukast - Tabletas 5 mg","Montelukast - Tabletas 10 mg","Rinomax - Gotas Nasales","Bactroban, Bacitracina, Mupirocina, Muprovan - crema o ungüento"],
@@ -110,7 +123,6 @@ export const CIMA_DATA = {
     "Antibióticos": ["Amoxicilina / Acido Clavulánico - Tabletas 875/125 mg","Amoxicilina / Acido Clavulánico - Suspensión 600 mg / 5 ml","Amoxicilina - Tabletas 500 mg","Amoxicilina - Jarabe","Sultamicilina - Tabletas 750 mg","Sultamicilina - Suspensión 250 mg / 5 ml","Levofloxacina- Tabletas 500 mg","Levofloxacina- Tabletas 750 mg","Moxifloxacina, Moxen, Avelox - Comprimidos 400 mg"],
     "Otros": ["Pulmolix - Sobres","Betahistina - 8 mg","Betahistina - 16 mg","Betahistina - 24 mg","Viajesan - Comprimidos"]
   },
-  
   INDICACIONES_OPTIONS: {
     "Esteroides Nasales": ["Realizar lavados nasales cada 12 horas por 7 días.","Colocar dos aplicaciones en cada fosa nasal cada 12 horas por 1 mes.","Colocar una aplicación en cada fosa nasal cada 12 horas por 1 mes."],
     "Antialérgicos": ["Tomar 1 tableta diaria por 1 mes.","Dar vía oral 1 cc una vez al día por 1 mes.","Dar vía oral 2 cc una vez al día por 1 mes.","Dar vía oral 3 cc una vez al día por 1 mes.","Dar vía oral 4 cc una vez al día por 1 mes.","Dar vía oral 5 cc una vez al día por 1 mes.","Tomar 1 tableta cada 12 horas por 7 días.","Dar vía oral 1 cc cada 12 horas por 7 días.","Dar vía oral 2 cc cada 12 horas por 7 días.","Dar vía oral 3 cc cada 12 horas por 7 días.","Dar vía oral 4 cc cada 12 horas por 7 días.","Dar vía oral 5 cc cada 12 horas por 7 días.","Colocar 3 Gotas en cada fosa nasal cada 8 horas por 5 días.","Colocar 1 aplicación en cada fosa nasal cada 12 horas por 7 días.","Tomar 1 tableta diaria por 3 meses."],
@@ -119,7 +131,6 @@ export const CIMA_DATA = {
     "Antibióticos": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días.","Dar vía oral 1 cc cada 12 horas por 10 días.","Dar vía oral 2 cc cada 12 horas por 10 días.","Dar vía oral 3 cc cada 12 horas por 10 días.","Dar vía oral 4 cc cada 12 horas por 10 días.","Dar vía oral 5 cc cada 12 horas por 10 días.","Dar vía oral 6 cc cada 12 horas por 10 días."],
     "Otros": ["Tomar 1 tableta cada 12 horas por 10 días.","Tomar 1 tableta cada 8 horas por 10 días.","Tomar 1 tableta diaria por 10 días."]
   },
-
   STUDIES: {
     "Nasofibrolaringoscopia": {
       "Fosas Nasales": ["Permeables","No Permeables"],
@@ -239,7 +250,8 @@ export const CIMA_DATA = {
 // 3. TEMPLATE HTML (LA VISTA DE LA TARJETA)
 // ==========================================
 const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId) => `
-    ${STYLES} <div class="visit-header">
+    ${STYLES}
+    <div class="visit-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('i').className = this.nextElementSibling.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';">
       <div style="flex: 1; display: flex; flex-direction: column; margin-left: 10px;">
           <div style="display:flex; align-items:center; gap:10px;">
              <span class="badge">${type}</span>
@@ -251,8 +263,7 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
           </div>
       </div>
 
-      <div style="display: flex; gap: 10px;">
-        <button type="button" class="btn btn-primary btn-small btn-docs"><i class="bi bi-file-text"></i> Documentos</button>
+      <div style="display: flex; gap: 10px;" onclick="event.stopPropagation()"> <button type="button" class="btn btn-primary btn-small btn-docs"><i class="bi bi-file-text"></i> Documentos</button>
         <button type="button" class="btn btn-ghost btn-small text-danger btn-del-visit"><i class="bi bi-x-lg"></i></button>
         <button type="button" class="visit-toggle-btn btn btn-ghost btn-small"><i class="bi bi-chevron-down"></i></button>
       </div>
@@ -391,7 +402,7 @@ const VISIT_TEMPLATE = (cardId, type, createdTime, createdBy, eaAuto, serviceId)
         <button type="button" class="btn btn-ghost btn-small" onclick="document.getElementById('${cardId}').scrollIntoView({behavior: 'smooth'})">
             <i class="bi bi-arrow-up"></i> Subir
         </button>
-        <button type="button" class="btn btn-ghost btn-small btn-collapse-card">
+        <button type="button" class="btn btn-ghost btn-small btn-collapse-card" onclick="document.getElementById('${cardId}').querySelector('.visit-header').click()">
             <i class="bi bi-arrows-collapse"></i> Colapsar
         </button>
       </div>
@@ -432,10 +443,14 @@ export function createVisitCard(type = 'Primera') {
     STATE.visitIdCounter++;
     const cardId = 'visit-' + STATE.visitIdCounter;
     
-    // --- NUEVO: Generar ID único de servicio (PUNTO 3) ---
     const serviceId = generateServiceId();
 
-    const createdBy = STATE.currentUser?.profile?.name || 'Usuario';
+    // PUNTO 3: NOMBRE DE USUARIO REAL
+    let createdBy = 'Usuario';
+    if(STATE.currentUser?.profile?.firstname) {
+        createdBy = STATE.currentUser.profile.firstname + ' ' + (STATE.currentUser.profile.lastname || '');
+    }
+    
     const createdTime = new Date().toISOString();
 
     const wrap = document.createElement('div');
@@ -444,7 +459,7 @@ export function createVisitCard(type = 'Primera') {
     wrap.dataset.type = type;
     wrap.dataset.createdBy = createdBy;
     wrap.dataset.createdAt = createdTime;
-    wrap.dataset.serviceId = serviceId; // Guardamos el ID en el dataset
+    wrap.dataset.serviceId = serviceId; 
 
     const edad = $("#edad_auto")?.value || '';
     const genero = $("#genero")?.value || '';
@@ -453,6 +468,83 @@ export function createVisitCard(type = 'Primera') {
 
     // INYECTAR EL TEMPLATE
     wrap.innerHTML = VISIT_TEMPLATE(cardId, type, createdTime, createdBy, eaAuto, serviceId);
+
+    // ==========================================
+    // PUNTO 5: LÓGICA DE HERENCIA (MODEL-SPECIFIC)
+    // ==========================================
+    
+    // Obtener todas las tarjetas ACTUALES en el DOM (antes de insertar esta nueva)
+    // Nota: Como 'wrap' aun no esta en el DOM, visitsContainer tiene las viejas.
+    // Asumimos que las nuevas se insertan al principio (prepend/insertBefore).
+    const existingCards = Array.from(document.querySelectorAll('.visit-card'));
+    
+    if (existingCards.length === 0) {
+        // --- CASO 1: PRIMERA CONSULTA ---
+        // Heredar de la Ficha del Paciente (Checkboxes -> Texto)
+        const checkMap = {
+            'alergias_check': 'Alergias',
+            'diabetes_check': 'Diabetes',
+            'asma_check': 'Asma',
+            'cardiopatias_check': 'Cardiopatía',
+            'epilepsia_check': 'Epilepsia',
+            'tiroideos_check': 'Tiroides',
+            'cronicas_check': 'Enf. Crónicas'
+        };
+        
+        let antecedentes = [];
+        for (const [id, label] of Object.entries(checkMap)) {
+            if ($(`#${id}`)?.checked) antecedentes.push(label);
+        }
+        // Agregar texto libre si existe
+        if ($('#otros_antecedentes')?.value) antecedentes.push($('#otros_antecedentes').value);
+        if ($('#alergias_detalle')?.value) antecedentes.push($('#alergias_detalle').value);
+        
+        const txtAntPers = wrap.querySelector('.txt-antecedentes-personales');
+        if (txtAntPers) txtAntPers.value = antecedentes.join(', ');
+
+        // Familiares
+        let familiares = [];
+        if ($('#familia_hipertension')?.checked) familiares.push('HTA');
+        if ($('#familia_diabetes')?.checked) familiares.push('DM');
+        if ($('#familia_cardiopatias')?.checked) familiares.push('Cardiopatía');
+        if ($('#familia_cancer')?.checked) familiares.push('Cáncer');
+        if ($('#familia_geneticas')?.value) familiares.push($('#familia_geneticas').value);
+        
+        const txtAntFam = wrap.querySelector('.txt-antecedentes-familiares');
+        if (txtAntFam) txtAntFam.value = familiares.join(', ');
+
+    } else {
+        // --- CASO 2: CONSULTA SUCESIVA ---
+        // Heredar de la consulta anterior (la primera en la lista actual)
+        const prevCard = existingCards[0]; // La mas reciente
+        
+        const fieldsToCopy = [
+            '.txt-antecedentes-personales',
+            '.txt-antecedentes-familiares',
+            // Anamnesis
+            '.txt-motivo', // Opcional, a veces se repite
+            '.txt-ea',     // Opcional
+            // Examen Fisico (Area 2)
+            '.txt-exam-cara',
+            '.txt-exam-oido-derecho',
+            '.txt-exam-oido-izquierdo',
+            '.txt-exam-nariz',
+            '.txt-exam-orofaringe',
+            '.txt-exam-cuello'
+        ];
+
+        fieldsToCopy.forEach(selector => {
+            const prevVal = prevCard.querySelector(selector)?.value;
+            const currInput = wrap.querySelector(selector);
+            if (prevVal && currInput) {
+                currInput.value = prevVal;
+                // Marcar como no editado por usuario para que los chips funcionen sobre esto si se desea
+                // currInput.dataset.userEdited = '1'; // Descomentar si queremos protegerlo
+            }
+        });
+    }
+
+    // --- FIN LOGICA HERENCIA ---
 
     // --- INYECCIÓN DE CHIPS ---
     const motivoContainer = wrap.querySelector('.chips-motivo');
@@ -519,23 +611,12 @@ export function createVisitCard(type = 'Primera') {
 
     // --- EVENT LISTENERS ---
     
-    wrap.querySelector('.visit-toggle-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const body = wrap.querySelector('.visit-body');
-        const icon = wrap.querySelector('.visit-toggle-btn i');
-        body.classList.toggle('hidden');
-        icon.className = body.classList.contains('hidden') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
-    });
-
     wrap.querySelector('.btn-del-visit')?.addEventListener('click', (e) => {
         e.stopPropagation();
         if(confirm('¿Eliminar esta consulta?')) wrap.remove();
     });
     
-    wrap.querySelector('.btn-collapse-card').addEventListener('click', () => {
-        wrap.querySelector('.visit-body').classList.add('hidden');
-        wrap.querySelector('.visit-toggle-btn i').className = 'bi bi-chevron-right';
-    });
+    // (Ya no necesitamos el listener del toggle button explicito porque el onclick está en el HTML)
 
     wrap.addEventListener('chip-toggle', (e) => {
         const { label, active } = e.detail;
